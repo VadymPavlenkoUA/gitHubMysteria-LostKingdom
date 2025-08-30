@@ -6,6 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     private PlayerInputActions inputActions;
     private Rigidbody rb;
+    private Animator animator;
 
     private Vector2 moveInput;
 
@@ -18,6 +19,7 @@ public class PlayerController : MonoBehaviour
     {
         inputActions = new PlayerInputActions();
         rb = GetComponent<Rigidbody>();
+        animator = GetComponentInChildren<Animator>();
     }
 
     private void OnEnable()
@@ -46,12 +48,23 @@ public class PlayerController : MonoBehaviour
 
         Vector3 move = moveDir * moveSpeed * Time.fixedDeltaTime;
         rb.MovePosition(rb.position + move);
+
+        if (moveDir != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(moveDir);
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, 0.1f));
+        }
+
+        if (animator != null)
+       {
+            animator.SetFloat("Speed", moveDir.magnitude);
+       }
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
@@ -60,6 +73,11 @@ public class PlayerController : MonoBehaviour
         if (inputActions.Player.Jump.WasPressedThisFrame() && Mathf.Abs(rb.linearVelocity.y) < 0.01f) 
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+
+            if (animator != null)
+            {
+                animator.SetTrigger("Jump");
+            }
         }
     }
 }
