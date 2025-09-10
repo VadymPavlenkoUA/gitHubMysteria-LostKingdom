@@ -7,11 +7,13 @@ public class PlayerController : MonoBehaviour
     private PlayerInputActions inputActions;
     private Rigidbody rb;
     private Animator animator;
+    public PlayerStats stats;
 
     private Vector2 moveInput;
 
     public float moveSpeed = 1f;
     public float jumpForce = 3f;
+    public float jumpStaminaCost = 25f;
 
     public Transform cameraTransform;
 
@@ -20,6 +22,7 @@ public class PlayerController : MonoBehaviour
         inputActions = new PlayerInputActions();
         rb = GetComponent<Rigidbody>();
         animator = GetComponentInChildren<Animator>();
+        stats = GetComponent<PlayerStats>();
     }
 
     private void OnEnable()
@@ -60,7 +63,6 @@ public class PlayerController : MonoBehaviour
             animator.SetFloat("Speed", moveDir.magnitude);
        }
     }
-
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -70,13 +72,17 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
+        if (MenuController.Instance.IsInputBlocked()) return;
         if (inputActions.Player.Jump.WasPressedThisFrame() && Mathf.Abs(rb.linearVelocity.y) < 0.01f) 
         {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-
-            if (animator != null)
+            if (stats != null && stats.TryUseStamina(jumpStaminaCost))
             {
-                animator.SetTrigger("Jump");
+                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+
+                if (animator != null)
+                {
+                    animator.SetTrigger("Jump");
+                }
             }
         }
     }
