@@ -6,6 +6,7 @@ public class InventoryUIManager : MonoBehaviour
     public Inventory inventory;
     public GameObject slotPrefab;
     public Transform slotsParent;
+    public SplitStackUI splitStackUI;
 
     private InventorySlotUI[] slotUIs;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -17,6 +18,11 @@ public class InventoryUIManager : MonoBehaviour
         {
             GameObject obj = Instantiate(slotPrefab, slotsParent);
             slotUIs[i] = obj.GetComponent<InventorySlotUI>();
+        }
+
+        foreach (var slot in slotUIs)
+        {
+            slot.splitStackUI = splitStackUI;
         }
 
         RefreshUI();
