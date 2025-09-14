@@ -67,6 +67,11 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                 bool ctrl = Keyboard.current.leftCtrlKey.isPressed;
                 if (ctrl && slot.count > 1)
                 {
+                    if (!otherSlotUI.slot.IsEmpty && otherSlotUI.slot.item != slot.item)
+                    {
+                        TryStackOrSwap(otherSlotUI);
+                        return;
+                    }
                     splitStackUI.Show(slot.count - 1, (amountChosen) =>
                     {
                         int spaceLeft = otherSlotUI.slot.IsEmpty ? amountChosen : otherSlotUI.slot.item.maxStack - otherSlotUI.slot.count;

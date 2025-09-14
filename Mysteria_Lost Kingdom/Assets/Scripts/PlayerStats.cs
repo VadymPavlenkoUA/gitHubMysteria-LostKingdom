@@ -61,13 +61,22 @@ public class PlayerStats : MonoBehaviour
 
     public bool TryUseStamina(float amount)
     {
-        if (currentStamina < amount) return false;
+        if (currentStamina >= amount)
+        {
+            currentStamina -= amount;
+            regenTimer = regenDelay;
+            UpdateUI();
+            return true;
+        }
+        return false;
+    }
 
+    public void UseStamina(float amount)
+    {
         currentStamina -= amount;
+        currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
         regenTimer = regenDelay;
-        currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
         UpdateUI();
-        return true;
     }
 
     private void Die()

@@ -1,7 +1,9 @@
 using System.IO;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
     private PlayerInputActions inputActions;
@@ -11,9 +13,34 @@ public class PlayerController : MonoBehaviour
 
     private Vector2 moveInput;
 
+    [Header("Movement")]
     public float moveSpeed = 1f;
+    public float sprintMultiplier = 1.8f;
+    public float sprintStaminaDrain = 12f;
+
+    [Header("Jump")]
     public float jumpForce = 3f;
     public float jumpStaminaCost = 25f;
+
+    [Header("Roll")]
+    public float rollSpeed = 7f;
+    public float rollDuration = 0.6f;
+    public float rollStaminaCost = 20f;
+    public float rollCoolDown = 0.5f;
+    public float rollInvulTime = 0.35f; // час "ірвінгі" (без урону)
+
+    [Header("Ground Check")]
+    public float groundCheckDistance = 0.3f;
+    public LayerMask groundMask = ~0;
+
+    [Header("Debug")]
+    public bool useRootMotionForRoll = false; // для root motion
+
+    private bool isSprinting = false;
+    private bool isRolling = false;
+    private float rollTimer = 0f;
+    private float rollCoolDownTimer = 0f;
+    private Vector2 rollDirection = Vector3.zero;
 
     public Transform cameraTransform;
 
@@ -48,42 +75,166 @@ public class PlayerController : MonoBehaviour
         camRight.Normalize();
 
         Vector3 moveDir = camForward * moveInput.y + camRight * moveInput.x;
+        float currentSpeed = moveSpeed;
 
-        Vector3 move = moveDir * moveSpeed * Time.fixedDeltaTime;
+        if (isRolling)
+        {
+            Vector3 vel = rb.linearVelocity; // !!!
+            Vector3 target = rollDirection * rollSpeed;
+            rb.linearVelocity = new Vector3(target.x, vel.y, target.z);
+
+            if (rollDirection.sqrMagnitude > 0.0001f)
+            {
+                Quaternion targetRot = Quaternion.LookRotation(rollDirection);
+                rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, 20f * Time.fixedDeltaTime));
+            }
+            return;
+        }
+
+        if (isSprinting)
+        {
+            currentSpeed *= sprintMultiplier;
+        }
+
+        Vector3 move = moveDir * currentSpeed * Time.fixedDeltaTime;
         rb.MovePosition(rb.position + move);
 
         if (moveDir != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(moveDir);
-            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, 0.1f));
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, 10f * Time.fixedDeltaTime));
+        }
+    }
+
+    private void StartRoll()
+    {
+        isRolling = true;
+        rollTimer = rollDuration;
+        rollCoolDownTimer = rollCoolDown;
+
+        Vector3 horizontalMove = new Vector3(moveInput.x, 0f, moveInput.y);
+        Vector3 camForward = cameraTransform.forward; camForward.y = 0f; camForward.Normalize();
+        Vector3 camRight = cameraTransform.right; camRight.y = 0f; camRight.Normalize();
+        Vector3 moveDirWorld = camForward * moveInput.y + camRight * moveInput.x;
+
+        if (moveDirWorld.sqrMagnitude > 0.05f)
+        {
+            rollDirection = moveDirWorld.normalized;
+        }
+        else
+        {
+            rollDirection = transform.forward;
         }
 
         if (animator != null)
-       {
-            animator.SetFloat("Speed", moveDir.magnitude);
-       }
+        {
+            //animator.SetTrigger("Roll");
+            animator.Play("Roll", 0, 0f);
+            animator.applyRootMotion = useRootMotionForRoll;
+        }
     }
+
+    private void EndRoll()
+    {
+        isRolling = false;
+        rollDirection = Vector3.zero;
+        if (animator != null)
+        {
+            if (useRootMotionForRoll) animator.applyRootMotion = false;
+        }
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
     }
 
     // Update is called once per frame
     private void Update()
     {
         if (MenuController.Instance.IsInputBlocked()) return;
-        if (inputActions.Player.Jump.WasPressedThisFrame() && Mathf.Abs(rb.linearVelocity.y) < 0.01f) 
-        {
-            if (stats != null && stats.TryUseStamina(jumpStaminaCost))
-            {
-                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
 
-                if (animator != null)
+        // JUMP
+        if (inputActions.Player.Jump.WasPressedThisFrame())
+        {
+            if (IsGrounded())
+            {
+                if (stats != null && TryUseStaminaSafe(jumpStaminaCost))
                 {
-                    animator.SetTrigger("Jump");
+                    rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+                    if (animator != null) animator.SetTrigger("Jump");
                 }
             }
         }
+
+        // ROLL
+        if (!isRolling)
+        {
+            if (inputActions.Player.Roll.WasPressedThisFrame())
+            {
+                if (IsGrounded() && rollCoolDownTimer <= 0f)
+                {
+                    if (TryUseStaminaSafe(rollStaminaCost))
+                    {
+                        StartRoll();
+                    }
+                }
+            }
+        }
+
+        // SPRINT
+        bool sprintPressed = inputActions.Player.Sprint.IsPressed();
+        if (!isRolling && sprintPressed && moveInput.sqrMagnitude > 0.01f && stats != null && stats.currentStamina > 0f)
+        {
+            isSprinting = true;
+        }
+        else
+        {
+            isSprinting = false;
+        }
+
+        if (animator != null)
+        {
+            float speedValue = new Vector2(moveInput.x, moveInput.y).magnitude;
+            animator.SetFloat("Speed", speedValue);
+            animator.SetBool("IsSprinting", isSprinting);
+        }
+
+        if (rollCoolDownTimer > 0f) rollCoolDownTimer -= Time.deltaTime;
+        if (isRolling)
+        {
+            rollTimer -= Time.deltaTime;
+            if (rollTimer <= 0f)
+            {
+                EndRoll();
+            }
+        }
+
+        if (isSprinting)
+        {
+            float drain = sprintStaminaDrain * Time.deltaTime;
+            if (stats != null)
+            {
+                stats.UseStamina(drain);
+                if (stats.currentStamina <= 0f)
+                {
+                    isSprinting = false;
+                }
+            }
+        }
+    }
+
+    private bool IsGrounded()
+    {
+        Vector3 origin = transform.position + Vector3.up * 0.1f;
+        return Physics.Raycast(origin, Vector3.down, groundCheckDistance + 0.05f, groundMask);
+    }
+
+    private bool TryUseStaminaSafe(float amount)
+    {
+        if (stats == null) return false;
+        return stats.TryUseStamina(amount);
     }
 }
