@@ -301,5 +301,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc516f21424412c4e906dfbccb1ddaab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventorySlotUI
+  slotType: 0
+  allowedCategory: -1
   icon: {fileID: 7267644725982121672}
   countText: {fileID: 7995339817619462953}
+  splitStackUI: {fileID: 0}
+  contextMenuPrefab: {fileID: 6717253840933486702, guid: 182639deab435cd4fb26feb5d9e0b467, type: 3}
+  offset: {x: 100, y: 30}

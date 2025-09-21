@@ -2,6 +2,7 @@ using System.IO;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
@@ -55,8 +56,14 @@ public class PlayerController : MonoBehaviour
     private void OnEnable()
     {
         inputActions.Player.Enable();
-        inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        inputActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
+        inputActions.Player.Move.performed += ctx =>
+        {
+            moveInput = ctx.ReadValue<Vector2>();
+        };
+        inputActions.Player.Move.canceled += ctx =>
+        {
+            moveInput = Vector2.zero;
+        };
     }
 
     private void OnDisable()
@@ -120,6 +127,7 @@ public class PlayerController : MonoBehaviour
         if (moveDirWorld.sqrMagnitude > 0.05f)
         {
             rollDirection = moveDirWorld.normalized;
+            transform.rotation = Quaternion.LookRotation(rollDirection);
         }
         else
         {

@@ -1,3 +1,4 @@
+using Unity.Cinemachine;
 using Unity.VisualScripting.Antlr3.Runtime;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
@@ -12,6 +13,7 @@ public class MenuController : MonoBehaviour
     private bool isMMopen = false;
     private bool isGMOpen = false;
     public bool inputBlocked = false;
+    [SerializeField] private CinemachineInputAxisController cinemachineInput;
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -40,6 +42,17 @@ public class MenuController : MonoBehaviour
         if (inputActions.Player.Escape.WasPressedThisFrame())
         {
             isMMopen = !isMMopen;
+            if (isMMopen)
+            {
+                cinemachineInput.enabled = false;
+                Cursor.lockState = CursorLockMode.Confined;
+            }
+            else
+            {
+                cinemachineInput.enabled = true;
+                Cursor.lockState = CursorLockMode.Locked;
+            }
+            Cursor.visible = isMMopen;
             inputBlocked = isMMopen;
             if (isGMOpen) isGMOpen = false;
 
@@ -54,8 +67,18 @@ public class MenuController : MonoBehaviour
         if (inputActions.Player.MainPanel.WasPressedThisFrame())
         {
             isGMOpen = !isGMOpen;
+            if (isGMOpen)
+            {
+                cinemachineInput.enabled = false;
+                Cursor.lockState = CursorLockMode.Confined;
+            }
+            else
+            {
+                cinemachineInput.enabled = true;
+                Cursor.lockState = CursorLockMode.Locked;
+            }
+            Cursor.visible = isGMOpen;
             gameMenu.SetActive(isGMOpen);
-
             //Time.timeScale = isGMOpen ? 0f : 1f;
         }
     }
