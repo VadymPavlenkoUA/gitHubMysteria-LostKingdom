@@ -7,8 +7,12 @@ using Unity.VisualScripting;
 
 public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
-    public static InventorySlotUI DraggedSlot;
+    public enum SlotType { Inventory, Equipment};
+    [SerializeField] private SlotType slotType = SlotType.Inventory;
+    [SerializeField] private ItemCategory allowedCategory;
+
     public Image icon;
+    public Image emptyIcon;
     public TMP_Text countText;
     public SplitStackUI splitStackUI;
     public GameObject contextMenuPrefab;
@@ -25,10 +29,12 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (slot.IsEmpty)
         {
             icon.enabled = false;
+            if (slotType == SlotType.Equipment) emptyIcon.enabled = true;
             countText.text = "";
         }
         else
         {
+            if (slotType == SlotType.Equipment) emptyIcon.enabled = false;
             icon.enabled = true;
             icon.sprite = slot.item.icon;
             countText.text = slot.count > 1 ? slot.count.ToString() : "";
@@ -56,8 +62,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         if (slot == null || slot.IsEmpty) return;
 
-        DraggedSlot = this;
-
         draggingIcon = new GameObject("DraggingIcon");
         draggingIcon.transform.SetParent(transform.root);
         draggingIcon.transform.SetAsLastSibling();
@@ -81,8 +85,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        DraggedSlot = null;
-
         if (draggingIcon != null) Destroy(draggingIcon);
         if (slot == null || slot.IsEmpty) return;
         if (eventData.pointerEnter != null)
@@ -91,6 +93,15 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             if (otherSlotUI != null && otherSlotUI != this)
             {
                 ItemDescriptionUI.Instance.ShowDescription(slot.item.description);
+                if (otherSlotUI.slotType == SlotType.Equipment)
+                {
+                    if ((slot.item.categories & otherSlotUI.allowedCategory) == 0)
+                    {
+                        Debug.Log("Not that category!");
+                        return;
+                    }
+                }
+
                 bool ctrl = Keyboard.current.leftCtrlKey.isPressed;
                 if (ctrl && slot.count > 1)
                 {
@@ -124,26 +135,37 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     private void TryStackOrSwap(InventorySlotUI other)
     {
-        if (slot.item == other.slot.item && slot.item != null)
-        {
-            int remaining = other.slot.AddItem(slot.item, slot.count);
-            slot.count = remaining;
-
-            SetSlot(slot);
-            other.SetSlot(other.slot);
-
-            if (slot.count <= 0)
+        if (slotType == SlotType.Inventory && other.slotType == SlotType.Inventory) 
+        { 
+            if (slot.item == other.slot.item && slot.item != null)
             {
-                slot.Clear();
+                int remaining = other.slot.AddItem(slot.item, slot.count);
+                slot.count = remaining;
+
                 SetSlot(slot);
+                other.SetSlot(other.slot);
+
+                if (slot.count <= 0)
+                {
+                    slot.Clear();
+                    SetSlot(slot);
+                }
+                return;
             }
-            return;
         }
         SwapSlots(other);
     }
 
     private void SwapSlots(InventorySlotUI other)
     {
+        if (slotType == SlotType.Equipment && !other.slot.IsEmpty)
+        {
+            if ((other.slot.item.categories & allowedCategory) == 0)
+            {
+                Debug.Log("Not that category!");
+                return;
+            }
+        }
         InventorySlot temp = new InventorySlot();
         temp.item = slot.item;
         temp.count = slot.count;

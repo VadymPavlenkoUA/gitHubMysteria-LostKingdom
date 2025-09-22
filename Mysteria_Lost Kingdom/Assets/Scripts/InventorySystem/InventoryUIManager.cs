@@ -10,6 +10,7 @@ public class InventoryUIManager : MonoBehaviour
     public Transform slotsParent;
     public SplitStackUI splitStackUI;
 
+    public InventorySlotUI[] equipmentSlots;
     private InventorySlotUI[] slotUIs;
 
     private void Awake()
@@ -35,6 +36,11 @@ public class InventoryUIManager : MonoBehaviour
             slot.splitStackUI = splitStackUI;
         }
 
+        foreach (var eqSlot in equipmentSlots)
+        {
+            if (eqSlot.slot == null) eqSlot.slot = new InventorySlot(); 
+        }
+
         RefreshUI();
     }
 
@@ -52,6 +58,11 @@ public class InventoryUIManager : MonoBehaviour
         for (int i = 0; i < inventory.slots.Count; i++)
         {
             slotUIs[i].SetSlot(inventory.slots[i]);
+        }
+
+        foreach (var eqSlot in equipmentSlots)
+        {
+            eqSlot.SetSlot(eqSlot.slot);
         }
     }
 
