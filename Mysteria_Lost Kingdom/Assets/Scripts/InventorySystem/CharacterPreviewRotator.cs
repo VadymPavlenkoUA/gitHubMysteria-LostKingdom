@@ -1,12 +1,17 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class CharacterPreviewRotator : MonoBehaviour
 {
     public float rotationSpeed = 100f;
     public RectTransform panelRect;
     private bool isDragging;
+    public GraphicRaycaster graphicRaycaster;
+    public EventSystem eventSystem;
+    public LayerMask uiCharacterLayer;
 
     void Update()
     {
@@ -19,6 +24,22 @@ public class CharacterPreviewRotator : MonoBehaviour
         {
             if (RectTransformUtility.RectangleContainsScreenPoint(panelRect, mousePos))
             {
+                PointerEventData pointerData = new PointerEventData(eventSystem);
+                pointerData.position = mousePos;
+
+                List<RaycastResult> results = new List<RaycastResult>();
+                graphicRaycaster.Raycast(pointerData, results);
+
+                foreach (var result in results)
+                {
+                    var go = result.gameObject;
+
+                    if (go == panelRect.gameObject) continue;
+                    if (((1 << go.layer) & uiCharacterLayer.value) != 0)
+                    {
+                        return;
+                    }
+                }
                 isDragging = true;
             }
         }

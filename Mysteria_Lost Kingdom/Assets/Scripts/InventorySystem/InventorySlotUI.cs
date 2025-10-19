@@ -225,7 +225,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         for (int i = 0; i < slot.count; i++)
         {
             Vector3 dropPos = player.transform.position + transform.forward * 1f;
-            dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 0.5f, Random.Range(-0.2f, 0.2f));
+            dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 1f, Random.Range(-0.2f, 0.2f));
 
             Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
         }

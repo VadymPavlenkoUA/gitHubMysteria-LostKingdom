@@ -16,8 +16,8 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 0a02bba35ec1b074cac9b200cab1e1f5, type: 3}
   maxStack: 5
   weight: 0.2
-  itemPrefab: {fileID: 526426342358586755, guid: 6a46117712eeb8f4584eae0bf7e42565, type: 3}
-  categories: 8
+  itemPrefab: {fileID: 248453010565958524, guid: 25bdc4bb90cb4754db09751843f0091a, type: 3}
+  categories: 1024
   description: "\u0426\u0438\u0431\u0443\u043B\u044F. \u041F\u0440\u043E\u0441\u0442\u0430
     \u0457\u0441\u0442\u0456\u0432\u043D\u0430 \u0440\u043E\u0441\u043B\u0438\u043D\u0430,
     \u0434\u043E\u0434\u0430\u0454 \u0441\u0438\u043B \u0456 \u0432\u0456\u0434\u043D\u043E\u0432\u043B\u044E\u0454
