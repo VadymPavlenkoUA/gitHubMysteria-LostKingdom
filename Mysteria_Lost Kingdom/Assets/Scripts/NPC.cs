@@ -3,13 +3,11 @@ using UnityEngine;
 
 public class NPC : MonoBehaviour, IInteractable
 {
-    public string npcName = "Марко";
-    public GameObject dialogPanel;
-    [SerializeField] private CinemachineInputAxisController cinemachineInput;
+    public DialogueData dialogueData;
 
     public string GetInteractionNameText()
     {
-        return $"Поговорити з {npcName}";
+        return $"Поговорити з {dialogueData.npcName}";
     }
 
     public string GetInteractionBTNText()
@@ -19,11 +17,7 @@ public class NPC : MonoBehaviour, IInteractable
 
     public void Interact()
     {
-        //DialogueManager.Instance.StartDialogue(npcName);
-        dialogPanel.SetActive(true);
-        cinemachineInput.enabled = false;
-        Cursor.lockState = CursorLockMode.Confined;
-        Cursor.visible = true;
+        DialogueManager.Instance.StartDialogue(dialogueData);
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
