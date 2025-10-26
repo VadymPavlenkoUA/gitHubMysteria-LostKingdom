@@ -15615,7 +15615,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 02d3af3973d47124d995cab4f81f4575, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -16474,7 +16474,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u041C\u0430\u0440\u043A\u043E"
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 6faaa0e37551f0d4fa53ce9653c7d0f1, type: 2}
@@ -18554,7 +18554,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1929603325
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19796,8 +19796,10 @@ MonoBehaviour:
   dialogueUI: {fileID: 1278347222}
   chatHistoryText: {fileID: 1463149979}
   npcNameText: {fileID: 1722472394}
+  npcIcon: {fileID: 1669551451}
   optionsParent: {fileID: 2033132974}
   optionButtonPrefab: {fileID: 2673425796052862543, guid: a186f680522163340b976530400bf895, type: 3}
+  mainCharacterName: "\u0425\u0430\u043D\u043A"
   typingSpeed: 0.02
   cinemachineInput: {fileID: 1414304142}
 --- !u!4 &1991111855

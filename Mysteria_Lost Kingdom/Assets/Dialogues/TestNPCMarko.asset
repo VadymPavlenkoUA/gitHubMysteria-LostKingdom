@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: TestNPCMarko
   m_EditorClassIdentifier: Assembly-CSharp::DialogueData
   npcName: "\u041C\u0430\u0440\u043A\u043E"
+  npcIcon: {fileID: 21300000, guid: 02d3af3973d47124d995cab4f81f4575, type: 3}
   lines:
   - npcName: "\u041C\u0430\u0440\u043A\u043E"
     text: "\u041F\u0440\u0438\u0432\u0456\u0442, \u043C\u0430\u043D\u0434\u0440\u0456\u0432\u043D\u0438\u043A\u0443.

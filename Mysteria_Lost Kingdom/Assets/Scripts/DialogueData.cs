@@ -20,5 +20,6 @@ public class DialogueLine
 public class DialogueData : ScriptableObject
 {
     public string npcName;
+    public Sprite npcIcon;
     public List<DialogueLine> lines;
 }

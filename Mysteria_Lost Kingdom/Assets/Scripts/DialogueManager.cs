@@ -17,10 +17,13 @@ public class DialogueManager : MonoBehaviour
     public GameObject dialogueUI;
     public TMP_Text chatHistoryText;
     public TMP_Text npcNameText;
+    public Image npcIcon;
     public Transform optionsParent;
     public Button optionButtonPrefab;
+    public string mainCharacterName;
     public float typingSpeed = 0.02f;
 
+    private Coroutine typingCoroutine;
     private DialogueData currentDialogue;
     private int currentLineIndex;
     private List<string> messages = new List<string>();
@@ -48,6 +51,7 @@ public class DialogueManager : MonoBehaviour
     {
         var line = currentDialogue.lines[currentLineIndex];
         npcNameText.text = line.npcName;
+        npcIcon.sprite = currentDialogue.npcIcon;
 
         messages.Add($"<b><< {line.npcName}:</b> ");
         chatHistoryText.text = string.Join("\n", messages);
@@ -70,43 +74,69 @@ public class DialogueManager : MonoBehaviour
             btn.onClick.AddListener(() => EndDialogue());
         }
 
-        StartCoroutine(TypeText(line.text, messages.Count - 1));
+        typingCoroutine = StartCoroutine(TypeText(line.text, messages.Count - 1));
     }
 
     private IEnumerator TypeText(string text, int index)
     {
+        if (index < 0 || index >= messages.Count) yield break;
+
         StringBuilder sb = new StringBuilder(messages[index]);
         foreach (char c in text)
         {
+            if (index < 0 || index >= messages.Count) yield break;
+
             sb.Append(c);
             messages[index] = sb.ToString();
             chatHistoryText.text = string.Join("\n", messages);
             yield return new WaitForSeconds(typingSpeed);
         }
+        typingCoroutine = null;
     }
 
     private void OnOptionSelected(string playerText, int nextLineID)
     {
-        messages.Add($"<b>> ֳנאגוצü:</b> {playerText}");
+        FinishCurrentTyping();
+        messages.Add($"<b>>> {mainCharacterName}:</b> {playerText}");
         chatHistoryText.text = string.Join("\n", messages);
         if (nextLineID < 0)
         {
             EndDialogue();
             return;
         }
-
         currentLineIndex = nextLineID;
         ShowLine();
     }
 
     private void EndDialogue()
     {
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+        }
+
         dialogueUI.SetActive(false);
         currentDialogue = null;
         messages.Clear();
         cinemachineInput.enabled = true;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+    }
+
+    private void FinishCurrentTyping()
+    {
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+
+            int index = messages.Count - 1;
+            var line = currentDialogue.lines[currentLineIndex];
+            messages[index] = $"<b><< {line.npcName}:</b> {line.text}";
+            chatHistoryText.text = string.Join("\n", messages);
+
+            typingCoroutine = null;
+        }
     }
 
     private void ClearOptions()
