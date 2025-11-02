@@ -1,3 +1,4 @@
+using System.ComponentModel.Design;
 using System.IO;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -13,6 +14,7 @@ public class PlayerController : MonoBehaviour
     public PlayerStats stats;
 
     private Vector2 moveInput;
+    private bool isFreeLook = false;
 
     [Header("Movement")]
     public float moveSpeed = 1f;
@@ -41,7 +43,7 @@ public class PlayerController : MonoBehaviour
     private bool isRolling = false;
     private float rollTimer = 0f;
     private float rollCoolDownTimer = 0f;
-    private Vector2 rollDirection = Vector3.zero;
+    private Vector3 rollDirection = Vector3.zero;
 
     public Transform cameraTransform;
 
@@ -56,6 +58,7 @@ public class PlayerController : MonoBehaviour
     private void OnEnable()
     {
         inputActions.Player.Enable();
+
         inputActions.Player.Move.performed += ctx =>
         {
             moveInput = ctx.ReadValue<Vector2>();
@@ -64,6 +67,9 @@ public class PlayerController : MonoBehaviour
         {
             moveInput = Vector2.zero;
         };
+
+        inputActions.Player.FreeLook.performed += ctx => isFreeLook = true;
+        inputActions.Player.FreeLook.canceled += ctx => isFreeLook = false;
     }
 
     private void OnDisable()
@@ -106,10 +112,31 @@ public class PlayerController : MonoBehaviour
         Vector3 move = moveDir * currentSpeed * Time.fixedDeltaTime;
         rb.MovePosition(rb.position + move);
 
-        if (moveDir != Vector3.zero)
+        if (!isFreeLook)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(moveDir);
-            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, 10f * Time.fixedDeltaTime));
+            if (moveDir != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(moveDir);
+                rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, 10f * Time.fixedDeltaTime));
+            }
+            else
+            {
+                Vector3 camForwardFlat = cameraTransform.forward;
+                camForwardFlat.y = 0f;
+                if (camForwardFlat.sqrMagnitude > 0.01f)
+                {
+                    Quaternion targetRotation = Quaternion.LookRotation(camForwardFlat);
+                    rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, 10f * Time.fixedDeltaTime));
+                }
+            }
+        }
+        else
+        {
+            if (moveDir != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(moveDir);
+                rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, 10f * Time.fixedDeltaTime));
+            }
         }
     }
 
@@ -119,20 +146,32 @@ public class PlayerController : MonoBehaviour
         rollTimer = rollDuration;
         rollCoolDownTimer = rollCoolDown;
 
-        Vector3 horizontalMove = new Vector3(moveInput.x, 0f, moveInput.y);
-        Vector3 camForward = cameraTransform.forward; camForward.y = 0f; camForward.Normalize();
-        Vector3 camRight = cameraTransform.right; camRight.y = 0f; camRight.Normalize();
+        //Vector3 horizontalMove = new Vector3(moveInput.x, 0f, moveInput.y);
+        //Vector3 camForward = cameraTransform.forward; camForward.y = 0f; camForward.Normalize();
+        //Vector3 camRight = cameraTransform.right; camRight.y = 0f; camRight.Normalize();
+        //Vector3 moveDirWorld = camForward * moveInput.y + camRight * moveInput.x;
+
+        Vector3 camForward = cameraTransform.forward;
+        camForward.y = 0f;
+        camForward.Normalize();
+
+        Vector3 camRight = cameraTransform.right;
+        camRight.y = 0f;
+        camRight.Normalize();
+
         Vector3 moveDirWorld = camForward * moveInput.y + camRight * moveInput.x;
 
         if (moveDirWorld.sqrMagnitude > 0.05f)
         {
             rollDirection = moveDirWorld.normalized;
-            transform.rotation = Quaternion.LookRotation(rollDirection);
         }
         else
         {
-            rollDirection = transform.forward;
+            rollDirection = camForward;
         }
+
+        Quaternion targetRot = Quaternion.LookRotation(rollDirection);
+        rb.MoveRotation(targetRot);
 
         if (animator != null)
         {
@@ -156,7 +195,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.interpolation = RigidbodyInterpolation.None;
     }
 
     // Update is called once per frame

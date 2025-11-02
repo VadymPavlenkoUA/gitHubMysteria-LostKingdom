@@ -24,6 +24,10 @@ public class AIRequest
 
 public class AssistantAI : MonoBehaviour
 {
+    [Header("References")]
+    public PlayerStats playerStats;
+    public Inventory inventory;
+
     [Header("UI Elements")]
     public TMP_InputField inputField;
     public Button sendButton;
@@ -54,7 +58,9 @@ public class AssistantAI : MonoBehaviour
     private IEnumerator SendAIRequest(string prompt)
     {
         string url = "http://localhost:5000/ask";
-        string json = JsonUtility.ToJson(new AIRequest(prompt));
+        string statsInfo = GetStatsSummary();
+        string fullPrompt = $"[Player Stats]\n{statsInfo}\n\n[Question]\n{prompt}";
+        string json = JsonUtility.ToJson(new AIRequest(fullPrompt));
 
         using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
         {
@@ -94,6 +100,22 @@ public class AssistantAI : MonoBehaviour
             // Поступово додаємо текст по символах
             yield return StartCoroutine(TypeText(aiText, messageIndex - 1));
         }
+    }
+
+    private string GetStatsSummary()
+    {
+        if (playerStats == null) return "Player stats are unknown. Say you don't know.";
+        
+        return $"Level: {playerStats.level}\n" +
+            $"Vitality: {playerStats.vitality}\n" +
+            $"Strength: {playerStats.strength}\n" +
+            $"Endurance: {playerStats.endurance}\n" +
+            $"Agility: {playerStats.agility}\n" +
+            $"Intellect: {playerStats.intellect}\n" +
+            $"Faith: {playerStats.faith}\n" +
+            $"Health points: {playerStats.currentHealth}/{playerStats.maxHealth}\n" +
+            $"Stamina: {playerStats.currentStamina}/{playerStats.maxStamina}\n" +
+            $"Current / Max Weight: {inventory.CurrentWeight} / {playerStats.maxWeight}";
     }
 
     private IEnumerator TypeText(string text, int index)

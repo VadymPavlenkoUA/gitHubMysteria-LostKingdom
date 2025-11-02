@@ -1,4 +1,6 @@
 using System;
+using System.Globalization;
+using TMPro;
 using UnityEngine;
 
 public class InventoryUIManager : MonoBehaviour
@@ -9,6 +11,7 @@ public class InventoryUIManager : MonoBehaviour
     public GameObject slotPrefab;
     public Transform slotsParent;
     public SplitStackUI splitStackUI;
+    public TextMeshProUGUI weightText;
 
     public InventorySlotUI[] equipmentSlots;
     private InventorySlotUI[] slotUIs;
@@ -41,6 +44,8 @@ public class InventoryUIManager : MonoBehaviour
             if (eqSlot.slot == null) eqSlot.slot = new InventorySlot(); 
         }
 
+        inventory.playerStats.CalculateDerivedStats();
+        inventory.playerStats.StatsChanged += RefreshWeightEquipText;
         RefreshUI();
     }
 
@@ -64,6 +69,14 @@ public class InventoryUIManager : MonoBehaviour
         {
             eqSlot.SetSlot(eqSlot.slot);
         }
+
+        RefreshWeightEquipText();
+    }
+
+    private void RefreshWeightEquipText()
+    {
+        weightText.text = $"Трур: {inventory.CurrentWeight.ToString("0.0", CultureInfo.InvariantCulture)} / " +
+            $"{inventory.playerStats.maxWeight.ToString("0.0", CultureInfo.InvariantCulture)}";
     }
 
     // Update is called once per frame

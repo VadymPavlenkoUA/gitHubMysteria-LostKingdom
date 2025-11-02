@@ -14,6 +14,7 @@ public class DialogueManager : MonoBehaviour
     public static DialogueManager Instance;
 
     [Header ("UI Elements")]
+    public DialogueHistoryManager dialogueHistoryManager;
     public GameObject dialogueUI;
     public TMP_Text chatHistoryText;
     public TMP_Text npcNameText;
@@ -54,6 +55,7 @@ public class DialogueManager : MonoBehaviour
         npcIcon.sprite = currentDialogue.npcIcon;
 
         messages.Add($"<b><< {line.npcName}:</b> ");
+        dialogueHistoryManager.AddEntry(line.npcName, line.text, false);
         chatHistoryText.text = string.Join("\n", messages);
         ClearOptions();
 
@@ -97,7 +99,8 @@ public class DialogueManager : MonoBehaviour
     private void OnOptionSelected(string playerText, int nextLineID)
     {
         FinishCurrentTyping();
-        messages.Add($"<b>>> {mainCharacterName}:</b> {playerText}");
+        messages.Add($"<b>>>{mainCharacterName}:</b> {playerText}");
+        dialogueHistoryManager.AddEntry(mainCharacterName, playerText, true);
         chatHistoryText.text = string.Join("\n", messages);
         if (nextLineID < 0)
         {

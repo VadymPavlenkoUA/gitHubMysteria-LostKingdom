@@ -16,7 +16,7 @@ chat_history = [
             Do not give real-world information. \
             If the question does not concern the game world, answer mysteriously or evade. \
             Answer briefly and concisely, no need for a huge text, just enough for the player to understand everything. \
-            If asked to reply in another language (e.g., Ukrainian), first warn: ""Ця мова для мене не зовсім звична, проте я спробую тобі допомогти,"" then give your answer on that language."
+            If asked to reply in another language (e.g., Ukrainian), first warn: ""Ця мова для мене не зовсім звична, або ти допустив помилку, проте я спробую тобі допомогти,"" then give your answer on that language."
         )
     }
 ]

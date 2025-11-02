@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class Inventory : MonoBehaviour
 {
     public int slotCount = 20;
-    public float maxWeight = 50f;
+    public PlayerStats playerStats;
 
     public List<InventorySlot> slots = new List<InventorySlot>();
 
@@ -29,7 +29,7 @@ public class Inventory : MonoBehaviour
 
     public bool AddItem(Item item, int amount = 1)
     {
-        if (CurrentWeight + item.weight * amount > maxWeight)
+        if (CurrentWeight + item.weight * amount > playerStats.maxWeight)
         {
             Debug.Log("Перевищено вагу!");
             return false;
