@@ -73,6 +73,12 @@ public class InventoryUIManager : MonoBehaviour
         RefreshWeightEquipText();
     }
 
+    public void NotifyInventoryChanged()
+    {
+        if (inventory != null)
+            inventory.NotifyInventoryChanged();
+    }
+
     private void RefreshWeightEquipText()
     {
         weightText.text = $"Трур: {inventory.CurrentWeight.ToString("0.0", CultureInfo.InvariantCulture)} / " +

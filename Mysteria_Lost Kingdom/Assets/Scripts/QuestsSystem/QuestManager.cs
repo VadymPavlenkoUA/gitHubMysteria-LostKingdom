@@ -11,6 +11,12 @@ public class QuestManager : MonoBehaviour
     public List<QuestInstance> completedQuests = new();
     public List<QuestInstance> finishedQuests = new();
 
+    public Inventory playerInventory;
+
+    private void Start()
+    {
+        playerInventory.OnInventoryChanged += UpdateQuestsFromInventory;
+    }
     public QuestInstance StartQuest(QuestData questData)
     {
         if (GetActiveQuest(questData) != null)
@@ -22,6 +28,8 @@ public class QuestManager : MonoBehaviour
         var instance = new QuestInstance(questData);
         activeQuests.Add(instance);
         Debug.Log($"Квест '{questData.questName}' розпочато!");
+        instance.UpdateStepStatus(playerInventory);
+        CheckQuestCompletion(instance);
         return instance;
     }
 
@@ -47,6 +55,7 @@ public class QuestManager : MonoBehaviour
 
         instance.CompleteStep(stepIndex);
         Debug.Log($"Крок {stepIndex + 1} у квесті '{questData.questName}' виконано!");
+        instance.UpdateStepStatus(playerInventory);
         CheckQuestCompletion(instance);
     }
 
@@ -97,5 +106,59 @@ public class QuestManager : MonoBehaviour
         var instance = GetActiveQuest(questData);
         if (instance == null) return false;
         return instance.IsStepCompleted(stepIndex);
+    }
+
+    public int GetMaxCompletedStep(QuestData questData)
+    {
+        var instance = GetActiveQuest(questData);
+        if (instance == null) return -1;
+        int maxStep = -1;
+        for (int i = 0; i < instance.steps.Count; i++)
+        {
+            if (instance.steps[i].isComplete)
+                maxStep = i;
+            else
+                break;
+        }
+        return maxStep;
+    }
+
+    private void UpdateQuestsFromInventory()
+    {
+        foreach (var quest in activeQuests)
+        {
+            quest.UpdateStepStatus(InventoryUIManager.Instance.inventory);
+            if (quest.IsQuestCompleted()) CheckQuestCompletion(quest);
+        }
+    }
+
+    public void OnEnemyKilled(string enemyName)
+    {
+        foreach (var quest in activeQuests)
+        {
+            quest.UpdateStepStatus(killedEnemy: enemyName);
+            if (quest.IsQuestCompleted())
+                CheckQuestCompletion(quest);
+        }
+    }
+
+    public void OnVisitedLocation(string locationName)
+    {
+        foreach (var quest in activeQuests)
+        {
+            quest.UpdateStepStatus(visitedLocation: locationName);
+            if (quest.IsQuestCompleted())
+                CheckQuestCompletion(quest);
+        }
+    }
+
+    public void OnTalkedToNPC(string npcName)
+    {
+        foreach (var quest in activeQuests)
+        {
+            quest.UpdateStepStatus(interactedNPC: npcName);
+            if (quest.IsQuestCompleted())
+                CheckQuestCompletion(quest);
+        }
     }
 }

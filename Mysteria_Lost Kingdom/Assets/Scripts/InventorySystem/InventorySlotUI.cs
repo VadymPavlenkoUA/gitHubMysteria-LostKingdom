@@ -233,6 +233,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         slot.Clear();
         SetSlot(slot);
         InventoryUIManager.Instance.RefreshUI();
+        InventoryUIManager.Instance.NotifyInventoryChanged();
     }
     internal void DropItem(int amount)
     {
@@ -257,6 +258,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (slot.count <= 0) slot.Clear();
         SetSlot(slot);
         InventoryUIManager.Instance.RefreshUI();
+        InventoryUIManager.Instance.NotifyInventoryChanged();
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

@@ -269,16 +269,18 @@ public class DialogueManager : MonoBehaviour
 
         if (option.questForStepCheck != null && option.requiredStepIndex >= 0)
         {
+            int maxCompletedStep = qm.GetMaxCompletedStep(option.questForStepCheck);
+            Debug.Log($"{maxCompletedStep} - {option.requiredStepIndex}");
+            if (maxCompletedStep > option.requiredStepIndex) { Debug.Log($"{maxCompletedStep} - {option.requiredStepIndex}"); return false; }
+
             bool isComplete = qm.IsStepCompleted(option.questForStepCheck, option.requiredStepIndex);
             if (option.requireStepCompleted && !isComplete) return false;
             if (!option.requireStepCompleted && isComplete) return false;
         }
         if (option.questToComplete != null)
         {
-            if (QuestManager.Instance.IsQuestFinished(option.completedQuest))
-                return false;
+            if (QuestManager.Instance.IsQuestFinished(option.completedQuest)) return false;
         }
-
         return true;
     }
 
@@ -293,8 +295,7 @@ public class DialogueManager : MonoBehaviour
         int messageIndex = messages.Count - 1;
         chatHistoryText.text = string.Join("\n", messages);
 
-        if (typingCoroutine != null)
-            StopCoroutine(typingCoroutine);
+        if (typingCoroutine != null) StopCoroutine(typingCoroutine);
 
         typingCoroutine = StartCoroutine(TypeText(npcResponse, messageIndex));
 

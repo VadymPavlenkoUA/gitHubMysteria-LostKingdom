@@ -20,11 +20,27 @@ public class QuestReward
     public List<Item> items;
 }
 
+public enum QuestStepType
+{
+    CollectItems,   // Зібрати предмети
+    KillEnemy,      // Вбити ворога
+    VisitLocation,  // Прийти в певну точку
+    TalkToNPC,      // Поговорити з NPC
+    SolvePuzzle     // Розв’язати головоломку
+}
+
 [Serializable]
 public class QuestStep
 {
     public string description;
     public bool isComplete;
+    public QuestStepType stepType;
+
+    public List<Item> requiredItems;
+    public string targetNPC;
+    public string locationName;
+    public string targetEnemy;
+    public int requiredAmount;
 }
 
 [CreateAssetMenu(fileName = "NewQuest", menuName = "Quest/QuestData")]

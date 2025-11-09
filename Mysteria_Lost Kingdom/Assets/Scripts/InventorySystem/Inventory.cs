@@ -1,16 +1,23 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class Inventory : MonoBehaviour
 {
     public int slotCount = 20;
     public PlayerStats playerStats;
 
+    public event Action OnInventoryChanged;
     public List<InventorySlot> slots = new List<InventorySlot>();
 
     public void Awake()
     {
         for (int i = 0; i < slotCount; i++) slots.Add(new InventorySlot());
+    }
+
+    public void NotifyInventoryChanged()
+    {
+        OnInventoryChanged?.Invoke();
     }
 
     public float CurrentWeight
@@ -42,7 +49,11 @@ public class Inventory : MonoBehaviour
             if (slot.item == item && slot.count < item.maxStack)
             {
                 remaining = slot.AddItem(item, remaining);
-                if (remaining <= 0) return true;
+                if (remaining <= 0)
+                {
+                    NotifyInventoryChanged();
+                    return true;
+                }
             }
         }
 
@@ -51,12 +62,29 @@ public class Inventory : MonoBehaviour
             if (slot.IsEmpty)
             {
                 remaining = slot.AddItem(item, remaining);
-                if (remaining <= 0) return true;
+                if (remaining <= 0)
+                {
+                    NotifyInventoryChanged();
+                    return true;
+                }
             }
         }
 
         Debug.Log("Íåìàº ì³ñöÿ â ³íâåíòàð³!");
         return remaining <= 0;
+    }
+
+    public bool HasItem(Item item, int amount = 1)
+    {
+        int total = 0;
+        foreach (var slot in slots)
+        {
+            if (!slot.IsEmpty && slot.item == item)
+                total += slot.count;
+            if (total >= amount)
+                return true;
+        }
+        return false;
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
