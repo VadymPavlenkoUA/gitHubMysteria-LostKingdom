@@ -1,4 +1,4 @@
-# Unity
+# Unity generated folders
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -7,16 +7,25 @@
 [Ll]ogs/
 [Uu]serSettings/
 MemoryCaptures/
+
+# Visual Studio / Rider / System
 .vs/
 .idea/
 *.csproj
 *.sln
 *.user
 *.unityproj
+*.pidb
+*.suo
+*.tmp
 
-# Assets folders not needed
-Assets/ThirdParty/
+# Crash and debug files
+sysinfo.txt
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Exclude builds
+Build/
+Builds/

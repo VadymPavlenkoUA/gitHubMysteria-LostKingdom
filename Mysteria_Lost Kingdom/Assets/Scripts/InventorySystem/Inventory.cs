@@ -87,6 +87,44 @@ public class Inventory : MonoBehaviour
         return false;
     }
 
+    public bool RemoveItem(Item item, int amount = 1, bool notify = true)
+    {
+        if (item == null || amount <= 0) return false;
+
+        int remaining = amount;
+        bool removedAny = false;
+
+        foreach (var slot in slots)
+        {
+            if (slot.IsEmpty) continue;
+            if (slot.item != item) continue;
+
+            if (slot.count >= remaining)
+            {
+                slot.count -= remaining;
+                if (slot.count <= 0) slot.Clear();
+                removedAny = true;
+                remaining = 0;
+                break;
+            }
+            else
+            {
+                remaining -= slot.count;
+                slot.Clear();
+                removedAny = true;
+            }
+        }
+
+        if (removedAny && notify)
+        {
+            InventoryUIManager.Instance.RefreshUI();
+            NotifyInventoryChanged();
+        }
+
+        return removedAny;
+    }
+
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

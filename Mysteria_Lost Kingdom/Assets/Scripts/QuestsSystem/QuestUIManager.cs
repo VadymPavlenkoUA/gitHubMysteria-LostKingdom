@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,6 +8,7 @@ public class QuestUIManager : MonoBehaviour
     [Header("Quests List")]
     public Transform contentParent;
     public GameObject questEntryPrefab;
+    public GameObject categoryButtonPrefab;
 
     [Header("Quests Details")]
     public TMP_Text questTitleText;
@@ -14,6 +16,9 @@ public class QuestUIManager : MonoBehaviour
     public TMP_Text questStepsText;
     public TMP_Text questRewardText;
     public ScrollRect detailsScroll;
+
+    private bool showActive = true;
+    private bool showFinished = true;
 
     private void OnEnable()
     {
@@ -23,13 +28,47 @@ public class QuestUIManager : MonoBehaviour
 
     public void RefreshQuestList()
     {
-        foreach (Transform child in contentParent)
-            Destroy(child.gameObject);
+        foreach (Transform child in contentParent)Destroy(child.gameObject);
 
-        foreach (var questInstance in QuestManager.Instance.activeQuests)
+        var activeHeader = Instantiate(categoryButtonPrefab, contentParent);
+        activeHeader.GetComponentInChildren<TMP_Text>().text = $"Активні квести ({QuestManager.Instance.activeQuests.Count})";
+        var activeBtn = activeHeader.GetComponent<Button>();
+        activeBtn.onClick.AddListener(() =>
+        {
+            showActive = !showActive;
+            RefreshQuestList();
+        });
+        var arrowActive = activeHeader.transform.Find("Arrow");
+        if (arrowActive != null)
+        {
+            arrowActive.localRotation = Quaternion.Euler(0, 0, showActive ? 0f : 90f);
+        }
+
+        if (showActive) AddQuestEntries(QuestManager.Instance.activeQuests);
+
+
+        var finishedHeader = Instantiate(categoryButtonPrefab, contentParent);
+        finishedHeader.GetComponentInChildren<TMP_Text>().text = $"Завершені квести ({QuestManager.Instance.finishedQuests.Count})";
+        var finishedBtn = finishedHeader.GetComponent<Button>();
+        finishedBtn.onClick.AddListener(() =>
+        {
+            showFinished = !showFinished;
+            RefreshQuestList();
+        });
+        var arrowFinish = finishedHeader.transform.Find("Arrow");
+        if (arrowFinish != null)
+        {
+            arrowFinish.localRotation = Quaternion.Euler(0, 0, showFinished ? 0f : 90f);
+        }
+
+        if (showFinished) AddQuestEntries(QuestManager.Instance.finishedQuests);
+    }
+
+    private void AddQuestEntries(List<QuestInstance> quests)
+    {
+        foreach (var questInstance in quests)
         {
             var go = Instantiate(questEntryPrefab, contentParent);
-
             TMP_Text[] texts = go.GetComponentsInChildren<TMP_Text>();
             TMP_Text nameText = texts[0];
             TMP_Text statusText = texts.Length > 1 ? texts[1] : null;

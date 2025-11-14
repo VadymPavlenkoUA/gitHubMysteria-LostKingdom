@@ -75,8 +75,7 @@ public class InventoryUIManager : MonoBehaviour
 
     public void NotifyInventoryChanged()
     {
-        if (inventory != null)
-            inventory.NotifyInventoryChanged();
+        if (inventory != null) inventory.NotifyInventoryChanged();
     }
 
     private void RefreshWeightEquipText()

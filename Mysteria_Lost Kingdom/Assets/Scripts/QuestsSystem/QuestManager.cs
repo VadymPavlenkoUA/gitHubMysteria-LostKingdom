@@ -53,8 +53,21 @@ public class QuestManager : MonoBehaviour
             return;
         }
 
+        var step = instance.steps[stepIndex];
+
         instance.CompleteStep(stepIndex);
         Debug.Log($"Крок {stepIndex + 1} у квесті '{questData.questName}' виконано!");
+
+        if (step.stepType == QuestStepType.DeliverItems && step.removeItemsOnComplete)
+        {
+            foreach (var req in step.requiredItems)
+            {
+                playerInventory.RemoveItem(req.item, req.amount, notify: false);
+            }
+            InventoryUIManager.Instance.RefreshUI();
+            Debug.Log($"Крок '{step.description}': предмети доставлено, інвентар оновлено.");
+        }
+
         instance.UpdateStepStatus(playerInventory);
         CheckQuestCompletion(instance);
     }
@@ -125,7 +138,7 @@ public class QuestManager : MonoBehaviour
 
     private void UpdateQuestsFromInventory()
     {
-        foreach (var quest in activeQuests)
+        foreach (var quest in new List<QuestInstance>(activeQuests))
         {
             quest.UpdateStepStatus(InventoryUIManager.Instance.inventory);
             if (quest.IsQuestCompleted()) CheckQuestCompletion(quest);

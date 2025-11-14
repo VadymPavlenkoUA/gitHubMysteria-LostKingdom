@@ -59,7 +59,8 @@ public class AssistantAI : MonoBehaviour
     {
         string url = "http://localhost:5000/ask";
         string statsInfo = GetStatsSummary();
-        string fullPrompt = $"[Player Stats]\n{statsInfo}\n\n[Question]\n{prompt}";
+        string questInfo = GetQuestSummary();
+        string fullPrompt = $"[Question]\n{prompt}\n\n[Player Stats]\n{statsInfo}\n\n[Quests] (All quest descriptions are for AI context only.)\n{questInfo}";
         string json = JsonUtility.ToJson(new AIRequest(fullPrompt));
 
         using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
@@ -116,6 +117,33 @@ public class AssistantAI : MonoBehaviour
             $"Health points: {playerStats.currentHealth}/{playerStats.maxHealth}\n" +
             $"Stamina: {playerStats.currentStamina}/{playerStats.maxStamina}\n" +
             $"Current / Max Weight: {inventory.CurrentWeight} / {playerStats.maxWeight}";
+    }
+
+    private string GetQuestSummary()
+    {
+        if (QuestManager.Instance == null) return "Quest data unavailable.";
+
+        StringBuilder sb = new StringBuilder();
+
+        foreach (var quest in QuestManager.Instance.activeQuests)
+        {
+            sb.AppendLine($"[Active Quest] AI Description: {quest.data.aiDescription}");
+            sb.AppendLine("Steps:");
+            foreach (var step in quest.steps)
+            {
+                string status = step.isComplete ? "Completed" : "Not completed";
+                sb.AppendLine($"- {status}: {step.description}");
+            }
+            sb.AppendLine();
+        }
+
+        foreach (var quest in QuestManager.Instance.finishedQuests)
+        {
+            sb.AppendLine($"[Finished Quest] AI Description: {quest.data.aiDescription}");
+            sb.AppendLine("All steps completed.\n");
+        }
+
+        return sb.Length > 0 ? sb.ToString() : "No quests found.";
     }
 
     private IEnumerator TypeText(string text, int index)

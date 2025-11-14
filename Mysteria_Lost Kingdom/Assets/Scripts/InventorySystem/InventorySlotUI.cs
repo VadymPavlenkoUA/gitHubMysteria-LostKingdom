@@ -183,7 +183,8 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     internal void UseItem()
     {
         Debug.Log("Use: " + slot.item.name);
-        InventoryUIManager.Instance.RefreshUI();
+        InventoryUIManager.Instance.RefreshUI(); 
+        InventoryUIManager.Instance.NotifyInventoryChanged();
     }
 
     internal void SplitItem()
@@ -220,21 +221,35 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             Debug.Log("Prefab missing!");
             return;
         }
+
+        Inventory inventory = InventoryUIManager.Instance.inventory;
+        if (inventory == null)
+        {
+            Debug.LogWarning("Inventory not found!");
+            return;
+        }
+
+        int amountToDrop = slot.count;
+
+        // 1) Інстанціюємо фізичні префаби (можна інстанціювати після видалення, але краще перед щоб відчути момент)
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player == null) return;
-        for (int i = 0; i < slot.count; i++)
+
+        for (int i = 0; i < amountToDrop; i++)
         {
             Vector3 dropPos = player.transform.position + transform.forward * 1f;
             dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 1f, Random.Range(-0.2f, 0.2f));
-
             Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
         }
 
-        slot.Clear();
-        SetSlot(slot);
+        // 2) Тепер делегуємо видалення інвентарю
+        inventory.RemoveItem(slot.item, amountToDrop);
+
+        // 3) Оновлюємо локальний UI-слот (inventory.NotifyInventoryChanged() вже сповістить RefreshUI через підписку)
+        SetSlot(slot); // тут slot вже змінений методами Inventory.RemoveItem (slot.Clear() викликано у Inventory)
         InventoryUIManager.Instance.RefreshUI();
-        InventoryUIManager.Instance.NotifyInventoryChanged();
     }
+
     internal void DropItem(int amount)
     {
         if (slot == null || slot.IsEmpty) return;
@@ -244,9 +259,13 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             return;
         }
 
+        Inventory inventory = InventoryUIManager.Instance.inventory;
+        if (inventory == null) return;
+
+        int toDrop = Mathf.Min(amount, slot.count);
+
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player == null) return;
-        int toDrop = Mathf.Min(amount, slot.count);
 
         for (int i = 0; i < toDrop; i++)
         {
@@ -254,12 +273,61 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 0.5f, Random.Range(-0.2f, 0.2f));
             Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
         }
-        slot.count -= toDrop;
-        if (slot.count <= 0) slot.Clear();
+
+        inventory.RemoveItem(slot.item, toDrop);
         SetSlot(slot);
         InventoryUIManager.Instance.RefreshUI();
-        InventoryUIManager.Instance.NotifyInventoryChanged();
     }
+
+
+    //internal void DropItem()
+    //{
+    //    if (slot == null || slot.IsEmpty) return;
+    //    if (slot.item.itemPrefab == null)
+    //    {
+    //        Debug.Log("Prefab missing!");
+    //        return;
+    //    }
+    //    GameObject player = GameObject.FindGameObjectWithTag("Player");
+    //    if (player == null) return;
+    //    for (int i = 0; i < slot.count; i++)
+    //    {
+    //        Vector3 dropPos = player.transform.position + transform.forward * 1f;
+    //        dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 1f, Random.Range(-0.2f, 0.2f));
+
+    //        Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
+    //    }
+
+    //    slot.Clear();
+    //    SetSlot(slot);
+    //    InventoryUIManager.Instance.RefreshUI();
+    //    InventoryUIManager.Instance.NotifyInventoryChanged();
+    //}
+    //internal void DropItem(int amount)
+    //{
+    //    if (slot == null || slot.IsEmpty) return;
+    //    if (slot.item.itemPrefab == null)
+    //    {
+    //        Debug.Log("Prefab missing!");
+    //        return;
+    //    }
+
+    //    GameObject player = GameObject.FindGameObjectWithTag("Player");
+    //    if (player == null) return;
+    //    int toDrop = Mathf.Min(amount, slot.count);
+
+    //    for (int i = 0; i < toDrop; i++)
+    //    {
+    //        Vector3 dropPos = player.transform.position + transform.forward * 1f;
+    //        dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 0.5f, Random.Range(-0.2f, 0.2f));
+    //        Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
+    //    }
+    //    slot.count -= toDrop;
+    //    if (slot.count <= 0) slot.Clear();
+    //    SetSlot(slot);
+    //    InventoryUIManager.Instance.RefreshUI();
+    //    InventoryUIManager.Instance.NotifyInventoryChanged();
+    //}
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

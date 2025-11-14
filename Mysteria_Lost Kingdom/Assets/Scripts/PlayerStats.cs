@@ -31,6 +31,11 @@ public class PlayerStats : MonoBehaviour
     public float expToNextLevel = 120;
     public float expGrowthRate = 1.2f;
 
+    [Header("SatietySettings")]
+    public float baseSatiety;
+    public float maxSatiety = 100f;
+    public float currentSatiety = 100f;
+
     [Header("WeightSettings")]
     public float baseWeight = 35f;
     public float maxWeight = 35f;

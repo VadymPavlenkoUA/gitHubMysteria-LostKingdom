@@ -189,7 +189,10 @@ public class DialogueManager : MonoBehaviour
         chatHistoryText.text = string.Join("\n", messages);
 
         if (option.questToStart != null)
-            QuestManager.Instance.StartQuest(option.questToStart);
+        {
+            var questInstance = QuestManager.Instance.StartQuest(option.questToStart);
+            Debug.Log($"Видано квест: {questInstance.data.questName}");
+        }
 
         if (option.questToComplete != null)
             QuestManager.Instance.CompleteStep(option.questToComplete, option.questStepToComplete);
@@ -200,6 +203,8 @@ public class DialogueManager : MonoBehaviour
         if (option.hasFinalResponse && !string.IsNullOrEmpty(option.finalNpcResponse))
         {
             ShowFinalResponse(option.finalNpcResponse);
+            dialogueHistoryManager.AddEntry(currentDialogue.npcName, option.finalNpcResponse, false);
+            chatHistoryText.text = string.Join("\n", messages);
             return;
         }
 

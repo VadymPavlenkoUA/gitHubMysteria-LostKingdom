@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
 
 [Serializable]
 public class QuestInstance
@@ -21,11 +23,13 @@ public class QuestInstance
                 description = step.description,
                 isComplete = false,
                 stepType = step.stepType,
-                requiredItems = step.requiredItems != null ? new List<Item>(step.requiredItems) : new List<Item>(),
+                requiredItems = step.requiredItems != null ? new List<RequiredItem>(step.requiredItems) : new List<RequiredItem>(),
+                removeItemsOnComplete = step.removeItemsOnComplete,
                 targetNPC = step.targetNPC,
                 locationName = step.locationName,
                 targetEnemy = step.targetEnemy,
-                requiredAmount = step.requiredAmount
+                requiredAmount = step.requiredAmount,
+                linkedStepIndices = step.linkedStepIndices != null ? new List<int>(step.linkedStepIndices) : new List<int>()
             });
         }
     }
@@ -57,22 +61,36 @@ public class QuestInstance
     {
         foreach (var step in steps)
         {
-            if (step.isComplete) continue;
-
             switch (step.stepType)
             {
                 case QuestStepType.CollectItems:
                     if (inventory != null && step.requiredItems != null && step.requiredItems.Count > 0)
                     {
                         bool hasAllItems = true;
-                        foreach (var item in step.requiredItems)
+                        foreach (var req in step.requiredItems)
                         {
-                            if (!inventory.HasItem(item))
+                            if (!inventory.HasItem(req.item, req.amount))
                             {
                                 hasAllItems = false;
                                 break;
                             }
                         }
+
+                        if (!hasAllItems && step.linkedStepIndices != null)
+                        {
+                            foreach (int linkedIndex in step.linkedStepIndices)
+                            {
+                                if (linkedIndex >= 0 && linkedIndex < steps.Count)
+                                {
+                                    if (steps[linkedIndex].isComplete)
+                                    {
+                                        hasAllItems = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
                         step.isComplete = hasAllItems;
                     }
                     break;
