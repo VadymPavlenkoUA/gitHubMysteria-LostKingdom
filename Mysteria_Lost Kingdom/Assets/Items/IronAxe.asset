@@ -1,26 +1,3 @@
-%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 361430c0c02696c4f9b19b4a8a688a17, type: 3}
-  m_Name: IronAxe
-  m_EditorClassIdentifier: Assembly-CSharp::Item
-  itemName: "\u0417\u0430\u043B\u0456\u0437\u043D\u0430 \u0441\u043E\u043A\u0438\u0440\u0430"
-  icon: {fileID: 21300000, guid: 1ce0db7e01b73b742bf3a1f5db18dc97, type: 3}
-  maxStack: 1
-  weight: 3
-  itemPrefab: {fileID: 8619985138928909068, guid: a6fe4963b6ae5a845861aa4c2635123d, type: 3}
-  categories: 33
-  description: "\u0417\u0430\u043B\u0456\u0437\u043D\u0430 \u0441\u043E\u043A\u0438\u0440\u0430.
-    \u0421\u0442\u0430\u0440\u0430, \u0430\u043B\u0435 \u043A\u0440\u0435\u043F\u043A\u0430
-    \u0441\u043E\u043A\u0438\u0440\u0430, \u0433\u0430\u0440\u043D\u043E \u043F\u0456\u0434\u0445\u043E\u0434\u0438\u0442\u044C
-    \u044F\u043A \u0434\u043B\u044F \u0440\u0443\u0431\u0430\u043D\u043D\u044F \u0434\u0435\u0440\u0435\u0432\u0430,
-    \u0442\u0430\u043A \u0456 \u0456\u043D\u0448\u043E\u0433\u043E.\n\u0423\u0440\u043E\u043D:
-    10\n\u041C\u0456\u0446\u043D\u0456\u0441\u0442\u044C: 178/180"
+version https://git-lfs.github.com/spec/v1
+oid sha256:31c892cfae64eaeca1c5a7f102af0cbba868aa7c9dee48f8f7e47c9028c8c579
+size 1319
