@@ -5,6 +5,12 @@ using UnityEngine.UI;
 
 public class QuestUIManager : MonoBehaviour
 {
+    public static QuestUIManager Instance { get; private set; }
+    private void Awake()
+    {
+        Instance = this;
+    }
+
     [Header("Quests List")]
     public Transform contentParent;
     public GameObject questEntryPrefab;
@@ -75,6 +81,9 @@ public class QuestUIManager : MonoBehaviour
 
             nameText.text = questInstance.data.questName;
             statusText.text = $"{CompletedStepsCount(questInstance)}/{questInstance.steps.Count}";
+
+            var tracker = go.GetComponent<QuestTrackToggle>();
+            if (tracker != null) tracker.Init(questInstance);
 
             var btn = go.GetComponent<Button>();
             btn.onClick.AddListener(() => ShowQuestDetails(questInstance));

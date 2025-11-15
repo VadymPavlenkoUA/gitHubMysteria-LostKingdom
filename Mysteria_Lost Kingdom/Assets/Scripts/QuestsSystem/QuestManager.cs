@@ -13,6 +13,8 @@ public class QuestManager : MonoBehaviour
 
     public Inventory playerInventory;
 
+    public QuestInstance trackedQuest;
+
     private void Start()
     {
         playerInventory.OnInventoryChanged += UpdateQuestsFromInventory;
@@ -173,5 +175,15 @@ public class QuestManager : MonoBehaviour
             if (quest.IsQuestCompleted())
                 CheckQuestCompletion(quest);
         }
+    }
+
+    public void TrackQuest(QuestInstance instance)
+    {
+        trackedQuest = instance;
+    }
+
+    public void UntrackQuest()
+    {
+        trackedQuest = null;
     }
 }

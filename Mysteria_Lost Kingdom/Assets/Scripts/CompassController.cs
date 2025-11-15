@@ -15,10 +15,11 @@ public class CompassController : MonoBehaviour
 
     private float halfWidth;
 
-    [Header("Quest Marker")]
+    [Header("QuestMarker")]
     public RectTransform questMarker;
-    public Transform questTarget;
-    public bool showQuestMarker = false;
+
+    [Header("CompassSettings")]
+    public float compassScale = 4;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -40,38 +41,51 @@ public class CompassController : MonoBehaviour
         {
             Vector3 dir = Quaternion.Euler(0, directionAngels[i], 0) * Vector3.forward;
             float angle = Vector3.SignedAngle(forward, dir, Vector3.up);
-            float posX = (angle / 180f) * halfWidth;
+            float posX = (angle / 180f) * halfWidth * compassScale;
             directionLabels[i].rectTransform.anchoredPosition = new Vector2(posX, 0);
         }
     }
 
     void UpdateQuestMarker()
     {
-        if (!showQuestMarker || questTarget == null)
+        var trackedQuest = QuestManager.Instance.trackedQuest;
+        if (trackedQuest == null)
+        {
+            questMarker.gameObject.SetActive(false);
+            return;
+        }
+        var step = trackedQuest.GetFirstIncompleteStep();
+        if (step == null)
+        {
+            questMarker.gameObject.SetActive(false);
+            return;
+        }
+
+        Transform target = null;
+        Debug.Log($"{step.targetName}");
+        if (!string.IsNullOrEmpty(step.targetName))
+        {
+            GameObject obj = GameObject.Find(step.targetName);
+            if (obj != null) target = obj.transform;
+        }
+        else if (!string.IsNullOrEmpty(step.targetTag))
+        {
+            GameObject obj = GameObject.FindWithTag(step.targetTag);
+            if (obj != null) target = obj.transform;
+        }
+
+        if (target == null)
         {
             questMarker.gameObject.SetActive(false);
             return;
         }
 
         questMarker.gameObject.SetActive(true);
-
-        Vector3 forward = new Vector3(cameraPlayer.forward.x, 0, cameraPlayer.forward.z).normalized;
-        Vector3 dirToTarget = (questTarget.position - cameraPlayer.position);
+        Vector3 dirToTarget = (target.position - cameraPlayer.position);
         dirToTarget.y = 0;
-        dirToTarget.Normalize();
-        float angle = Vector3.SignedAngle(forward, dirToTarget, Vector3.up);
-        float posX = Mathf.Clamp((angle / 180f) * halfWidth, -halfWidth, halfWidth);
+        Vector3 forward = new Vector3(cameraPlayer.forward.x, 0, cameraPlayer.forward.z).normalized;
+        float angle = Vector3.SignedAngle(forward, dirToTarget.normalized, Vector3.up);
+        float posX = Mathf.Clamp((angle / 180f) * halfWidth * compassScale, -halfWidth, halfWidth);
         questMarker.anchoredPosition = new Vector2(posX, 0);
-    }
-
-    public void ShowQuestMarker(Transform target)
-    {
-        questTarget = target;
-        showQuestMarker = true;
-    }
-
-    public void HideQuestMarker()
-    {
-        showQuestMarker = false;
     }
 }

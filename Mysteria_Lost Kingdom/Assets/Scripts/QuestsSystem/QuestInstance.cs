@@ -29,6 +29,8 @@ public class QuestInstance
                 locationName = step.locationName,
                 targetEnemy = step.targetEnemy,
                 requiredAmount = step.requiredAmount,
+                targetName = step.targetName,
+                targetTag = step.targetTag,
                 linkedStepIndices = step.linkedStepIndices != null ? new List<int>(step.linkedStepIndices) : new List<int>()
             });
         }
@@ -51,6 +53,12 @@ public class QuestInstance
         foreach (var step in steps)
             if (!step.isComplete) return false;
         return true;
+    }
+
+    public QuestStep GetFirstIncompleteStep()
+    {
+        foreach (var step in steps) if (!step.isComplete) return step;
+        return null;
     }
 
     public void UpdateStepStatus(

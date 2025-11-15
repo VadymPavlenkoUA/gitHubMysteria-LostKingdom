@@ -44,6 +44,9 @@ public class QuestStep
     public string targetEnemy;
     public int requiredAmount;
 
+    [Header("Navigation")]
+    public string targetName;
+    public string targetTag;
 
     [Header("Step dependencies")]
     [Tooltip("якщо будь-€кий ≥з цих крок≥в виконано, цей крок автоматично вважаЇтьс€ виконаним")]
