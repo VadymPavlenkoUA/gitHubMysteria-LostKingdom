@@ -80,6 +80,9 @@ public class QuestManager : MonoBehaviour
         {
             activeQuests.Remove(instance);
             completedQuests.Add(instance);
+
+            if (trackedQuest == instance) trackedQuest = null;
+
             Debug.Log($" вест '{instance.data.questName}' виконано!");
             ClaimReward(instance);
         }

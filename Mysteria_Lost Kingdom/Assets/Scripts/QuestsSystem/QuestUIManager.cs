@@ -30,6 +30,11 @@ public class QuestUIManager : MonoBehaviour
     {
         RefreshQuestList();
         ClearDetails();
+
+        if (QuestManager.Instance.trackedQuest != null)
+        {
+            ShowQuestDetails(QuestManager.Instance.trackedQuest);
+        }
     }
 
     public void RefreshQuestList()
@@ -50,7 +55,7 @@ public class QuestUIManager : MonoBehaviour
             arrowActive.localRotation = Quaternion.Euler(0, 0, showActive ? 0f : 90f);
         }
 
-        if (showActive) AddQuestEntries(QuestManager.Instance.activeQuests);
+        if (showActive) AddQuestEntries(QuestManager.Instance.activeQuests, hideTracker: false);
 
 
         var finishedHeader = Instantiate(categoryButtonPrefab, contentParent);
@@ -67,10 +72,10 @@ public class QuestUIManager : MonoBehaviour
             arrowFinish.localRotation = Quaternion.Euler(0, 0, showFinished ? 0f : 90f);
         }
 
-        if (showFinished) AddQuestEntries(QuestManager.Instance.finishedQuests);
+        if (showFinished) AddQuestEntries(QuestManager.Instance.finishedQuests, hideTracker: true);
     }
 
-    private void AddQuestEntries(List<QuestInstance> quests)
+    private void AddQuestEntries(List<QuestInstance> quests, bool hideTracker)
     {
         foreach (var questInstance in quests)
         {
@@ -83,7 +88,18 @@ public class QuestUIManager : MonoBehaviour
             statusText.text = $"{CompletedStepsCount(questInstance)}/{questInstance.steps.Count}";
 
             var tracker = go.GetComponent<QuestTrackToggle>();
-            if (tracker != null) tracker.Init(questInstance);
+            if (tracker != null)
+            {
+                if (hideTracker)
+                {
+                    tracker.toggle.gameObject.SetActive(false);
+                }
+                else
+                {
+                    ShowQuestDetails(questInstance);
+                    tracker.Init(questInstance);
+                }
+            }
 
             var btn = go.GetComponent<Button>();
             btn.onClick.AddListener(() => ShowQuestDetails(questInstance));
