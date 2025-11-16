@@ -116,6 +116,12 @@ public class QuestUIManager : MonoBehaviour
 
     private void ShowQuestDetails(QuestInstance quest)
     {
+        if (quest == null || quest.data == null)
+        {
+            ClearDetails();
+            return;
+        }
+
         questTitleText.text = quest.data.questName;
         questDescriptionText.text = quest.data.description;
 

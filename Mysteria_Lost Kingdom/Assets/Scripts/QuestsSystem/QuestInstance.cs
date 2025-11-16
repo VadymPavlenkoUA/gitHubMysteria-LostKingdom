@@ -74,6 +74,28 @@ public class QuestInstance
                 case QuestStepType.CollectItems:
                     if (inventory != null && step.requiredItems != null && step.requiredItems.Count > 0)
                     {
+                        if (step.isComplete) break;
+
+                        bool isLinkedComplete = false;
+
+                        if (step.linkedStepIndices != null)
+                        {
+                            foreach (int linkedIndex in step.linkedStepIndices)
+                            {
+                                if (linkedIndex >= 0 && linkedIndex < steps.Count && steps[linkedIndex].isComplete)
+                                {
+                                    isLinkedComplete = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (isLinkedComplete)
+                        {
+                            step.isComplete = true;
+                            break;
+                        }
+
                         bool hasAllItems = true;
                         foreach (var req in step.requiredItems)
                         {
@@ -84,24 +106,10 @@ public class QuestInstance
                             }
                         }
 
-                        if (!hasAllItems && step.linkedStepIndices != null)
-                        {
-                            foreach (int linkedIndex in step.linkedStepIndices)
-                            {
-                                if (linkedIndex >= 0 && linkedIndex < steps.Count)
-                                {
-                                    if (steps[linkedIndex].isComplete)
-                                    {
-                                        hasAllItems = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
                         step.isComplete = hasAllItems;
                     }
                     break;
+
 
                 case QuestStepType.KillEnemy:
                     if (!string.IsNullOrEmpty(killedEnemy) && killedEnemy == step.targetEnemy)

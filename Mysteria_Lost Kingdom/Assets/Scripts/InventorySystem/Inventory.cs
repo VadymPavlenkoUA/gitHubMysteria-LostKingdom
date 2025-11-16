@@ -87,6 +87,19 @@ public class Inventory : MonoBehaviour
         return false;
     }
 
+    public int GetItemCount(Item item)
+    {
+        if (item == null) return 0;
+        int total = 0;
+        foreach (var slot in slots)
+        {
+            if (!slot.IsEmpty && slot.item == item)
+                total += slot.count;
+        }
+        return total;
+    }
+
+
     public bool RemoveItem(Item item, int amount = 1, bool notify = true)
     {
         if (item == null || amount <= 0) return false;

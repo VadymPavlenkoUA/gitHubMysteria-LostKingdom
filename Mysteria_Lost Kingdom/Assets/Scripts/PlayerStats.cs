@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.UI;
@@ -52,6 +53,9 @@ public class PlayerStats : MonoBehaviour
     public float staminaDrain = 10f;
     public float staminaRegen = 5f;
     public float regenDelay = 2f;
+
+    [Header("Professions")]
+    public List<ProfessionStat> professions;
 
     [Header("UI")]
     public Slider healthBar;
@@ -293,4 +297,22 @@ public class PlayerStats : MonoBehaviour
         healthBar.value = currentHealth;
         staminaBar.value = currentStamina;
     }
+
+    public ProfessionStat GetProfession(CraftingProfession prof)
+    {
+        return professions.Find(p => p.profession == prof);
+    }
+
+    public void AddProfessionExp(CraftingProfession prof, float amount)
+    {
+        var p = GetProfession(prof);
+        p.exp += amount;
+        while (p.exp >= p.expToNext)
+        {
+            p.exp -= p.expToNext;
+            p.level++;
+            p.expToNext = Mathf.Round(p.expToNext * p.growth);
+        }
+    }
+
 }
