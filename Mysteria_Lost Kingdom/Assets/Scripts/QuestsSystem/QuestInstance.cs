@@ -72,41 +72,41 @@ public class QuestInstance
             switch (step.stepType)
             {
                 case QuestStepType.CollectItems:
-                    if (inventory != null && step.requiredItems != null && step.requiredItems.Count > 0)
+                    bool hasAllItems = true;
+
+                    foreach (var req in step.requiredItems)
                     {
-                        if (step.isComplete) break;
-
-                        bool isLinkedComplete = false;
-
-                        if (step.linkedStepIndices != null)
+                        if (!inventory.HasItem(req.item, req.amount))
                         {
-                            foreach (int linkedIndex in step.linkedStepIndices)
+                            hasAllItems = false;
+                            break;
+                        }
+                    }
+
+                    if (!hasAllItems && step.linkedStepIndices != null)
+                    {
+                        foreach (int linkedIndex in step.linkedStepIndices)
+                        {
+                            if (linkedIndex >= 0 && linkedIndex < steps.Count)
                             {
-                                if (linkedIndex >= 0 && linkedIndex < steps.Count && steps[linkedIndex].isComplete)
+                                if (steps[linkedIndex].isComplete)
                                 {
-                                    isLinkedComplete = true;
+                                    hasAllItems = true;
                                     break;
                                 }
                             }
                         }
+                    }
 
-                        if (isLinkedComplete)
-                        {
-                            step.isComplete = true;
-                            break;
-                        }
+                    step.isComplete = hasAllItems;
 
-                        bool hasAllItems = true;
+                    if (hasAllItems && step.removeItemsOnComplete)
+                    {
                         foreach (var req in step.requiredItems)
                         {
-                            if (!inventory.HasItem(req.item, req.amount))
-                            {
-                                hasAllItems = false;
-                                break;
-                            }
+                            inventory.RemoveItem(req.item, req.amount);
                         }
-
-                        step.isComplete = hasAllItems;
+                        Debug.Log($"Крок '{step.description}': предмети забрано.");
                     }
                     break;
 

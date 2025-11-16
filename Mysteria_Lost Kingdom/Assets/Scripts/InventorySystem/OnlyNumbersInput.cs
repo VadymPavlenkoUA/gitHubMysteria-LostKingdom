@@ -9,11 +9,13 @@ public class OnlyNumbersInput : MonoBehaviour
     {
         inputField.characterLimit = 3;
         inputField.contentType = TMP_InputField.ContentType.IntegerNumber;
+        inputField.onEndEdit.AddListener(ValidateInput);
     }
-
-    // Update is called once per frame
-    void Update()
+    private void ValidateInput(string text)
     {
-        
+        if (string.IsNullOrEmpty(text) || int.Parse(text) < 1)
+        {
+            inputField.text = "1";
+        }
     }
 }

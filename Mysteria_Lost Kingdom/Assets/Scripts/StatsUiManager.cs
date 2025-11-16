@@ -48,6 +48,9 @@ public class StatsUiManager : MonoBehaviour
     public Button confirmBTN;
     public Button cancelBTN;
 
+    [Header("CraftingProffesions")]
+    public TextMeshProUGUI[] professionTexts;
+
     public TextMeshProUGUI healthEquipText;
     public TextMeshProUGUI staminaEquipText;
     public TextMeshProUGUI satietyEquipText;
@@ -75,7 +78,7 @@ public class StatsUiManager : MonoBehaviour
         levelCircleText.text = $"{playerStats.level}";
         expText.text = $"Досвід: {playerStats.currentExp.ToString("0.0", CultureInfo.InvariantCulture)} / " +
             $"{playerStats.expToNextLevel.ToString("0.0", CultureInfo.InvariantCulture)}";
-        vitalityText.text = $"Здоров’я: {playerStats.vitality}";
+        vitalityText.text = $"Живучість: {playerStats.vitality}";
         strengthText.text = $"Сила: {playerStats.strength}";
         enduranceText.text = $"Стійкість: {playerStats.endurance}";
         agilityText.text = $"Гнучкість: {playerStats.agility}";
@@ -129,6 +132,13 @@ public class StatsUiManager : MonoBehaviour
             playerStats.pendingAgility + playerStats.pendingIntellect + playerStats.pendingFaith > 0;
         confirmBTN.gameObject.SetActive(hasPending);
         cancelBTN.gameObject.SetActive(hasPending);
+
+        for(int i = 0; i < professionTexts.Length; i++)
+        {
+            var prof = (CraftingProfession)i; 
+            var p = playerStats.GetProfession(prof); 
+            professionTexts[i].text = $"{p.proffesionName}: {p.level}";
+        }
     }
 
     private void UpdatesHealthOnly()

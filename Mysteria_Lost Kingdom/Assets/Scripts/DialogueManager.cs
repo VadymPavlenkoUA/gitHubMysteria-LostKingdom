@@ -188,14 +188,14 @@ public class DialogueManager : MonoBehaviour
         dialogueHistoryManager.AddEntry(mainCharacterName, option.playerResponse, true);
         chatHistoryText.text = string.Join("\n", messages);
 
+        if (option.questToComplete != null)
+            QuestManager.Instance.CompleteStep(option.questToComplete, option.questStepToComplete);
+
         if (option.questToStart != null)
         {
             var questInstance = QuestManager.Instance.StartQuest(option.questToStart);
             Debug.Log($"Видано квест: {questInstance.data.questName}");
         }
-
-        if (option.questToComplete != null)
-            QuestManager.Instance.CompleteStep(option.questToComplete, option.questStepToComplete);
 
         if (option.makeLineNonRepeatable || option.endsThisLinePermanently)
             DialogueTracker.Instance.MarkLineCompleted(currentDialogue.name, currentLineIndex);

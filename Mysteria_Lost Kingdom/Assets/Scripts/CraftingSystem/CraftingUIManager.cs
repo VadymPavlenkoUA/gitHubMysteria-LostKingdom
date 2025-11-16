@@ -24,6 +24,8 @@ public class CraftingUIManager : MonoBehaviour
 
     public Button craftButton;
 
+    public CraftQuantitySelector quantitySelector;
+
     private CraftingProfession currentProfession;
     private CraftingRecipe selectedRecipe;
 
@@ -36,6 +38,7 @@ public class CraftingUIManager : MonoBehaviour
         SelectProfession(0);
 
         inventory.OnInventoryChanged += OnInventoryChanged;
+        quantitySelector.onQuantityChanged += UpdateIngredientsForQuantity;
     }
     private void OnInventoryChanged()
     {
@@ -48,10 +51,27 @@ public class CraftingUIManager : MonoBehaviour
             btn.Refresh();
     }
 
+    void UpdateIngredientsForQuantity(int newQuantity)
+    {
+        if (selectedRecipe == null) return;
+        int quant = quantitySelector.quantity;
+
+        foreach (Transform child in ingredientListParent)
+        {
+            IngredientUI ingUI = child.GetComponent<IngredientUI>();
+            if (ingUI != null)
+            {
+                ingUI.SetMultiplier(quant);
+            }
+        }
+    }
+
+
     public void SelectProfession(int profIndex)
     {
         selectedRecipe = null;
         currentProfession = (CraftingProfession)profIndex;
+        quantitySelector.SetQuantity(1);
         UpdateProfessionPanel();
         PopulateRecipes();
         PopulateIngredients();
@@ -85,6 +105,7 @@ public class CraftingUIManager : MonoBehaviour
     public void SelectRecipe(CraftingRecipe r)
     {
         selectedRecipe = r;
+        quantitySelector.SetQuantity(1);
         PopulateIngredients();
     }
 
@@ -92,37 +113,42 @@ public class CraftingUIManager : MonoBehaviour
     {
         ClearChildren(ingredientListParent);
         if (selectedRecipe == null) return;
+
+        int quant = quantitySelector.quantity;
+
         foreach (var ing in selectedRecipe.ingredients)
         {
             var obj = Instantiate(ingredientPrefab, ingredientListParent);
-            obj.GetComponent<IngredientUI>().Setup(ing, inventory);
+            obj.GetComponent<IngredientUI>().Setup(ing, inventory, quant);
         }
     }
 
     void Craft()
     {
         if (selectedRecipe == null) return;
+        int craftAmount = quantitySelector.quantity;
 
         foreach (var ing in selectedRecipe.ingredients)
         {
-            if (!inventory.HasItem(ing.item, ing.amount))
+            if (!inventory.HasItem(ing.item, ing.amount * craftAmount))
             {
                 Debug.Log("Не вистачає інгредієнтів");
                 return;
             }
         }
 
-        foreach (var ing in selectedRecipe.ingredients) inventory.RemoveItem(ing.item, ing.amount);
+        foreach (var ing in selectedRecipe.ingredients) inventory.RemoveItem(ing.item, ing.amount * craftAmount);
 
-        inventory.AddItem(selectedRecipe.resultItem, selectedRecipe.resultAmount);
+        inventory.AddItem(selectedRecipe.resultItem, selectedRecipe.resultAmount * craftAmount);
 
-        playerStats.AddProfessionExp(currentProfession, selectedRecipe.expGained);
+        playerStats.AddProfessionExp(currentProfession, selectedRecipe.expGained * craftAmount);
 
         UpdateProfessionPanel();
         PopulateIngredients();
         PopulateRecipes();
         RefreshProfessionButtons();
         InventoryUIManager.Instance.RefreshUI();
+        inventory.NotifyInventoryChanged();
     }
 
     void ClearChildren(Transform parent)
