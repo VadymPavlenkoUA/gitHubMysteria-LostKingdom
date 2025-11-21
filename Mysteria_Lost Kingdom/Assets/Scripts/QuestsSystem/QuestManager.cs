@@ -62,10 +62,12 @@ public class QuestManager : MonoBehaviour
 
         if (step.stepType == QuestStepType.DeliverItems && step.removeItemsOnComplete)
         {
+            suppressInventoryQuestUpdate = true;
             foreach (var req in step.requiredItems)
             {
-                playerInventory.RemoveItem(req.item, req.amount, notify: false);
+                playerInventory.RemoveItem(req.item, req.amount, notify: true);
             }
+            suppressInventoryQuestUpdate = false;
             InventoryUIManager.Instance.RefreshUI();
             Debug.Log($"Крок '{step.description}': предмети доставлено, інвентар оновлено.");
         }
@@ -140,9 +142,11 @@ public class QuestManager : MonoBehaviour
         }
         return maxStep;
     }
-
+    private bool suppressInventoryQuestUpdate = false;
     private void UpdateQuestsFromInventory()
     {
+        if (suppressInventoryQuestUpdate) return;
+
         foreach (var quest in new List<QuestInstance>(activeQuests))
         {
             quest.UpdateStepStatus(InventoryUIManager.Instance.inventory);

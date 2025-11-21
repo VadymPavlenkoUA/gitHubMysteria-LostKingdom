@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class CraftingUIManager : MonoBehaviour
 {
+    public static CraftingUIManager Instance;
+
     public PlayerStats playerStats;
     public Inventory inventory;
 
@@ -15,6 +17,8 @@ public class CraftingUIManager : MonoBehaviour
     public TextMeshProUGUI professionNameText;
     public TextMeshProUGUI levelText;
     public Slider expSlider;
+    public GameObject craftingTableGroup;
+    public Image craftingTableImage;
 
     public Transform recipeListParent;
     public GameObject recipeButtonPrefab;
@@ -31,6 +35,26 @@ public class CraftingUIManager : MonoBehaviour
 
     public List<CraftingRecipe> allRecipes;
 
+    public Sprite cookingPotSprite;
+    public Sprite anvilSprite;
+    public Sprite workbenchSprite;
+    public Sprite magicAltarSprite;
+    public Sprite defaultStationSprite;
+
+    public Color baseColor = Color.white;
+    public Color wrongColor = Color.red;
+
+    public TabSwitcher tabSwitcher;
+    public int craftingTabIndex;
+
+    [HideInInspector]
+    public CraftingStationType activeStation = CraftingStationType.None;
+
+    void Awake()
+    {
+        Instance = this;
+    }
+
     void Start()
     {
         craftButton.onClick.AddListener(Craft);
@@ -45,6 +69,22 @@ public class CraftingUIManager : MonoBehaviour
         PopulateIngredients();
         PopulateRecipes();
     }
+
+    public void OpenFromStation(CraftingStationType station)
+    {
+        activeStation = station;
+        MenuController.Instance.OpenGameMenu();
+        PopulateRecipes();
+        UpdateRecipeUI(selectedRecipe);
+        if (tabSwitcher != null) tabSwitcher.OpenTab(craftingTabIndex);
+    }
+
+    public void UpdateCloseCraftUI()
+    {
+        activeStation = CraftingStationType.None;
+        UpdateRecipeUI(selectedRecipe);
+    }
+
     void RefreshProfessionButtons()
     {
         foreach (var btn in professionButtons)
@@ -66,7 +106,35 @@ public class CraftingUIManager : MonoBehaviour
         }
     }
 
+    public void UpdateRecipeUI(CraftingRecipe recipe)
+    {
+        if (recipe == null) return;
+        craftingTableImage.sprite = recipe.craftIcon;
 
+        if (recipe.requiredStation == CraftingStationType.None)
+        {
+            craftingTableGroup.SetActive(false);
+        }
+        else
+        {
+            craftingTableGroup.SetActive(true);
+            craftingTableImage.sprite = GetStationSprite(recipe.requiredStation);
+            bool isCorrectStation = activeStation == recipe.requiredStation;
+            craftingTableImage.color = isCorrectStation ? baseColor : wrongColor;
+        }
+    }
+
+    public Sprite GetStationSprite(CraftingStationType station)
+    {
+        switch (station)
+        {
+            case CraftingStationType.CookingPot: return cookingPotSprite ?? defaultStationSprite;
+            case CraftingStationType.Anvil: return anvilSprite ?? defaultStationSprite;
+            case CraftingStationType.Laboratory: return workbenchSprite ?? defaultStationSprite;
+            case CraftingStationType.MagicAltar: return magicAltarSprite ?? defaultStationSprite;
+            default: return defaultStationSprite;
+        }
+    }
     public void SelectProfession(int profIndex)
     {
         selectedRecipe = null;
@@ -83,7 +151,7 @@ public class CraftingUIManager : MonoBehaviour
         var p = playerStats.GetProfession(currentProfession);
 
         professionNameText.text = p.proffesionName;
-        levelText.text = $"Óð.{p.level}";
+        levelText.text = $"Ð³â.{p.level}";
         expSlider.maxValue = p.expToNext;
         expSlider.value = p.exp;
     }
@@ -112,7 +180,11 @@ public class CraftingUIManager : MonoBehaviour
     void PopulateIngredients()
     {
         ClearChildren(ingredientListParent);
-        if (selectedRecipe == null) return;
+        if (selectedRecipe == null)
+        {
+            craftingTableGroup.SetActive(false);
+            return;
+        }
 
         int quant = quantitySelector.quantity;
 
@@ -126,6 +198,7 @@ public class CraftingUIManager : MonoBehaviour
     void Craft()
     {
         if (selectedRecipe == null) return;
+        if (selectedRecipe.requiredStation != CraftingStationType.None && selectedRecipe.requiredStation != activeStation) return;
         int craftAmount = quantitySelector.quantity;
 
         foreach (var ing in selectedRecipe.ingredients)

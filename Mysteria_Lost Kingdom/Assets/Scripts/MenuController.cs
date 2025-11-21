@@ -66,21 +66,29 @@ public class MenuController : MonoBehaviour
 
         if (inputActions.Player.MainPanel.WasPressedThisFrame())
         {
-            isGMOpen = !isGMOpen;
-            if (isGMOpen)
-            {
-                cinemachineInput.enabled = false;
-                Cursor.lockState = CursorLockMode.Confined;
-            }
-            else
-            {
-                cinemachineInput.enabled = true;
-                Cursor.lockState = CursorLockMode.Locked;
-            }
-            Cursor.visible = isGMOpen;
-            gameMenu.SetActive(isGMOpen);
-            //Time.timeScale = isGMOpen ? 0f : 1f;
+            OpenGameMenu();
         }
+    }
+    public void OpenGameMenu()
+    {
+        isGMOpen = !isGMOpen;
+        if (isGMOpen)
+        {
+            cinemachineInput.enabled = false;
+            Cursor.lockState = CursorLockMode.Confined;
+        }
+        else
+        {
+            cinemachineInput.enabled = true;
+            Cursor.lockState = CursorLockMode.Locked;
+            if (CraftingUIManager.Instance != null)
+            {
+                CraftingUIManager.Instance.UpdateCloseCraftUI();
+            }
+        }
+        Cursor.visible = isGMOpen;
+        gameMenu.SetActive(isGMOpen);
+        //Time.timeScale = isGMOpen ? 0f : 1f;
     }
     public bool IsInputBlocked()
     {

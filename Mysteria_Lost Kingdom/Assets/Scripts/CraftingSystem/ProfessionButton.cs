@@ -17,13 +17,13 @@ public class ProfessionButton : MonoBehaviour
         var p = manager.playerStats.GetProfession(profession);
 
         nameText.text = p.proffesionName;
-        levelText.text = $"Óð.{p.level}";
+        levelText.text = $"Ð³â.{p.level}";
     }
 
     public void Refresh()
     {
         var p = uiManager.playerStats.GetProfession(profession);
-        levelText.text = $"Óð.{p.level}";
+        levelText.text = $"Ð³â.{p.level}";
     }
 }
     

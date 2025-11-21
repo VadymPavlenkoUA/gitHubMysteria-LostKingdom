@@ -37,15 +37,19 @@ public class RecipeButton : MonoBehaviour
             icon.enabled = (r.craftIcon != null && r.craftIcon != null);
 
         if (levelText != null)
-            levelText.text = r.requiredLevel > 1
-                ? $"Óð.{r.requiredLevel}"
+            levelText.text = r.requiredLevel > 0
+                ? $"Ð³â.{r.requiredLevel}"
                 : "";
     }
 
     void OnClick()
     {
         if (manager != null && recipe != null)
+        {
             manager.SelectRecipe(recipe);
+            manager.UpdateRecipeUI(recipe);
+        }
+
     }
 
     private void OnDestroy()

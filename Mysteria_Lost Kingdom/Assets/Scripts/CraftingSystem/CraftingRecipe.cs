@@ -1,5 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+
+
+
+public enum CraftingStationType
+{
+    None,
+    CookingPot,
+    Anvil,
+    Laboratory,
+    MagicAltar
+}
 
 [CreateAssetMenu(menuName = "RPG/Crafting Recipe")]
 public class CraftingRecipe : ScriptableObject
@@ -10,6 +22,8 @@ public class CraftingRecipe : ScriptableObject
     public int resultAmount = 1;
 
     public List<Ingredient> ingredients;
+
+    public CraftingStationType requiredStation = CraftingStationType.None;
 
     public int requiredLevel = 1;
     public float expGained = 10;
