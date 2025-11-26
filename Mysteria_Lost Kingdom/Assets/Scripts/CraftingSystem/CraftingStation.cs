@@ -17,6 +17,13 @@ public class CraftingStation : MonoBehaviour, IInteractable
 
     public void Interact()
     {
-        CraftingUIManager.Instance.OpenFromStation(stationType);
+        if (CraftingUIManager.Instance != null)
+        {
+            CraftingUIManager.Instance.OpenFromStation(stationType);
+        }
+        else
+        {
+            Debug.LogWarning("CraftingUIManager ще не готовий!");
+        }
     }
 }

@@ -9,9 +9,11 @@ public class MenuController : MonoBehaviour
     public static MenuController Instance;
     public GameObject mainMenu;
     public GameObject gameMenu;
+    public GameObject educationMenu;
     private PlayerInputActions inputActions;
     private bool isMMopen = false;
     private bool isGMOpen = false;
+    private bool isEduOpen = false;
     public bool inputBlocked = false;
     [SerializeField] private CinemachineInputAxisController cinemachineInput;
     private void Awake()
@@ -90,6 +92,31 @@ public class MenuController : MonoBehaviour
         gameMenu.SetActive(isGMOpen);
         //Time.timeScale = isGMOpen ? 0f : 1f;
     }
+
+    public void ShowEducationMenu()
+    {
+        isEduOpen = true;
+
+        cinemachineInput.enabled = false;
+        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = true;
+
+        educationMenu.SetActive(true);
+        Time.timeScale = 0f;
+    }
+
+    public void HideEducationMenu()
+    {
+        isEduOpen = false;
+
+        cinemachineInput.enabled = true;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        educationMenu.SetActive(false);
+        Time.timeScale = 1f;
+    }
+
     public bool IsInputBlocked()
     {
         return inputBlocked;
