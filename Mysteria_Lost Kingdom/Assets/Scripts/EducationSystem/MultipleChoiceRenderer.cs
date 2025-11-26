@@ -14,7 +14,7 @@ public class MultipleChoiceRenderer : MonoBehaviour
     public void Render(List<string> choices)
     {
         Clear();
-
+        if (choices == null || choices.Count == 0) return;
         foreach (var choice in choices)
         {
             var btn = Instantiate(choiceButtonPrefab, container);

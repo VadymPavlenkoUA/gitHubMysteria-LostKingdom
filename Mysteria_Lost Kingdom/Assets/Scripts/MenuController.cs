@@ -97,7 +97,7 @@ public class MenuController : MonoBehaviour
     {
         isEduOpen = true;
 
-        cinemachineInput.enabled = false;
+        //cinemachineInput.enabled = false;
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
 
@@ -109,7 +109,7 @@ public class MenuController : MonoBehaviour
     {
         isEduOpen = false;
 
-        cinemachineInput.enabled = true;
+        //cinemachineInput.enabled = true;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 

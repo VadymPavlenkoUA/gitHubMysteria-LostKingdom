@@ -24,7 +24,9 @@ public static class TaskValidator
                 break;
             case TaskKind.CodeSnippet:
                 // simple heuristic: check if required token exists (task.correctAnswer holds a token)
-                res.correct = !string.IsNullOrEmpty(givenAnswer) && givenAnswer.Contains(task.correctAnswer);
+                res.correct = !string.IsNullOrEmpty(givenAnswer) &&
+                  !string.IsNullOrEmpty(task.correctAnswer) &&
+                  givenAnswer.Contains(task.correctAnswer, StringComparison.Ordinal);
                 break;
         }
 
