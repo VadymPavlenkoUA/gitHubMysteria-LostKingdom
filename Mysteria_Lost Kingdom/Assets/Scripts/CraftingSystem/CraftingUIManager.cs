@@ -220,8 +220,8 @@ public class CraftingUIManager : MonoBehaviour
         PopulateIngredients();
         PopulateRecipes();
         RefreshProfessionButtons();
-        InventoryUIManager.Instance.RefreshUI();
         inventory.NotifyInventoryChanged();
+        InventoryUIManager.Instance.RefreshUI();
     }
 
     void ClearChildren(Transform parent)

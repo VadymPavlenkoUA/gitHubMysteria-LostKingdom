@@ -12,10 +12,13 @@ public class TaskUIController : MonoBehaviour
     [Header("References")]
     public Image background;
     public Image subjectIcon;
+    public Image feedBackImage;
+    public Image levelImage;
     public TMP_Text subjectTitle;
     public TMP_Text questionText;
     public TMP_Text timerText;
     public TMP_Text feedbackText;
+    public TMP_Text levelText;
     public Button submitButton;
     public Button hintButton;
     public Button skipButton;
@@ -26,6 +29,13 @@ public class TaskUIController : MonoBehaviour
     public MathRenderer mathRenderer;
     public EnglishRenderer englishRenderer;
     public ProgrammingRenderer programmingRenderer;
+
+    public Sprite mathImage;
+    public Sprite programmingImage;
+    public Sprite englishImage;
+    public Sprite hintImage;
+    public Sprite wrongImage;
+    public Sprite correctImage;
 
     public Animator animator;
     public AudioSource sfxSource;
@@ -39,6 +49,7 @@ public class TaskUIController : MonoBehaviour
     private bool hintUsed;
 
     public event Action<TaskResult> OnTaskComplete;
+    private Coroutine timerRoutine;
 
     private void Awake()
     {
@@ -51,16 +62,78 @@ public class TaskUIController : MonoBehaviour
     {
         MenuController.Instance.ShowEducationMenu();
         currentTask = task;
+        if (task.subject == SubjectType.Math)
+        {
+            subjectTitle.text = "Математика";
+            subjectTitle.color = Color.darkRed;
+            subjectIcon.sprite = mathImage;
+        }
+        else if (task.subject == SubjectType.English)
+        {
+            subjectTitle.text = "Англійська мова";
+            subjectTitle.color = Color.darkBlue;
+            subjectIcon.sprite = englishImage;
+        }
+        else if (task.subject == SubjectType.Programming)
+        {
+            subjectTitle.text = "Програмування";
+            subjectTitle.color = Color.darkGreen;
+            subjectIcon.sprite = programmingImage;
+        }
+        else
+        {
+            subjectTitle.text = "Невідомо";
+            subjectTitle.color = Color.grey;
+            subjectIcon.sprite = null;
+        }
+        if (task.difficulty <= 3)
+        {
+            levelImage.color = Color.green;
+            levelText.color = Color.green;
+            levelText.text = "Легко";
+        }
+        else if (task.difficulty > 3 && task.difficulty <= 7)
+        {
+            levelImage.color = Color.orange;
+            levelText.color = Color.orange;
+            levelText.text = "Помірно";
+        }
+        else if (task.difficulty > 7 && task.difficulty <= 10)
+        {
+            levelImage.color = Color.red;
+            levelText.color= Color.red;
+            levelText.text = "Важко";
+        }
+        else
+        {
+            levelImage.color = Color.grey;
+            levelText.text = "Невідомо";
+        }
         questionText.text = task.questionText;
-        subjectTitle.text = task.subject.ToString();
+        //subjectTitle.text = task.subject.ToString();
         //progressBar.value = progress;
         hintUsed = false;
-        hintCooldownOverlay.fillAmount = 0f;
+        //hintCooldownOverlay.fillAmount = 0f;
         SetupRendererForTask(task);
         startTime = Time.time;
         //animator.Play("InProgress");
         timerText.text = "";
         feedbackText.text = "";
+
+        if (timerRoutine != null)
+        {
+            StopCoroutine(timerRoutine);
+            timerRoutine = null;
+        }
+
+        if (task.timeLimit > 0)
+        {
+            timerRoutine = StartCoroutine(TaskTimerCoroutine(task.timeLimit));
+        }
+        else
+        {
+            timerText.text = "--:--:--";
+        }
     }
 
     private void SetupRendererForTask(TaskRequirement task)
@@ -85,8 +158,47 @@ public class TaskUIController : MonoBehaviour
         activeRenderer.Render(task);
     }
 
+    private string FormatTime(float time)
+    {
+        int total = Mathf.CeilToInt(time);
+        int hours = total / 3600;
+        int minutes = (total % 3600) / 60;
+        int seconds = total % 60;
+
+        return $"{hours:00}:{minutes:00}:{seconds:00}";
+    }
+
+    private IEnumerator TaskTimerCoroutine(float timeLimit)
+    {
+        float remaining = timeLimit;
+        while (remaining > 0f)
+        {
+            remaining -= Time.unscaledDeltaTime;
+            if (remaining < 0) remaining = 0;
+            timerText.text = FormatTime(remaining);
+            yield return null;
+        }
+
+        var failResult = new TaskResult
+        {
+            correct = false,
+            timeTaken = Time.time - startTime,
+            pointsAwarded = 0,
+            givenAnswer = ""
+        };
+
+        StartCoroutine(FinishAfterDelay(failResult, 3f, "Час вийшов!", wrongImage));
+
+    }
+
     private void OnSubmit()
     {
+        if (timerRoutine != null)
+        {
+            StopCoroutine(timerRoutine);
+            timerRoutine = null;
+        }
+
         string answer = activeRenderer.GetAnswer();
         float timeTaken = Time.time - startTime;
         var result = TaskValidator.Validate(currentTask, answer, timeTaken);
@@ -95,19 +207,28 @@ public class TaskUIController : MonoBehaviour
         if (result.correct)
         {
             //animator.SetTrigger("Success");
-            //sfxSource.PlayOneShot(correctSfx);
+            sfxSource.PlayOneShot(correctSfx);
         }
         else
         {
             //animator.SetTrigger("Fail");
-            //sfxSource.PlayOneShot(wrongSfx);
+            sfxSource.PlayOneShot(wrongSfx);
         }
 
-        StartCoroutine(FinishAfterDelay(result, 0.65f));
+        StartCoroutine(FinishAfterDelay(result, 3f, result.correct ? "Правильна відповідь!" : "Невірна відповідь!", result.correct ? correctImage : wrongImage));
     }
 
-    private IEnumerator FinishAfterDelay(TaskResult result, float delay)
+    private IEnumerator FinishAfterDelay(TaskResult result, float delay, string feedBack = "", Sprite feedBackIcon = null)
     {
+        submitButton.enabled = false;
+        skipButton.enabled = false;
+        hintButton.enabled = false;
+        if (!string.IsNullOrEmpty(feedBack))
+        {
+            feedbackText.text = feedBack;
+            feedBackImage.gameObject.SetActive(true);
+            feedBackImage.sprite = feedBackIcon;
+        }
         yield return new WaitForSecondsRealtime(delay);
         OnTaskComplete?.Invoke(result);
         MenuController.Instance.HideEducationMenu();
@@ -117,8 +238,14 @@ public class TaskUIController : MonoBehaviour
     {
         if (hintUsed) return;
         hintUsed = true;
-        //sfxSource.PlayOneShot(hintSfx);
+        sfxSource.PlayOneShot(hintSfx);
+        feedBackImage.gameObject.SetActive(true);
+        feedBackImage.sprite = hintImage;
         feedbackText.text = currentTask.hint;
+
+        hintButton.interactable = false;
+        hintCooldownOverlay.fillAmount = 0f;
+
         StartCoroutine(HintCooldownCoroutine(10f));
     }
 
@@ -127,18 +254,25 @@ public class TaskUIController : MonoBehaviour
         float t = 0f;
         while (t < seconds)
         {
-            t += Time.deltaTime;
+            t += Time.unscaledDeltaTime;
             hintCooldownOverlay.fillAmount = t / seconds;
             yield return null;
         }
+        hintButton.interactable = true;
     }
 
     private void OnSkip()
     {
+        if (timerRoutine != null)
+        {
+            StopCoroutine(timerRoutine);
+            timerRoutine = null;
+        }
+
         var result = new TaskResult { correct = false, timeTaken = Time.time - startTime, pointsAwarded = 0, givenAnswer = "" };
         //animator.SetTrigger("Fail");
-        //sfxSource.PlayOneShot(wrongSfx);
-        StartCoroutine(FinishAfterDelay(result, 0.4f));
+        sfxSource.PlayOneShot(wrongSfx);
+        StartCoroutine(FinishAfterDelay(result, 2f, "Завдання пропущено!", wrongImage));
     }
 
     public void Hide()

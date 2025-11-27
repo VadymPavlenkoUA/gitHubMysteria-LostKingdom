@@ -44,7 +44,7 @@ public class MenuController : MonoBehaviour
         if (inputActions.Player.Escape.WasPressedThisFrame())
         {
             isMMopen = !isMMopen;
-            if (isMMopen)
+            if (isMMopen || isEduOpen)
             {
                 cinemachineInput.enabled = false;
                 Cursor.lockState = CursorLockMode.Confined;
@@ -54,14 +54,14 @@ public class MenuController : MonoBehaviour
                 cinemachineInput.enabled = true;
                 Cursor.lockState = CursorLockMode.Locked;
             }
-            Cursor.visible = isMMopen;
-            inputBlocked = isMMopen;
+            Cursor.visible = isMMopen || isEduOpen;
+            inputBlocked = isMMopen || isEduOpen;
             if (isGMOpen) isGMOpen = false;
 
             gameMenu.SetActive(isGMOpen);
             mainMenu.SetActive(isMMopen);
 
-            Time.timeScale = isMMopen ? 0f : 1f;
+            Time.timeScale = isMMopen || isEduOpen ? 0f : 1f;
         }
 
         if (inputBlocked) return;

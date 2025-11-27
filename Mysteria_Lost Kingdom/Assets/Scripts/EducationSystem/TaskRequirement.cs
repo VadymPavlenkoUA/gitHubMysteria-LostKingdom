@@ -23,4 +23,7 @@ public class TaskRequirement : ScriptableObject
     public string hint;
     public int points;
     public string codeTemplate;
+
+    [Header("Timer (0 = no timer)")]
+    public float timeLimit = 0f;
 }
