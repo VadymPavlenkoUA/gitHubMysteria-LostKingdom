@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -46,6 +47,9 @@ public class CraftingUIManager : MonoBehaviour
 
     public TabSwitcher tabSwitcher;
     public int craftingTabIndex;
+
+    public TaskDatabase taskDB;
+    public TaskUIController taskUI;
 
     [HideInInspector]
     public CraftingStationType activeStation = CraftingStationType.None;
@@ -195,12 +199,40 @@ public class CraftingUIManager : MonoBehaviour
         }
     }
 
+    //void Craft()
+    //{
+    //    if (selectedRecipe == null) return;
+    //    if (selectedRecipe.requiredStation != CraftingStationType.None && selectedRecipe.requiredStation != activeStation) return;
+    //    int craftAmount = quantitySelector.quantity;
+
+    //    foreach (var ing in selectedRecipe.ingredients)
+    //    {
+    //        if (!inventory.HasItem(ing.item, ing.amount * craftAmount))
+    //        {
+    //            Debug.Log("Не вистачає інгредієнтів");
+    //            return;
+    //        }
+    //    }
+
+    //    foreach (var ing in selectedRecipe.ingredients) inventory.RemoveItem(ing.item, ing.amount * craftAmount);
+
+    //    inventory.AddItem(selectedRecipe.resultItem, selectedRecipe.resultAmount * craftAmount);
+
+    //    playerStats.AddProfessionExp(currentProfession, selectedRecipe.expGained * craftAmount);
+
+    //    UpdateProfessionPanel();
+    //    PopulateIngredients();
+    //    PopulateRecipes();
+    //    RefreshProfessionButtons();
+    //    inventory.NotifyInventoryChanged();
+    //    InventoryUIManager.Instance.RefreshUI();
+    //}
+
     void Craft()
     {
         if (selectedRecipe == null) return;
         if (selectedRecipe.requiredStation != CraftingStationType.None && selectedRecipe.requiredStation != activeStation) return;
         int craftAmount = quantitySelector.quantity;
-
         foreach (var ing in selectedRecipe.ingredients)
         {
             if (!inventory.HasItem(ing.item, ing.amount * craftAmount))
@@ -210,7 +242,38 @@ public class CraftingUIManager : MonoBehaviour
             }
         }
 
-        foreach (var ing in selectedRecipe.ingredients) inventory.RemoveItem(ing.item, ing.amount * craftAmount);
+        TaskRequirement task = taskDB.GetRandomTask();
+
+        if (task != null)
+        {
+            Action<TaskResult> onComplete = null;
+            onComplete = (result) =>
+            {
+                taskUI.OnTaskComplete -= onComplete;
+
+                if (result.correct)
+                {
+                    CompleteCraft(craftAmount);
+                }
+                else
+                {
+                    Debug.Log("Завдання провалено, крафт не відбувся!");
+                }
+            };
+
+            taskUI.OnTaskComplete += onComplete;
+            taskUI.ShowTask(task);
+        }
+        else
+        {
+            CompleteCraft(craftAmount);
+        }
+    }
+
+    private void CompleteCraft(int craftAmount)
+    {
+        foreach (var ing in selectedRecipe.ingredients)
+            inventory.RemoveItem(ing.item, ing.amount * craftAmount);
 
         inventory.AddItem(selectedRecipe.resultItem, selectedRecipe.resultAmount * craftAmount);
 
