@@ -129,24 +129,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""MainPanel"",
-                    ""type"": ""Button"",
-                    ""id"": ""119ffca6-d16b-4d1d-91ff-0296d3d2f9a7"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Escape"",
-                    ""type"": ""Button"",
-                    ""id"": ""21131077-5bad-495b-b44d-1f7cddb68600"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
                     ""name"": ""Sprint"",
                     ""type"": ""Button"",
                     ""id"": ""7b5871a3-2ba7-4139-9197-e681ee039110"",
@@ -373,50 +355,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""0b4ecb5e-9a18-45fb-a85d-286d4b16724a"",
-                    ""path"": ""<Keyboard>/tab"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""MainPanel"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""8d2111d9-7c8b-4950-b6cb-c1b2368fcbe5"",
-                    ""path"": ""<Gamepad>/start"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""MainPanel"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""fdf4fa2c-fe9b-4b3a-9e97-8efe52a25d9b"",
-                    ""path"": ""<Keyboard>/escape"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Escape"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""3bac977e-2123-45e8-91bd-6a058cba9403"",
-                    ""path"": ""<Gamepad>/{Menu}"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Escape"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""088b860b-59fa-411f-b866-4fbde5f977fb"",
                     ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
@@ -504,6 +442,76 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Controls"",
+            ""id"": ""4e847e5f-c09a-4aef-839e-deab8de0896c"",
+            ""actions"": [
+                {
+                    ""name"": ""Escape"",
+                    ""type"": ""Button"",
+                    ""id"": ""568a165b-bf71-4ee9-94e4-b5775d6b8861"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""MainPanel"",
+                    ""type"": ""Button"",
+                    ""id"": ""0dd8d343-bfad-44af-96af-08d0670f5c48"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""6f307e97-520a-41c1-9a27-ebd557455a10"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Escape"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a328b99a-412b-4e28-aa8b-bef143de9b89"",
+                    ""path"": ""<Gamepad>/{Menu}"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Escape"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c0f03d4e-5188-4aa4-9a4f-2bb31841d431"",
+                    ""path"": ""<Keyboard>/tab"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MainPanel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""144e9d18-138a-45e8-9da4-ee5ded7aa38f"",
+                    ""path"": ""<Gamepad>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MainPanel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -514,17 +522,20 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_Look = m_Player.FindAction("Look", throwIfNotFound: true);
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         m_Player_Attack = m_Player.FindAction("Attack", throwIfNotFound: true);
-        m_Player_MainPanel = m_Player.FindAction("MainPanel", throwIfNotFound: true);
-        m_Player_Escape = m_Player.FindAction("Escape", throwIfNotFound: true);
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
         m_Player_Roll = m_Player.FindAction("Roll", throwIfNotFound: true);
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
         m_Player_FreeLook = m_Player.FindAction("FreeLook", throwIfNotFound: true);
+        // Controls
+        m_Controls = asset.FindActionMap("Controls", throwIfNotFound: true);
+        m_Controls_Escape = m_Controls.FindAction("Escape", throwIfNotFound: true);
+        m_Controls_MainPanel = m_Controls.FindAction("MainPanel", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
     {
         UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, PlayerInputActions.Player.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_Controls.enabled, "This will cause a leak and performance issues, PlayerInputActions.Controls.Disable() has not been called.");
     }
 
     /// <summary>
@@ -604,8 +615,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Look;
     private readonly InputAction m_Player_Jump;
     private readonly InputAction m_Player_Attack;
-    private readonly InputAction m_Player_MainPanel;
-    private readonly InputAction m_Player_Escape;
     private readonly InputAction m_Player_Sprint;
     private readonly InputAction m_Player_Roll;
     private readonly InputAction m_Player_Interact;
@@ -637,14 +646,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/Attack".
         /// </summary>
         public InputAction @Attack => m_Wrapper.m_Player_Attack;
-        /// <summary>
-        /// Provides access to the underlying input action "Player/MainPanel".
-        /// </summary>
-        public InputAction @MainPanel => m_Wrapper.m_Player_MainPanel;
-        /// <summary>
-        /// Provides access to the underlying input action "Player/Escape".
-        /// </summary>
-        public InputAction @Escape => m_Wrapper.m_Player_Escape;
         /// <summary>
         /// Provides access to the underlying input action "Player/Sprint".
         /// </summary>
@@ -699,12 +700,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Attack.started += instance.OnAttack;
             @Attack.performed += instance.OnAttack;
             @Attack.canceled += instance.OnAttack;
-            @MainPanel.started += instance.OnMainPanel;
-            @MainPanel.performed += instance.OnMainPanel;
-            @MainPanel.canceled += instance.OnMainPanel;
-            @Escape.started += instance.OnEscape;
-            @Escape.performed += instance.OnEscape;
-            @Escape.canceled += instance.OnEscape;
             @Sprint.started += instance.OnSprint;
             @Sprint.performed += instance.OnSprint;
             @Sprint.canceled += instance.OnSprint;
@@ -740,12 +735,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Attack.started -= instance.OnAttack;
             @Attack.performed -= instance.OnAttack;
             @Attack.canceled -= instance.OnAttack;
-            @MainPanel.started -= instance.OnMainPanel;
-            @MainPanel.performed -= instance.OnMainPanel;
-            @MainPanel.canceled -= instance.OnMainPanel;
-            @Escape.started -= instance.OnEscape;
-            @Escape.performed -= instance.OnEscape;
-            @Escape.canceled -= instance.OnEscape;
             @Sprint.started -= instance.OnSprint;
             @Sprint.performed -= instance.OnSprint;
             @Sprint.canceled -= instance.OnSprint;
@@ -791,6 +780,113 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="PlayerActions" /> instance referencing this action map.
     /// </summary>
     public PlayerActions @Player => new PlayerActions(this);
+
+    // Controls
+    private readonly InputActionMap m_Controls;
+    private List<IControlsActions> m_ControlsActionsCallbackInterfaces = new List<IControlsActions>();
+    private readonly InputAction m_Controls_Escape;
+    private readonly InputAction m_Controls_MainPanel;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "Controls".
+    /// </summary>
+    public struct ControlsActions
+    {
+        private @PlayerInputActions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public ControlsActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "Controls/Escape".
+        /// </summary>
+        public InputAction @Escape => m_Wrapper.m_Controls_Escape;
+        /// <summary>
+        /// Provides access to the underlying input action "Controls/MainPanel".
+        /// </summary>
+        public InputAction @MainPanel => m_Wrapper.m_Controls_MainPanel;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_Controls; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="ControlsActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(ControlsActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="ControlsActions" />
+        public void AddCallbacks(IControlsActions instance)
+        {
+            if (instance == null || m_Wrapper.m_ControlsActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_ControlsActionsCallbackInterfaces.Add(instance);
+            @Escape.started += instance.OnEscape;
+            @Escape.performed += instance.OnEscape;
+            @Escape.canceled += instance.OnEscape;
+            @MainPanel.started += instance.OnMainPanel;
+            @MainPanel.performed += instance.OnMainPanel;
+            @MainPanel.canceled += instance.OnMainPanel;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="ControlsActions" />
+        private void UnregisterCallbacks(IControlsActions instance)
+        {
+            @Escape.started -= instance.OnEscape;
+            @Escape.performed -= instance.OnEscape;
+            @Escape.canceled -= instance.OnEscape;
+            @MainPanel.started -= instance.OnMainPanel;
+            @MainPanel.performed -= instance.OnMainPanel;
+            @MainPanel.canceled -= instance.OnMainPanel;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="ControlsActions.UnregisterCallbacks(IControlsActions)" />.
+        /// </summary>
+        /// <seealso cref="ControlsActions.UnregisterCallbacks(IControlsActions)" />
+        public void RemoveCallbacks(IControlsActions instance)
+        {
+            if (m_Wrapper.m_ControlsActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="ControlsActions.AddCallbacks(IControlsActions)" />
+        /// <seealso cref="ControlsActions.RemoveCallbacks(IControlsActions)" />
+        /// <seealso cref="ControlsActions.UnregisterCallbacks(IControlsActions)" />
+        public void SetCallbacks(IControlsActions instance)
+        {
+            foreach (var item in m_Wrapper.m_ControlsActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_ControlsActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="ControlsActions" /> instance referencing this action map.
+    /// </summary>
+    public ControlsActions @Controls => new ControlsActions(this);
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.
     /// </summary>
@@ -827,20 +923,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnAttack(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "MainPanel" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnMainPanel(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Escape" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnEscape(InputAction.CallbackContext context);
-        /// <summary>
         /// Method invoked when associated input action "Sprint" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
@@ -868,5 +950,27 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnFreeLook(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Controls" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="ControlsActions.AddCallbacks(IControlsActions)" />
+    /// <seealso cref="ControlsActions.RemoveCallbacks(IControlsActions)" />
+    public interface IControlsActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "Escape" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnEscape(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "MainPanel" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnMainPanel(InputAction.CallbackContext context);
     }
 }

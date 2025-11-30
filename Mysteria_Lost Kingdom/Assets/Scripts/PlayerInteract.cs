@@ -23,7 +23,7 @@ public class PlayerInteract : MonoBehaviour
 
     private void Awake()
     {
-        inputActions = new PlayerInputActions();
+        inputActions = MenuController.Controls;
     }
 
     private void OnEnable()

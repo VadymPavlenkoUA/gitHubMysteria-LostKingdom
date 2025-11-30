@@ -54,6 +54,7 @@ public class StatsUiManager : MonoBehaviour
     public TextMeshProUGUI healthEquipText;
     public TextMeshProUGUI staminaEquipText;
     public TextMeshProUGUI satietyEquipText;
+    public TextMeshProUGUI goldEquipText;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -93,6 +94,7 @@ public class StatsUiManager : MonoBehaviour
             $"{playerStats.maxStamina.ToString("0.0", CultureInfo.InvariantCulture)}";
         satietyEquipText.text = $"{playerStats.currentSatiety.ToString("0.0", CultureInfo.InvariantCulture)} / " +
             $"{playerStats.maxSatiety.ToString("0.0", CultureInfo.InvariantCulture)}";
+        goldEquipText.text = $"{playerStats.gold}";
 
         levelStatsText.text = $"Рівень: {playerStats.level}";
         availableStatsPointsText.text = $"Доступно очків: {playerStats.availableStatPoints}";

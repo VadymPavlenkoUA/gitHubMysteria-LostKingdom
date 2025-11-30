@@ -113,12 +113,16 @@ public class TaskUIController : MonoBehaviour
         //subjectTitle.text = task.subject.ToString();
         //progressBar.value = progress;
         hintUsed = false;
-        //hintCooldownOverlay.fillAmount = 0f;
+        hintCooldownOverlay.fillAmount = 100f;
         SetupRendererForTask(task);
         startTime = Time.time;
         //animator.Play("InProgress");
         timerText.text = "";
         feedbackText.text = "";
+        feedBackImage.gameObject.SetActive(false);
+        submitButton.interactable = true;
+        skipButton.interactable = true;
+        hintButton.interactable = true;
 
         if (timerRoutine != null)
         {
@@ -220,9 +224,9 @@ public class TaskUIController : MonoBehaviour
 
     private IEnumerator FinishAfterDelay(TaskResult result, float delay, string feedBack = "", Sprite feedBackIcon = null)
     {
-        submitButton.enabled = false;
-        skipButton.enabled = false;
-        hintButton.enabled = false;
+        submitButton.interactable = false;
+        skipButton.interactable = false;
+        hintButton.interactable = false;
         if (!string.IsNullOrEmpty(feedBack))
         {
             feedbackText.text = feedBack;

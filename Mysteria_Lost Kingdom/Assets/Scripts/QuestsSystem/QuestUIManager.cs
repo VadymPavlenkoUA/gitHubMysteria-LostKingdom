@@ -147,11 +147,17 @@ public class QuestUIManager : MonoBehaviour
         string result = "";
         if (reward.gold > 0) result += $"Золото: {reward.gold}\n";
         if (reward.experience > 0) result += $"Досвід: {reward.experience}\n";
+        if (reward.professions != null && reward.professions.Count > 0)
+        {
+            result += "Професійний досвід:\n";
+            foreach (var prof in reward.professions)
+                result += $"- {prof.proffesionName}: {prof.exp}\n";
+        }
         if (reward.items != null && reward.items.Count > 0)
         {
             result += "Предмети:\n";
             foreach (var item in reward.items)
-                result += $"- {item.itemName}\n";
+                result += $"- {item.item.itemName} x{item.amount}\n";
         }
         return result.TrimEnd();
     }

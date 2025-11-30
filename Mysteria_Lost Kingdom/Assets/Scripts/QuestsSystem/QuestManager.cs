@@ -12,6 +12,8 @@ public class QuestManager : MonoBehaviour
     public List<QuestInstance> finishedQuests = new();
 
     public Inventory playerInventory;
+    
+    public PlayerStats playerStats;
 
     public QuestInstance trackedQuest;
 
@@ -97,7 +99,38 @@ public class QuestManager : MonoBehaviour
         var reward = instance.data.reward;
         if (reward != null)
         {
-            Debug.Log($"Гравець отримав: {reward.gold} золота, {reward.experience} досвіду!");
+            if (reward.experience > 0)
+            {
+                playerStats.AddExperience(reward.experience);
+            }
+
+            if (reward.gold > 0)
+            {
+                playerStats.AddGold(reward.gold);
+            }
+
+            if (reward.items != null && reward.items.Count > 0)
+            {
+                foreach (var it in reward.items)
+                {
+                    bool added = playerInventory.AddItem(it.item, it.amount);
+                    if (!added)
+                    {
+                        Debug.LogWarning($"Не вдалося додати до інвентаря предмет: {it.item.itemName}.");
+                        // реалізувати fallback (падіння предмета на землю)
+                    }
+                }
+                InventoryUIManager.Instance.RefreshUI();
+                playerInventory.NotifyInventoryChanged();
+            }
+
+            if (reward.professions != null && reward.professions.Count > 0)
+            {
+                foreach (var prof in reward.professions)
+                {
+                    playerStats.AddProfessionExp(prof.profession, prof.exp);
+                }
+            }
         }
 
         completedQuests.Remove(instance);

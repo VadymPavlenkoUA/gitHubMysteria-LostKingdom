@@ -54,6 +54,9 @@ public class PlayerStats : MonoBehaviour
     public float staminaRegen = 5f;
     public float regenDelay = 2f;
 
+    [Header("Gold")]
+    public int gold = 0;
+
     [Header("Professions")]
     public List<ProfessionStat> professions;
 
@@ -165,6 +168,12 @@ public class PlayerStats : MonoBehaviour
             LevelUp();
         }
 
+        StatsChanged?.Invoke();
+    }
+
+    public void AddGold(int amount)
+    {
+        gold += amount;
         StatsChanged?.Invoke();
     }
 
@@ -313,6 +322,7 @@ public class PlayerStats : MonoBehaviour
             p.level++;
             p.expToNext = Mathf.Round(p.expToNext * p.growth);
         }
+        StatsChanged?.Invoke();
     }
 
 }

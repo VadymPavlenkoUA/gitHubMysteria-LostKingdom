@@ -19,7 +19,15 @@ public enum ItemCategory
     Potion = 1 << 11,
     Tool = 1 << 12,
     Material = 1 << 13,
-    QuestItem = 1 << 14
+    QuestItem = 1 << 14,
+    Shield = 1 << 15
+}
+
+public enum WeaponHandType
+{
+    None,
+    OneHand,
+    TwoHand
 }
 
 [CreateAssetMenu(menuName = "RPG/Item")]
@@ -31,8 +39,17 @@ public class Item : ScriptableObject
     public float weight = 1f;
 
     public GameObject itemPrefab;
+    public GameObject itemPrefabEquip;
 
     public ItemCategory categories;
+
+    public WeaponHandType weaponHandType = WeaponHandType.None;
+
+    public Vector3 rightHandPosition;
+    public Vector3 rightHandRotation;
+
+    public Vector3 leftHandPosition;
+    public Vector3 leftHandRotation;
 
     [TextArea(2, 5)]
     public string description;

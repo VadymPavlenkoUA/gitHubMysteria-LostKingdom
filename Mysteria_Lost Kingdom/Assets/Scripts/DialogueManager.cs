@@ -28,6 +28,8 @@ public class DialogueManager : MonoBehaviour
     private DialogueData currentDialogue;
     private int currentLineIndex;
     private List<string> messages = new List<string>();
+    [HideInInspector]
+    internal bool isDialogueOpen;
     [SerializeField] private CinemachineInputAxisController cinemachineInput;
 
     private void Awake()
@@ -38,6 +40,7 @@ public class DialogueManager : MonoBehaviour
 
     public void StartDialogue(DialogueData dialogue)
     {
+        isDialogueOpen = true;
         currentDialogue = dialogue;
         currentLineIndex = 0;
         messages.Clear();
@@ -309,7 +312,7 @@ public class DialogueManager : MonoBehaviour
         btn.onClick.AddListener(() => EndDialogue());
     }
 
-    private void EndDialogue()
+    internal void EndDialogue()
     {
         if (typingCoroutine != null)
         {
@@ -323,6 +326,7 @@ public class DialogueManager : MonoBehaviour
         cinemachineInput.enabled = true;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        isDialogueOpen = false;
     }
 
     private void FinishCurrentTyping()

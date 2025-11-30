@@ -67,6 +67,9 @@ public class CraftingUIManager : MonoBehaviour
 
         inventory.OnInventoryChanged += OnInventoryChanged;
         quantitySelector.onQuantityChanged += UpdateIngredientsForQuantity;
+        playerStats.StatsChanged += RefreshProfessionButtons;
+        playerStats.StatsChanged += UpdateProfessionPanel;
+
     }
     private void OnInventoryChanged()
     {
@@ -279,10 +282,10 @@ public class CraftingUIManager : MonoBehaviour
 
         playerStats.AddProfessionExp(currentProfession, selectedRecipe.expGained * craftAmount);
 
-        UpdateProfessionPanel();
+        //UpdateProfessionPanel();
         PopulateIngredients();
         PopulateRecipes();
-        RefreshProfessionButtons();
+        //RefreshProfessionButtons();
         inventory.NotifyInventoryChanged();
         InventoryUIManager.Instance.RefreshUI();
     }

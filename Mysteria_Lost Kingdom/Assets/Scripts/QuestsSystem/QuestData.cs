@@ -17,7 +17,23 @@ public class QuestReward
 {
     public int gold;
     public int experience;
-    public List<Item> items;
+    public List<ItemReward> items;
+    public List<ProfessionExp> professions;
+}
+
+[System.Serializable]
+public struct ProfessionExp
+{
+    public CraftingProfession profession;
+    public string proffesionName;
+    public float exp;
+}
+
+[System.Serializable]
+public struct ItemReward
+{
+    public Item item;
+    public int amount;
 }
 
 public enum QuestStepType

@@ -8,7 +8,9 @@ using Unity.VisualScripting;
 public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
     public enum SlotType { Inventory, Equipment};
+    public enum SlotSpecification { RightHand, LeftHand, RangeSlot, ThrowSlot, NecklaceSlot, RingSlot, BeltSlot, HeadSlot, ChestSlot, HandsSlot, LegsSlot, BootsSlot};
     [SerializeField] private SlotType slotType = SlotType.Inventory;
+    [SerializeField] private SlotSpecification slotSpecification = SlotSpecification.RightHand;
     [SerializeField] private ItemCategory allowedCategory;
 
     public Image icon;
@@ -122,6 +124,8 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
                             SetSlot(slot);
                             otherSlotUI.SetSlot(otherSlotUI.slot);
+
+                            HandleEquipmentSwap(otherSlotUI);
                         }
                     });
                 }
@@ -178,6 +182,40 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         SetSlot(slot);
         other.SetSlot(other.slot);
+
+        HandleEquipmentSwap(other);
+    }
+
+    private void HandleEquipmentSwap(InventorySlotUI other)
+    {
+        if (slot == null || other.slot == null)
+        {
+            Debug.LogWarning("One of the slots is null!");
+            return;
+        }
+
+        if (other.slot.item == null && other.slotType == SlotType.Equipment)
+        {
+            Debug.LogWarning("Other slot item is null!");
+            return;
+        }
+
+        if (EquipmentManager.Instance == null)
+        {
+            Debug.LogWarning("EquipManager not assigned!");
+            return;
+        }
+
+        if (other.slotType == SlotType.Equipment && !other.slot.IsEmpty)
+        {
+            EquipmentManager.Instance.EquipItem(other.slot.item, other.slotType, other.slotSpecification);
+        }
+
+        if (slotType == SlotType.Equipment && slot.IsEmpty)
+        {
+            if (slotSpecification == SlotSpecification.RightHand) EquipmentManager.Instance.UnequipRightHand();
+            if (slotSpecification == SlotSpecification.LeftHand) EquipmentManager.Instance.UnequipLeftHand();
+        }
     }
 
     internal void UseItem()

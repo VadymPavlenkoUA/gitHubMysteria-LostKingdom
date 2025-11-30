@@ -10,6 +10,7 @@ public class MenuController : MonoBehaviour
     public GameObject mainMenu;
     public GameObject gameMenu;
     public GameObject educationMenu;
+    public static PlayerInputActions Controls;
     private PlayerInputActions inputActions;
     private bool isMMopen = false;
     private bool isGMOpen = false;
@@ -21,16 +22,18 @@ public class MenuController : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
-        inputActions = new PlayerInputActions();
+        //inputActions = new PlayerInputActions();
+        if (Controls == null) Controls = new PlayerInputActions();
+        inputActions = Controls;
     }
     private void OnEnable()
     {
-        inputActions.Player.Enable();
+        inputActions.Controls.Enable();
     }
 
     private void OnDisable()
     {
-        inputActions?.Player.Disable();
+        inputActions?.Controls.Disable();
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -41,35 +44,60 @@ public class MenuController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (inputActions.Player.Escape.WasPressedThisFrame())
+        if (inputActions.Controls.Escape.WasPressedThisFrame())
         {
-            isMMopen = !isMMopen;
-            if (isMMopen || isEduOpen)
-            {
-                cinemachineInput.enabled = false;
-                Cursor.lockState = CursorLockMode.Confined;
-            }
-            else
-            {
-                cinemachineInput.enabled = true;
-                Cursor.lockState = CursorLockMode.Locked;
-            }
-            Cursor.visible = isMMopen || isEduOpen;
-            inputBlocked = isMMopen || isEduOpen;
-            if (isGMOpen) isGMOpen = false;
-
-            gameMenu.SetActive(isGMOpen);
-            mainMenu.SetActive(isMMopen);
-
-            Time.timeScale = isMMopen || isEduOpen ? 0f : 1f;
+            HandleEscape();
         }
 
         if (inputBlocked) return;
 
-        if (inputActions.Player.MainPanel.WasPressedThisFrame())
+        if (inputActions.Controls.MainPanel.WasPressedThisFrame())
         {
             OpenGameMenu();
         }
+    }
+    private void HandleEscape()
+    {
+        if (isEduOpen)
+        {
+            return;
+        }
+
+        if (DialogueManager.Instance.isDialogueOpen)
+        {
+            DialogueManager.Instance.EndDialogue();
+            return;
+        }
+
+        if (isGMOpen)
+        {
+            OpenGameMenu();
+            return;
+        }
+
+        ToggleMainMenu(!isMMopen);
+    }
+    private void ToggleMainMenu(bool state)
+    {
+        isMMopen = state;
+
+        if (state)
+        {
+            cinemachineInput.enabled = false;
+            Cursor.lockState = CursorLockMode.Confined;
+            Cursor.visible = true;
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            cinemachineInput.enabled = true;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            Time.timeScale = 1f;
+        }
+
+        mainMenu.SetActive(state);
+        inputBlocked = state;
     }
     public void OpenGameMenu()
     {
@@ -96,8 +124,8 @@ public class MenuController : MonoBehaviour
     public void ShowEducationMenu()
     {
         isEduOpen = true;
-
-        //cinemachineInput.enabled = false;
+        if (isGMOpen) gameMenu.SetActive(false);
+        inputActions.Player.Disable();
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
 
@@ -108,10 +136,13 @@ public class MenuController : MonoBehaviour
     public void HideEducationMenu()
     {
         isEduOpen = false;
-
-        //cinemachineInput.enabled = true;
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        if (isGMOpen) gameMenu.SetActive(true);
+        inputActions.Player.Enable();
+        if (!isGMOpen)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
 
         educationMenu.SetActive(false);
         Time.timeScale = 1f;

@@ -43,24 +43,6 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "MainPanel",
-                    "type": "Button",
-                    "id": "119ffca6-d16b-4d1d-91ff-0296d3d2f9a7",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Escape",
-                    "type": "Button",
-                    "id": "21131077-5bad-495b-b44d-1f7cddb68600",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Sprint",
                     "type": "Button",
                     "id": "7b5871a3-2ba7-4139-9197-e681ee039110",
@@ -287,50 +269,6 @@
                 },
                 {
                     "name": "",
-                    "id": "0b4ecb5e-9a18-45fb-a85d-286d4b16724a",
-                    "path": "<Keyboard>/tab",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "MainPanel",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "8d2111d9-7c8b-4950-b6cb-c1b2368fcbe5",
-                    "path": "<Gamepad>/start",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "MainPanel",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "fdf4fa2c-fe9b-4b3a-9e97-8efe52a25d9b",
-                    "path": "<Keyboard>/escape",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Escape",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "3bac977e-2123-45e8-91bd-6a058cba9403",
-                    "path": "<Gamepad>/{Menu}",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Escape",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "088b860b-59fa-411f-b866-4fbde5f977fb",
                     "path": "<Keyboard>/leftShift",
                     "interactions": "",
@@ -414,6 +352,76 @@
                     "processors": "",
                     "groups": "",
                     "action": "FreeLook",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Controls",
+            "id": "4e847e5f-c09a-4aef-839e-deab8de0896c",
+            "actions": [
+                {
+                    "name": "Escape",
+                    "type": "Button",
+                    "id": "568a165b-bf71-4ee9-94e4-b5775d6b8861",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "MainPanel",
+                    "type": "Button",
+                    "id": "0dd8d343-bfad-44af-96af-08d0670f5c48",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "6f307e97-520a-41c1-9a27-ebd557455a10",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Escape",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a328b99a-412b-4e28-aa8b-bef143de9b89",
+                    "path": "<Gamepad>/{Menu}",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Escape",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c0f03d4e-5188-4aa4-9a4f-2bb31841d431",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MainPanel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "144e9d18-138a-45e8-9da4-ee5ded7aa38f",
+                    "path": "<Gamepad>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MainPanel",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
