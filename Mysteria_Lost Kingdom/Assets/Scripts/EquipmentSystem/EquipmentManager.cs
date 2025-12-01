@@ -23,7 +23,7 @@ public class EquipmentManager : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
+        if(!isRTCharacter) Instance = this;
     }
 
     public void EquipItem(Item item, InventorySlotUI.SlotType slotType, InventorySlotUI.SlotSpecification slotSpecification)
@@ -149,8 +149,7 @@ public class EquipmentManager : MonoBehaviour
                 UnequipHead();
                 break;
         }
-        if (!isRTCharacter)
-            RTCharacterManager.Instance?.SyncFromMain();
+        if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
     }
 
     public void UnequipRightHand()
