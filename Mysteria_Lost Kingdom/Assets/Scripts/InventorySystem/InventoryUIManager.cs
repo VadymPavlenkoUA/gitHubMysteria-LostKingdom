@@ -34,14 +34,14 @@ public class InventoryUIManager : MonoBehaviour
             slotUIs[i] = obj.GetComponent<InventorySlotUI>();
         }
 
+        for (int i = 0; i < equipmentSlots.Length; i++)
+        {
+            equipmentSlots[i].slot = inventory.equipSlots[i];
+        }
+
         foreach (var slot in slotUIs)
         {
             slot.splitStackUI = splitStackUI;
-        }
-
-        foreach (var eqSlot in equipmentSlots)
-        {
-            if (eqSlot.slot == null) eqSlot.slot = new InventorySlot(); 
         }
 
         inventory.playerStats.CalculateDerivedStats();

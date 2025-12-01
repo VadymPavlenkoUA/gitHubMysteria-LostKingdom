@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 public class Inventory : MonoBehaviour
 {
@@ -9,10 +10,12 @@ public class Inventory : MonoBehaviour
 
     public event Action OnInventoryChanged;
     public List<InventorySlot> slots = new List<InventorySlot>();
+    public List<InventorySlot> equipSlots = new List<InventorySlot>();
 
     public void Awake()
     {
         for (int i = 0; i < slotCount; i++) slots.Add(new InventorySlot());
+        for (int i = 0; i < 12; i++) equipSlots.Add(new InventorySlot());
     }
 
     public void NotifyInventoryChanged()
@@ -30,6 +33,13 @@ public class Inventory : MonoBehaviour
                 if (!slot.IsEmpty)
                     weight += slot.item.weight * slot.count;
             }
+
+            foreach (var eqSlot in equipSlots)
+            {
+                if (!eqSlot.IsEmpty)
+                    weight += eqSlot.item.weight * eqSlot.count;
+            }
+
             return weight;
         }
     }

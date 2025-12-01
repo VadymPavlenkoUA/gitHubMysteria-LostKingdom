@@ -8,9 +8,9 @@ using Unity.VisualScripting;
 public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
     public enum SlotType { Inventory, Equipment};
-    public enum SlotSpecification { RightHand, LeftHand, RangeSlot, ThrowSlot, NecklaceSlot, RingSlot, BeltSlot, HeadSlot, ChestSlot, HandsSlot, LegsSlot, BootsSlot};
+    public enum SlotSpecification { RightHand, LeftHand, RangeSlot, ThrowSlot, NecklaceSlot, RingSlot, BeltSlot, HeadSlot, ChestSlot, HandsSlot, LegsSlot, BootsSlot, None};
     [SerializeField] private SlotType slotType = SlotType.Inventory;
-    [SerializeField] private SlotSpecification slotSpecification = SlotSpecification.RightHand;
+    [SerializeField] internal SlotSpecification slotSpecification = SlotSpecification.None;
     [SerializeField] private ItemCategory allowedCategory;
 
     public Image icon;
@@ -22,7 +22,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     public Vector2 offset = new Vector2(100f, 30f);
 
     internal InventorySlot slot;
-    private Transform originalParent;
     private GameObject draggingIcon;
 
     public void SetSlot(InventorySlot slot)
@@ -188,35 +187,78 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     private void HandleEquipmentSwap(InventorySlotUI other)
     {
-        if (slot == null || other.slot == null)
-        {
-            Debug.LogWarning("One of the slots is null!");
+        bool thisIsEquip = this.slotType == SlotType.Equipment;
+        bool otherIsEquip = other.slotType == SlotType.Equipment;
+
+        if (!thisIsEquip && !otherIsEquip)
             return;
+
+
+        if (thisIsEquip)
+        {
+            if (slot.IsEmpty)
+            {
+                EquipmentManager.Instance.Unequip(slotSpecification);
+            }
+            else
+            {
+                EquipmentManager.Instance.EquipItem(
+                    slot.item,
+                    slotType,
+                    slotSpecification
+                );
+            }
         }
 
-        if (other.slot.item == null && other.slotType == SlotType.Equipment)
+        if (otherIsEquip)
         {
-            Debug.LogWarning("Other slot item is null!");
-            return;
-        }
-
-        if (EquipmentManager.Instance == null)
-        {
-            Debug.LogWarning("EquipManager not assigned!");
-            return;
-        }
-
-        if (other.slotType == SlotType.Equipment && !other.slot.IsEmpty)
-        {
-            EquipmentManager.Instance.EquipItem(other.slot.item, other.slotType, other.slotSpecification);
-        }
-
-        if (slotType == SlotType.Equipment && slot.IsEmpty)
-        {
-            if (slotSpecification == SlotSpecification.RightHand) EquipmentManager.Instance.UnequipRightHand();
-            if (slotSpecification == SlotSpecification.LeftHand) EquipmentManager.Instance.UnequipLeftHand();
+            if (other.slot.IsEmpty)
+            {
+                EquipmentManager.Instance.Unequip(other.slotSpecification);
+            }
+            else
+            {
+                EquipmentManager.Instance.EquipItem(
+                    other.slot.item,
+                    other.slotType,
+                    other.slotSpecification
+                );
+            }
         }
     }
+
+
+    //private void HandleEquipmentSwap(InventorySlotUI other)
+    //{
+    //    if (slot == null || other.slot == null)
+    //    {
+    //        Debug.LogWarning("One of the slots is null!");
+    //        return;
+    //    }
+
+    //    if (other.slot.item == null && other.slotType == SlotType.Equipment)
+    //    {
+    //        Debug.LogWarning("Other slot item is null!");
+    //        return;
+    //    }
+
+    //    if (EquipmentManager.Instance == null)
+    //    {
+    //        Debug.LogWarning("EquipManager not assigned!");
+    //        return;
+    //    }
+
+    //    if (other.slotType == SlotType.Equipment && !other.slot.IsEmpty)
+    //    {
+    //        EquipmentManager.Instance.EquipItem(other.slot.item, other.slotType, other.slotSpecification);
+    //    }
+
+    //    if (slotType == SlotType.Equipment && slot.IsEmpty)
+    //    {
+    //        if (slotSpecification == SlotSpecification.RightHand) EquipmentManager.Instance.UnequipRightHand();
+    //        if (slotSpecification == SlotSpecification.LeftHand) EquipmentManager.Instance.UnequipLeftHand();
+    //    }
+    //}
 
     internal void UseItem()
     {
@@ -260,18 +302,10 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             return;
         }
 
-        Inventory inventory = InventoryUIManager.Instance.inventory;
-        if (inventory == null)
-        {
-            Debug.LogWarning("Inventory not found!");
-            return;
-        }
-
-        int amountToDrop = slot.count;
-
-        // 1) Інстанціюємо фізичні префаби (можна інстанціювати після видалення, але краще перед щоб відчути момент)
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player == null) return;
+
+        int amountToDrop = slot.count;
 
         for (int i = 0; i < amountToDrop; i++)
         {
@@ -280,11 +314,23 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
         }
 
-        // 2) Тепер делегуємо видалення інвентарю
-        inventory.RemoveItem(slot.item, amountToDrop);
+        if (slotType == SlotType.Equipment)
+        {
+            EquipmentManager.Instance?.Unequip(slotSpecification);
 
-        // 3) Оновлюємо локальний UI-слот (inventory.NotifyInventoryChanged() вже сповістить RefreshUI через підписку)
-        SetSlot(slot); // тут slot вже змінений методами Inventory.RemoveItem (slot.Clear() викликано у Inventory)
+            slot.Clear();
+            SetSlot(slot);
+            InventoryUIManager.Instance.RefreshUI();
+            return;
+        }
+
+        Inventory inventory = InventoryUIManager.Instance.inventory;
+        if (inventory != null)
+        {
+            inventory.RemoveItem(slot.item, amountToDrop);
+        }
+
+        SetSlot(slot);
         InventoryUIManager.Instance.RefreshUI();
     }
 
@@ -296,9 +342,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             Debug.Log("Prefab missing!");
             return;
         }
-
-        Inventory inventory = InventoryUIManager.Instance.inventory;
-        if (inventory == null) return;
 
         int toDrop = Mathf.Min(amount, slot.count);
 
@@ -312,70 +355,23 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
         }
 
-        inventory.RemoveItem(slot.item, toDrop);
+        if (slotType == SlotType.Equipment)
+        {
+            EquipmentManager.Instance?.Unequip(slotSpecification);
+
+            slot.Clear();
+            SetSlot(slot);
+            InventoryUIManager.Instance.RefreshUI();
+            return;
+        }
+
+        Inventory inventory = InventoryUIManager.Instance.inventory;
+        if (inventory != null)
+        {
+            inventory.RemoveItem(slot.item, toDrop);
+        }
+
         SetSlot(slot);
         InventoryUIManager.Instance.RefreshUI();
-    }
-
-
-    //internal void DropItem()
-    //{
-    //    if (slot == null || slot.IsEmpty) return;
-    //    if (slot.item.itemPrefab == null)
-    //    {
-    //        Debug.Log("Prefab missing!");
-    //        return;
-    //    }
-    //    GameObject player = GameObject.FindGameObjectWithTag("Player");
-    //    if (player == null) return;
-    //    for (int i = 0; i < slot.count; i++)
-    //    {
-    //        Vector3 dropPos = player.transform.position + transform.forward * 1f;
-    //        dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 1f, Random.Range(-0.2f, 0.2f));
-
-    //        Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
-    //    }
-
-    //    slot.Clear();
-    //    SetSlot(slot);
-    //    InventoryUIManager.Instance.RefreshUI();
-    //    InventoryUIManager.Instance.NotifyInventoryChanged();
-    //}
-    //internal void DropItem(int amount)
-    //{
-    //    if (slot == null || slot.IsEmpty) return;
-    //    if (slot.item.itemPrefab == null)
-    //    {
-    //        Debug.Log("Prefab missing!");
-    //        return;
-    //    }
-
-    //    GameObject player = GameObject.FindGameObjectWithTag("Player");
-    //    if (player == null) return;
-    //    int toDrop = Mathf.Min(amount, slot.count);
-
-    //    for (int i = 0; i < toDrop; i++)
-    //    {
-    //        Vector3 dropPos = player.transform.position + transform.forward * 1f;
-    //        dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 0.5f, Random.Range(-0.2f, 0.2f));
-    //        Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
-    //    }
-    //    slot.count -= toDrop;
-    //    if (slot.count <= 0) slot.Clear();
-    //    SetSlot(slot);
-    //    InventoryUIManager.Instance.RefreshUI();
-    //    InventoryUIManager.Instance.NotifyInventoryChanged();
-    //}
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

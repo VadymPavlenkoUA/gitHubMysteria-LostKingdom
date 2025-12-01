@@ -45,6 +45,9 @@ public class Item : ScriptableObject
 
     public WeaponHandType weaponHandType = WeaponHandType.None;
 
+    public Vector3 armourPosition;
+    public Vector3 armourRotation;
+
     public Vector3 rightHandPosition;
     public Vector3 rightHandRotation;
 

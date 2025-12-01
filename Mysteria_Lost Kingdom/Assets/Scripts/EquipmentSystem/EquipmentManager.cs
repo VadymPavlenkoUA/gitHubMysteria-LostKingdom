@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class EquipmentManager : MonoBehaviour
@@ -7,13 +8,18 @@ public class EquipmentManager : MonoBehaviour
     [Header("Слоти для екіпіювання")]
     public Transform rightHand;
     public Transform leftHand;
+    public Transform head;
     //public Animator animator;
 
     private GameObject currentRightHandItem;
     private GameObject currentLeftHandItem;
+    private GameObject currentHeadArmourItem;
 
-    private Item equippedRightItem;
-    private Item equippedLeftItem;
+    internal Item equippedRightItem;
+    internal Item equippedLeftItem;
+    internal Item equippedHeadArmourItem;
+
+    public bool isRTCharacter = false;
 
     private void Awake()
     {
@@ -26,30 +32,39 @@ public class EquipmentManager : MonoBehaviour
         if ((item.categories & ItemCategory.Weapon) != 0 || (item.categories & ItemCategory.Bow) != 0 || (item.categories & ItemCategory.Shield) != 0)
         {
             EquipWeapon(item, slotSpecification);
+            if (!isRTCharacter)
+                RTCharacterManager.Instance?.SyncFromMain();
             return;
-        } 
+        }
+        else if ((item.categories & ItemCategory.ArmourHead) != 0)
+        {
+            EquipArmour(item, slotSpecification);
+            if (!isRTCharacter)
+                RTCharacterManager.Instance?.SyncFromMain();
+            return;
+        }
     }
 
     private void EquipWeapon(Item item, InventorySlotUI.SlotSpecification slotSpecification)
     {
-        if (item.weaponHandType == WeaponHandType.TwoHand)
-        {
-            UnequipRightHand();
-            UnequipLeftHand();
+        //if (item.weaponHandType == WeaponHandType.TwoHand)
+        //{
+        //    UnequipRightHand();
+        //    UnequipLeftHand();
 
-            currentRightHandItem = Instantiate(item.itemPrefabEquip, rightHand);
-            currentRightHandItem.transform.localScale = Vector3.one;
-            currentRightHandItem.transform.localPosition = item.rightHandPosition;
-            currentRightHandItem.transform.localRotation = Quaternion.Euler(item.rightHandRotation);
+        //    currentRightHandItem = Instantiate(item.itemPrefabEquip, rightHand);
+        //    currentRightHandItem.transform.localScale = Vector3.one;
+        //    currentRightHandItem.transform.localPosition = item.rightHandPosition;
+        //    currentRightHandItem.transform.localRotation = Quaternion.Euler(item.rightHandRotation);
 
-            equippedRightItem = item;
-            equippedLeftItem = item; 
+        //    equippedRightItem = item;
+        //    equippedLeftItem = item; 
 
-            //animator.SetBool("WeaponEquipped", true);
-            //animator.SetInteger("WeaponType", 3); 
+        //    //animator.SetBool("WeaponEquipped", true);
+        //    //animator.SetInteger("WeaponType", 3); 
 
-            return;
-        }
+        //    return;
+        //}
 
         if (item.weaponHandType == WeaponHandType.OneHand && slotSpecification == InventorySlotUI.SlotSpecification.RightHand)
         {
@@ -88,6 +103,26 @@ public class EquipmentManager : MonoBehaviour
         Debug.LogWarning("Weapon has NO WeaponHandType assigned!");
     }
 
+    private void EquipArmour(Item item, InventorySlotUI.SlotSpecification slotSpecification)
+    {
+        if (slotSpecification == InventorySlotUI.SlotSpecification.HeadSlot)
+        {
+            UnequipHead();
+
+            currentHeadArmourItem = Instantiate(item.itemPrefabEquip, head);
+            FixItemScale(currentHeadArmourItem.transform, head, item.itemPrefabEquip.transform.localScale);
+            currentHeadArmourItem.transform.localPosition = item.armourPosition;
+            currentHeadArmourItem.transform.localRotation = Quaternion.Euler(item.armourRotation);
+
+            equippedHeadArmourItem = item;
+
+            //animator.SetBool("WeaponEquipped", true);
+            //animator.SetInteger("WeaponType", 1);
+
+            return;
+        }
+    }
+
     private void FixItemScale(Transform itemTransform, Transform hand, Vector3 localScale)
     {
         Vector3 s = hand.lossyScale;
@@ -96,6 +131,26 @@ public class EquipmentManager : MonoBehaviour
             localScale.y / s.y,
             localScale.z / s.z
         );
+    }
+
+    public void Unequip(InventorySlotUI.SlotSpecification spec)
+    {
+        switch (spec)
+        {
+            case InventorySlotUI.SlotSpecification.RightHand:
+                UnequipRightHand();
+                break;
+
+            case InventorySlotUI.SlotSpecification.LeftHand:
+                UnequipLeftHand();
+                break;
+
+            case InventorySlotUI.SlotSpecification.HeadSlot:
+                UnequipHead();
+                break;
+        }
+        if (!isRTCharacter)
+            RTCharacterManager.Instance?.SyncFromMain();
     }
 
     public void UnequipRightHand()
@@ -116,6 +171,14 @@ public class EquipmentManager : MonoBehaviour
         equippedLeftItem = null;
 
         //CheckIfAnyWeaponLeft();
+    }
+
+    public void UnequipHead()
+    {
+        if (currentHeadArmourItem != null) Destroy(currentHeadArmourItem);
+
+        currentHeadArmourItem = null;
+        equippedHeadArmourItem = null;
     }
 
     private void CheckIfAnyWeaponLeft()
