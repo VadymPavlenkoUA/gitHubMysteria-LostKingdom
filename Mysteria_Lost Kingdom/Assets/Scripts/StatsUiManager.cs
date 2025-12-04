@@ -21,6 +21,7 @@ public class StatsUiManager : MonoBehaviour
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI staminaText;
     public TextMeshProUGUI weightText;
+    public TextMeshProUGUI manaText;
 
     [Header("UI Elements Stats")]
     public TextMeshProUGUI levelStatsText;
@@ -53,6 +54,7 @@ public class StatsUiManager : MonoBehaviour
 
     public TextMeshProUGUI healthEquipText;
     public TextMeshProUGUI staminaEquipText;
+    public TextMeshProUGUI manaEquipText;
     public TextMeshProUGUI satietyEquipText;
     public TextMeshProUGUI goldEquipText;
 
@@ -62,6 +64,7 @@ public class StatsUiManager : MonoBehaviour
         playerStats.StatsChanged += UpdateStatsDisplay;
         playerStats.HealthChanged += UpdatesHealthOnly;
         playerStats.StaminaChanged += UpdateStaminaOnly;
+        playerStats.ManaChanged += UpdateManaOnly;
         playerStats.LevelUpEvent += OnLevelUp;
         UpdateStatsDisplay();
     }
@@ -88,12 +91,15 @@ public class StatsUiManager : MonoBehaviour
         healthText.text = $"Здоров'я: {playerStats.maxHealth}";
         staminaText.text = $"Витривалість: {playerStats.maxStamina}";
         weightText.text = $"Вантажність: {playerStats.maxWeight.ToString("0.0", CultureInfo.InvariantCulture)}";
+        manaText.text = $"Мана: {playerStats.maxMana}";
         healthEquipText.text = $"{playerStats.currentHealth.ToString("0.0", CultureInfo.InvariantCulture)} / " +
             $"{playerStats.maxHealth.ToString("0.0", CultureInfo.InvariantCulture)}";
         staminaEquipText.text = $"{playerStats.currentStamina.ToString("0.0", CultureInfo.InvariantCulture)} / " +
             $"{playerStats.maxStamina.ToString("0.0", CultureInfo.InvariantCulture)}";
         satietyEquipText.text = $"{playerStats.currentSatiety.ToString("0.0", CultureInfo.InvariantCulture)} / " +
             $"{playerStats.maxSatiety.ToString("0.0", CultureInfo.InvariantCulture)}";
+        manaEquipText.text = $"{playerStats.currentMana.ToString("0.0", CultureInfo.InvariantCulture)} / " +
+            $"{playerStats.maxMana.ToString("0.0", CultureInfo.InvariantCulture)}";
         goldEquipText.text = $"{playerStats.gold}";
 
         levelStatsText.text = $"Рівень: {playerStats.level}";
@@ -153,6 +159,12 @@ public class StatsUiManager : MonoBehaviour
     {
         staminaEquipText.text = $"{playerStats.currentStamina.ToString("0.0", CultureInfo.InvariantCulture)} / " +
             $"{playerStats.maxStamina.ToString("0.0", CultureInfo.InvariantCulture)}";
+    }
+
+    private void UpdateManaOnly()
+    {
+        manaEquipText.text = $"{playerStats.currentMana.ToString("0.0", CultureInfo.InvariantCulture)} / " +
+            $"{playerStats.maxMana.ToString("0.0", CultureInfo.InvariantCulture)}";
     }
 
     private void OnLevelUp()

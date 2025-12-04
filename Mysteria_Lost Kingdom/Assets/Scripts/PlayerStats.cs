@@ -50,9 +50,15 @@ public class PlayerStats : MonoBehaviour
     public float baseStamina = 100f;
     public float maxStamina = 100f;
     public float currentStamina;
-    public float staminaDrain = 10f;
     public float staminaRegen = 5f;
     public float regenDelay = 2f;
+
+    [Header("ManaSettings")]
+    public float baseMana = 100f;
+    public float maxMana = 100f;
+    public float currentMana;
+    public float manaRegen = 5f;
+    public float manaRegenDelay = 2f;
 
     [Header("Gold")]
     public int gold = 0;
@@ -63,6 +69,7 @@ public class PlayerStats : MonoBehaviour
     [Header("UI")]
     public Slider healthBar;
     public Slider staminaBar;
+    public Image manaBar;
 
     public delegate void OnLevelUp();
     public event OnLevelUp LevelUpEvent;
@@ -76,7 +83,13 @@ public class PlayerStats : MonoBehaviour
     public delegate void OnStaminaChanged();
     public event OnStaminaChanged StaminaChanged;
 
+    public delegate void OnManaChanged();
+    public event OnManaChanged ManaChanged;
+
     public float regenTimer;
+    private float manaRegenTimer;
+    private float satietyTimer = 0f;
+    private float healthRegenTimer = 0f;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -85,9 +98,12 @@ public class PlayerStats : MonoBehaviour
 
         currentHealth = maxHealth;
         currentStamina = maxStamina;
+        currentMana = maxMana;
+        currentSatiety = maxSatiety;
 
         healthBar.maxValue = maxHealth;
         staminaBar.maxValue = maxStamina;
+
 
         StatsChanged?.Invoke();
 
@@ -108,6 +124,43 @@ public class PlayerStats : MonoBehaviour
                 currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
 
                 if (Mathf.Abs(currentStamina - oldStamina) > 0.01f) StaminaChanged?.Invoke();
+            }
+        }
+
+        if (currentMana < maxMana)
+        {
+            manaRegenDelay -= Time.deltaTime;
+            if (manaRegenTimer <= 0)
+            {
+                float regenAmount = GetManaRegen();
+                float oldMana = currentMana;
+                currentMana += regenAmount * Time.deltaTime;
+                currentMana = Mathf.Clamp(currentMana, 0, maxMana);
+                if (Mathf.Abs(currentMana - oldMana) > 0.01f) ManaChanged?.Invoke();
+            }
+        }
+
+        satietyTimer += Time.deltaTime;
+        if (satietyTimer >= 60f)
+        {
+            satietyTimer = 0f;
+            if (currentSatiety > 0)
+            {
+                currentSatiety -= 1f;
+                currentSatiety = Mathf.Clamp(currentSatiety, 0f, maxSatiety);
+                StatsChanged?.Invoke();
+            }
+        }
+
+        healthRegenTimer += Time.deltaTime;
+        if (healthRegenTimer >= 10f)
+        {
+            healthRegenTimer = 0f;
+            if (currentHealth < maxHealth && currentSatiety >= 30)
+            {
+                currentHealth += 0.1f;
+                currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
+                HealthChanged?.Invoke();
             }
         }
 
@@ -288,12 +341,18 @@ public class PlayerStats : MonoBehaviour
         maxHealth = baseHealth + vitality * 2f;     // сила = +2 HP за 1
         maxStamina = baseStamina + endurance * 5f;  // стійкість = +5 stamina за 1
         maxWeight = baseWeight + strength * 1f;     // сила = +1 kg за 1
+        maxMana = baseMana + intellect * 3f;        // інтелект = +3 mana за 1
         StatsChanged?.Invoke();
     }
 
     public float GetStaminaRegen()
     {
         return staminaRegen + endurance * 0.5f;
+    }
+
+    public float GetManaRegen()
+    {
+        return manaRegen + intellect + faith * 0.5f;
     }
     
     private float GetStaminaCostMultiplier()
@@ -305,6 +364,7 @@ public class PlayerStats : MonoBehaviour
     {
         healthBar.value = currentHealth;
         staminaBar.value = currentStamina;
+        manaBar.fillAmount = currentMana / maxMana;
     }
 
     public ProfessionStat GetProfession(CraftingProfession prof)

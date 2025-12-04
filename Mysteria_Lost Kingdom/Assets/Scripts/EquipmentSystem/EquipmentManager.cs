@@ -20,6 +20,7 @@ public class EquipmentManager : MonoBehaviour
     internal Item equippedHeadArmourItem;
 
     public bool isRTCharacter = false;
+    internal bool twoHandEquipped = false;
 
     private void Awake()
     {
@@ -47,24 +48,25 @@ public class EquipmentManager : MonoBehaviour
 
     private void EquipWeapon(Item item, InventorySlotUI.SlotSpecification slotSpecification)
     {
-        //if (item.weaponHandType == WeaponHandType.TwoHand)
-        //{
-        //    UnequipRightHand();
-        //    UnequipLeftHand();
+        if (item.weaponHandType == WeaponHandType.TwoHand)
+        {
+            UnequipTwoHand();
 
-        //    currentRightHandItem = Instantiate(item.itemPrefabEquip, rightHand);
-        //    currentRightHandItem.transform.localScale = Vector3.one;
-        //    currentRightHandItem.transform.localPosition = item.rightHandPosition;
-        //    currentRightHandItem.transform.localRotation = Quaternion.Euler(item.rightHandRotation);
+            currentRightHandItem = Instantiate(item.itemPrefabEquip, rightHand);
+            FixItemScale(currentRightHandItem.transform, rightHand, item.itemPrefabEquip.transform.localScale);
+            currentRightHandItem.transform.localPosition = item.rightHandPosition;
+            currentRightHandItem.transform.localRotation = Quaternion.Euler(item.rightHandRotation);
 
-        //    equippedRightItem = item;
-        //    equippedLeftItem = item; 
+            equippedRightItem = item;
+            equippedLeftItem = item;
 
-        //    //animator.SetBool("WeaponEquipped", true);
-        //    //animator.SetInteger("WeaponType", 3); 
+            twoHandEquipped = true;
 
-        //    return;
-        //}
+            //animator.SetBool("WeaponEquipped", true);
+            //animator.SetInteger("WeaponType", 3); 
+
+            return;
+        }
 
         if (item.weaponHandType == WeaponHandType.OneHand && slotSpecification == InventorySlotUI.SlotSpecification.RightHand)
         {
@@ -138,10 +140,24 @@ public class EquipmentManager : MonoBehaviour
         switch (spec)
         {
             case InventorySlotUI.SlotSpecification.RightHand:
+                if (twoHandEquipped)
+                {
+                    UnequipTwoHand();
+                    twoHandEquipped = false;
+                    if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+                    return;
+                }
                 UnequipRightHand();
                 break;
 
             case InventorySlotUI.SlotSpecification.LeftHand:
+                if (twoHandEquipped)
+                {
+                    UnequipTwoHand();
+                    twoHandEquipped = false;
+                    if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+                    return;
+                }
                 UnequipLeftHand();
                 break;
 
@@ -149,6 +165,7 @@ public class EquipmentManager : MonoBehaviour
                 UnequipHead();
                 break;
         }
+
         if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
     }
 
@@ -170,6 +187,16 @@ public class EquipmentManager : MonoBehaviour
         equippedLeftItem = null;
 
         //CheckIfAnyWeaponLeft();
+    }
+
+    public void UnequipTwoHand()
+    {
+        if (currentRightHandItem != null) Destroy(currentRightHandItem);
+        if (currentLeftHandItem != null) Destroy(currentLeftHandItem);
+        currentRightHandItem = null;
+        equippedRightItem = null;
+        currentLeftHandItem = null;
+        equippedLeftItem = null;
     }
 
     public void UnequipHead()

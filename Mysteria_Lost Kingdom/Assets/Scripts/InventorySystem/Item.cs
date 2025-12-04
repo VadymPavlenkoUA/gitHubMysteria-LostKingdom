@@ -45,14 +45,21 @@ public class Item : ScriptableObject
 
     public WeaponHandType weaponHandType = WeaponHandType.None;
 
+    [Header("Armour Position Settings")]
     public Vector3 armourPosition;
     public Vector3 armourRotation;
 
+    [Header("Right Hand Position Settings")]
     public Vector3 rightHandPosition;
     public Vector3 rightHandRotation;
 
+    [Header("Left Hand Position Settings")]
     public Vector3 leftHandPosition;
     public Vector3 leftHandRotation;
+
+    [Header("Food Settings")]
+    public float satietyRestore = 0f;
+    public float healthRestore = 0f;
 
     [TextArea(2, 5)]
     public string description;

@@ -31,6 +31,11 @@ public class InventorySlot
 
         return amount;
     }
+    public void SetItem(Item newItem, int newCount = 1)
+    {
+        item = newItem;
+        count = newCount;
+    }
     public void Clear()
     {
         item = null;
