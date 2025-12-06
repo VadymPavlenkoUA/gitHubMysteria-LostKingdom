@@ -19,7 +19,7 @@ public class CraftingStation : MonoBehaviour, IInteractable
     {
         if (CraftingUIManager.Instance != null)
         {
-            CraftingUIManager.Instance.OpenFromStation(stationType);
+            UseActionManager.Instance.StartUse(2f, () => CraftingUIManager.Instance.OpenFromStation(stationType), () => Debug.Log("Скасовано!"));
         }
         else
         {

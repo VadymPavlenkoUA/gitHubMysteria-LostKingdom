@@ -62,6 +62,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        //if (UseActionManager.Instance.isUsing) return;
         if (slot == null || slot.IsEmpty) return;
 
         draggingIcon = new GameObject("DraggingIcon");
@@ -79,6 +80,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     public void OnDrag(PointerEventData eventData)
     {
+        //if (UseActionManager.Instance.isUsing) return;
         if (draggingIcon != null)
         {
             draggingIcon.transform.position = eventData.position;
@@ -87,6 +89,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        //if (UseActionManager.Instance.isUsing) return;
         if (draggingIcon != null) Destroy(draggingIcon);
         if (slot == null || slot.IsEmpty) return;
         if (eventData.pointerEnter != null)
@@ -131,11 +134,38 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                 }
                 else
                 {
-                    TryStackOrSwap(otherSlotUI);
+                    TryStartEquipTimer(this, otherSlotUI);
                 }
             }
         }
     }
+
+    private void TryStartEquipTimer(InventorySlotUI a, InventorySlotUI b)
+    {
+        if (UseActionManager.Instance.isUsing)
+            return;
+        bool aIsEquip = a.slotType == SlotType.Equipment;
+        bool bIsEquip = b.slotType == SlotType.Equipment;
+
+        // Якщо обидва — інвентар → ТАЙМЕР НЕ ПОТРІБНИЙ
+        if (!aIsEquip && !bIsEquip)
+        {
+            TryStackOrSwap(b);
+            return;
+        }
+
+        //// Якщо обидва — екіпіровка → ТАЙМЕР НЕ ПОТРІБНИЙ
+        //if (aIsEquip && bIsEquip)
+        //    return;
+
+        // Тут означає, що перетягування ІНВЕНТАР <-> ЕКІПІРОВКА 🔥
+        UseActionManager.Instance.StartUse(
+            a.slot.item.useDuration,
+            () => TryStackOrSwap(b),
+            () => Debug.Log("Скасовано екіпіровку")
+        );
+    }
+
 
     private void TryStackOrSwap(InventorySlotUI other)
     {
@@ -201,17 +231,23 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         // Якщо слот порожній, потрібно просто роззняти його
         if (slotToEquip.IsEmpty)
         {
-            // Якщо цей слот є RightHand або LeftHand і там дворучна зброя — очистити обидва слоти
-            var handSlots = InventoryUIManager.Instance.equipmentSlots
+            bool isHand =
+                slotUI.slotSpecification == SlotSpecification.RightHand ||
+                slotUI.slotSpecification == SlotSpecification.LeftHand;
+            if (isHand)
+            {
+                // Якщо цей слот є RightHand або LeftHand і там дворучна зброя — очистити обидва слоти
+                var handSlots = InventoryUIManager.Instance.equipmentSlots
                 .Where(s => s.slotSpecification == SlotSpecification.RightHand || s.slotSpecification == SlotSpecification.LeftHand);
 
-            foreach (var hand in handSlots)
-            {
-                if (!hand.slot.IsEmpty && hand.slot.item.weaponHandType == WeaponHandType.TwoHand)
+                foreach (var hand in handSlots)
                 {
-                    eq.Unequip(hand.slotSpecification);
-                    hand.slot.Clear();
-                    hand.SetSlot(hand.slot);
+                    if (!hand.slot.IsEmpty && hand.slot.item.weaponHandType == WeaponHandType.TwoHand)
+                    {
+                        eq.Unequip(hand.slotSpecification);
+                        hand.slot.Clear();
+                        hand.SetSlot(hand.slot);
+                    }
                 }
             }
 
@@ -433,7 +469,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         var equipSlots = InventoryUIManager.Instance.equipmentSlots;
         InventorySlotUI freeSlot = null;
-
         foreach (var eSlot in equipSlots)
         {
             if ((item.categories & eSlot.allowedCategory) == 0)
@@ -470,43 +505,53 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                 if (slotUI.slotSpecification == SlotSpecification.LeftHand) leftHandSlot = slotUI;
             }
 
-            if ((rightHandSlot == null || !rightHandSlot.slot.IsEmpty) || 
+            if ((rightHandSlot == null || !rightHandSlot.slot.IsEmpty) ||
             (leftHandSlot == null || !leftHandSlot.slot.IsEmpty))
-        {
-            Debug.Log("Не вистачає вільних слотів для дворучної зброї!");
-            return;
-        }
-
-            if (rightHandSlot != null)
             {
-                eq.EquipItem(item, rightHandSlot.slotType, rightHandSlot.slotSpecification);
-                rightHandSlot.slot.SetItem(item, 1);
-                rightHandSlot.SetSlot(rightHandSlot.slot);
+                Debug.Log("Не вистачає вільних слотів для дворучної зброї!");
+                return;
             }
 
-            if (leftHandSlot != null)
-            {
-                eq.EquipItem(item, leftHandSlot.slotType, leftHandSlot.slotSpecification);
-                leftHandSlot.slot.SetItem(item, 1);
-                leftHandSlot.SetSlot(leftHandSlot.slot);
-            }
-
-            slot.count--;
-            if (slot.count <= 0) slot.Clear();
-            SetSlot(slot);
+            UseActionManager.Instance.StartUse(item.useDuration, () => EquipTwoHandedProgress(eq, item, equipSlot, rightHandSlot, leftHandSlot), () => Debug.Log("Скасовано!"));
         }
         else
         {
-            eq.EquipItem(item, equipSlot.slotType, equipSlot.slotSpecification);
-            equipSlot.slot.SetItem(item, 1);
-            equipSlot.SetSlot(equipSlot.slot);
-
-            slot.count--;
-            if (slot.count <= 0) slot.Clear();
-            SetSlot(slot);
+            UseActionManager.Instance.StartUse(item.useDuration, () => EquipOneHandedProgress(eq, item, equipSlot), () => Debug.Log("Скасовано!"));
         }
 
         InventoryUIManager.Instance.RefreshUI();
+    }
+
+    private void EquipOneHandedProgress(EquipmentManager eq, Item item, InventorySlotUI equipSlot)
+    {
+        eq.EquipItem(item, equipSlot.slotType, equipSlot.slotSpecification);
+        equipSlot.slot.SetItem(item, 1);
+        equipSlot.SetSlot(equipSlot.slot);
+
+        slot.count--;
+        if (slot.count <= 0) slot.Clear();
+        SetSlot(slot);
+    }
+
+    private void EquipTwoHandedProgress(EquipmentManager eq, Item item, InventorySlotUI equipSlot, InventorySlotUI rightHandSlot, InventorySlotUI leftHandSlot)
+    {
+        if (rightHandSlot != null)
+        {
+            eq.EquipItem(item, rightHandSlot.slotType, rightHandSlot.slotSpecification);
+            rightHandSlot.slot.SetItem(item, 1);
+            rightHandSlot.SetSlot(rightHandSlot.slot);
+        }
+
+        if (leftHandSlot != null)
+        {
+            eq.EquipItem(item, leftHandSlot.slotType, leftHandSlot.slotSpecification);
+            leftHandSlot.slot.SetItem(item, 1);
+            leftHandSlot.SetSlot(leftHandSlot.slot);
+        }
+
+        slot.count--;
+        if (slot.count <= 0) slot.Clear();
+        SetSlot(slot);
     }
 
 
@@ -516,13 +561,13 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         Item item = slot.item;
         if ((item.categories & ItemCategory.Food) != 0)
         {
-            UseFood(item);
+            UseActionManager.Instance.StartUse(item.useDuration, () => UseFood(item), () => Debug.Log("Скасовано!"));
             return;
         }
 
         if (slotType == SlotType.Equipment)
         {
-            UnequipFromThisSlot();
+            UseActionManager.Instance.StartUse(item.useDuration, () => UnequipFromThisSlot(), () => Debug.Log("Скасовано!"));
             return;
         }
         TryEquipItem(item);
@@ -558,6 +603,10 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     internal void DropItem()
     {
+        if (UseActionManager.Instance.isUsing)
+        {
+            UseActionManager.Instance.CancelUse();
+        }
         if (slot == null || slot.IsEmpty) return;
         if (slot.item.itemPrefab == null)
         {
@@ -617,6 +666,10 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     internal void DropItem(int amount)
     {
+        if (UseActionManager.Instance.isUsing)
+        {
+            UseActionManager.Instance.CancelUse();
+        }
         if (slot == null || slot.IsEmpty) return;
         if (slot.item.itemPrefab == null)
         {

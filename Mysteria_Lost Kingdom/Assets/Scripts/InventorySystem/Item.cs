@@ -41,6 +41,9 @@ public class Item : ScriptableObject
     public GameObject itemPrefab;
     public GameObject itemPrefabEquip;
 
+    [Header("Use Settings")]
+    public float useDuration = 1.5f;
+
     public ItemCategory categories;
 
     public WeaponHandType weaponHandType = WeaponHandType.None;

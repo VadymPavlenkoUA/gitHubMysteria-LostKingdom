@@ -21,6 +21,8 @@ public class CraftingRecipe : ScriptableObject
     public Item resultItem;
     public int resultAmount = 1;
 
+    public float craftDuration;
+
     public List<Ingredient> ingredients;
 
     public CraftingStationType requiredStation = CraftingStationType.None;

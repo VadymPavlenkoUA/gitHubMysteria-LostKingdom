@@ -256,7 +256,7 @@ public class CraftingUIManager : MonoBehaviour
 
                 if (result.correct)
                 {
-                    CompleteCraft(craftAmount);
+                    UseActionManager.Instance.StartUse(selectedRecipe.craftDuration, () => CompleteCraft(craftAmount), () => Debug.Log("Скасовано!"));
                 }
                 else
                 {
@@ -269,7 +269,7 @@ public class CraftingUIManager : MonoBehaviour
         }
         else
         {
-            CompleteCraft(craftAmount);
+            UseActionManager.Instance.StartUse(selectedRecipe.craftDuration, () => CompleteCraft(craftAmount), () => Debug.Log("Скасовано!"));
         }
     }
 

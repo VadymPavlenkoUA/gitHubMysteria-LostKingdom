@@ -58,6 +58,10 @@ public class MenuController : MonoBehaviour
     }
     private void HandleEscape()
     {
+        if (UseActionManager.Instance.isUsing)
+        {
+            UseActionManager.Instance.CancelUse();
+        }
         if (isEduOpen)
         {
             return;
