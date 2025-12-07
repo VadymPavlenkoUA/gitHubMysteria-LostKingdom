@@ -426,6 +426,94 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "HotBar",
+            "id": "45e95d5b-0265-4b55-b959-81ddb444fe66",
+            "actions": [
+                {
+                    "name": "RightHand",
+                    "type": "Button",
+                    "id": "0c8a7d0e-d1f5-4a1a-abdd-86b8825964f0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "LeftHand",
+                    "type": "Button",
+                    "id": "9901b9b5-8689-4f15-a59d-2e49d354bf93",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "RangeWeapon",
+                    "type": "Button",
+                    "id": "7f1dea53-9212-40bd-94f0-1ea4b23c2fbb",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ThrowableWeapon",
+                    "type": "Button",
+                    "id": "6276c33e-e365-4a54-b6ce-f0b4fb5682f7",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "51b91bf0-c9be-48b3-b95a-8bf0664f0a74",
+                    "path": "<Keyboard>/1",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightHand",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d812eda4-43ee-4b00-9d9f-98cf17424e72",
+                    "path": "<Keyboard>/2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LeftHand",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "768508a9-f20f-44f5-8a38-4cb96e2fbd95",
+                    "path": "<Keyboard>/3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RangeWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f4db9ec6-925a-4c09-bc79-d3452666a53f",
+                    "path": "<Keyboard>/g",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ThrowableWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []

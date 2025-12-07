@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.UI;
@@ -80,6 +81,9 @@ public class PlayerStats : MonoBehaviour
     public delegate void OnHealthChanged();
     public event OnHealthChanged HealthChanged;
 
+    public delegate void OnSatietyChanged();
+    public event OnSatietyChanged SatietyChanged;
+
     public delegate void OnStaminaChanged();
     public event OnStaminaChanged StaminaChanged;
 
@@ -148,7 +152,7 @@ public class PlayerStats : MonoBehaviour
             {
                 currentSatiety -= 1f;
                 currentSatiety = Mathf.Clamp(currentSatiety, 0f, maxSatiety);
-                StatsChanged?.Invoke();
+                SatietyChanged?.Invoke();
             }
         }
 
@@ -184,6 +188,14 @@ public class PlayerStats : MonoBehaviour
         currentHealth += amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
         HealthChanged?.Invoke();
+        UpdateUI();
+    }
+
+    public void IncreaseSatiety(float amount)
+    {
+        currentSatiety += amount;
+        currentSatiety = Mathf.Clamp(currentSatiety, 0, maxSatiety);
+        SatietyChanged?.Invoke();
         UpdateUI();
     }
 

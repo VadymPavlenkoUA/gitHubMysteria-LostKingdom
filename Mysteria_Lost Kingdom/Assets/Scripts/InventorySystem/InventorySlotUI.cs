@@ -154,11 +154,13 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             return;
         }
 
-        //// Якщо обидва — екіпіровка → ТАЙМЕР НЕ ПОТРІБНИЙ
-        //if (aIsEquip && bIsEquip)
-        //    return;
+        // Якщо обидва — екіпіровка → ТАЙМЕР НЕ ПОТРІБНИЙ
+        if (aIsEquip && bIsEquip)
+        {
+            TryStackOrSwap(b);
+            return;
+        }
 
-        // Тут означає, що перетягування ІНВЕНТАР <-> ЕКІПІРОВКА 🔥
         UseActionManager.Instance.StartUse(
             a.slot.item.useDuration,
             () => TryStackOrSwap(b),
@@ -252,6 +254,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             }
 
             eq.Unequip(slotUI.slotSpecification);
+            HotbarUI.Instance.RefreshHotbar();
             return;
         }
 
@@ -278,14 +281,14 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             // Екіпіруємо нову дворучну
             if (rightHandSlot != null)
             {
-                eq.EquipItem(slotToEquip.item, rightHandSlot.slotType, rightHandSlot.slotSpecification);
+                eq.EquipItem(slotToEquip.item, rightHandSlot.slotSpecification);
                 rightHandSlot.slot.SetItem(slotToEquip.item, 1);
                 rightHandSlot.SetSlot(rightHandSlot.slot);
             }
 
             if (leftHandSlot != null)
             {
-                eq.EquipItem(slotToEquip.item, leftHandSlot.slotType, leftHandSlot.slotSpecification);
+                eq.EquipItem(slotToEquip.item, leftHandSlot.slotSpecification);
                 leftHandSlot.slot.SetItem(slotToEquip.item, 1);
                 leftHandSlot.SetSlot(leftHandSlot.slot);
             }
@@ -316,99 +319,47 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                     eq.Unequip(slotUI.slotSpecification);
                 }
             }
-
-            eq.EquipItem(slotToEquip.item, slotUI.slotType, slotUI.slotSpecification);
+            eq.EquipItem(slotToEquip.item, slotUI.slotSpecification);
             slotUI.slot.SetItem(slotToEquip.item, 1);
             slotUI.SetSlot(slotUI.slot);
         }
 
         InventoryUIManager.Instance.RefreshUI();
+        HotbarUI.Instance.RefreshHotbar();
+        UpdateDrawnWeapons();
     }
 
+    private void UpdateDrawnWeapons()
+    {
+        var eq = EquipmentManager.Instance;
 
+        if (eq.isRightHandDrawn) eq.HideRightHand();
+        if (eq.isLeftHandDrawn) eq.HideLeftHand();
 
-    //private void HandleEquipmentSwap(InventorySlotUI other)
-    //{
-    //    bool thisIsEquip = this.slotType == SlotType.Equipment;
-    //    bool otherIsEquip = other.slotType == SlotType.Equipment;
+        if (eq.equippedRightItem != null)
+        {
+            if (eq.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+            {
+                eq.DrawTwoHand();
+                return;
+            }
 
-    //    if (!thisIsEquip && !otherIsEquip)
-    //        return;
+            eq.DrawRightHand();
+        }
 
+        if (eq.equippedLeftItem != null &&
+            eq.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
+        {
+            eq.DrawLeftHand();
+        }
+    }
 
-    //    if (thisIsEquip)
-    //    {
-    //        if (slot.IsEmpty)
-    //        {
-    //            EquipmentManager.Instance.Unequip(slotSpecification);
-    //        }
-    //        else
-    //        {
-    //            EquipmentManager.Instance.EquipItem(
-    //                slot.item,
-    //                slotType,
-    //                slotSpecification
-    //            );
-    //        }
-    //    }
-
-    //    if (otherIsEquip)
-    //    {
-    //        if (other.slot.IsEmpty)
-    //        {
-    //            EquipmentManager.Instance.Unequip(other.slotSpecification);
-    //        }
-    //        else
-    //        {
-    //            EquipmentManager.Instance.EquipItem(
-    //                other.slot.item,
-    //                other.slotType,
-    //                other.slotSpecification
-    //            );
-    //        }
-    //    }
-    //}
-
-
-    //private void HandleEquipmentSwap(InventorySlotUI other)
-    //{
-    //    if (slot == null || other.slot == null)
-    //    {
-    //        Debug.LogWarning("One of the slots is null!");
-    //        return;
-    //    }
-
-    //    if (other.slot.item == null && other.slotType == SlotType.Equipment)
-    //    {
-    //        Debug.LogWarning("Other slot item is null!");
-    //        return;
-    //    }
-
-    //    if (EquipmentManager.Instance == null)
-    //    {
-    //        Debug.LogWarning("EquipManager not assigned!");
-    //        return;
-    //    }
-
-    //    if (other.slotType == SlotType.Equipment && !other.slot.IsEmpty)
-    //    {
-    //        EquipmentManager.Instance.EquipItem(other.slot.item, other.slotType, other.slotSpecification);
-    //    }
-
-    //    if (slotType == SlotType.Equipment && slot.IsEmpty)
-    //    {
-    //        if (slotSpecification == SlotSpecification.RightHand) EquipmentManager.Instance.UnequipRightHand();
-    //        if (slotSpecification == SlotSpecification.LeftHand) EquipmentManager.Instance.UnequipLeftHand();
-    //    }
-    //}
 
     private void UseFood(Item item)
     {
         var stats = InventoryUIManager.Instance.inventory.playerStats;
 
-        stats.currentSatiety += item.satietyRestore;
-        stats.currentSatiety = Mathf.Clamp(stats.currentSatiety, 0, stats.maxSatiety);
-
+        if (item.satietyRestore != 0) stats.IncreaseSatiety(item.satietyRestore);
         if (item.healthRestore != 0) stats.Heal(item.healthRestore);
 
         slot.count--;
@@ -462,6 +413,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         InventoryUIManager.Instance.RefreshUI();
         InventoryUIManager.Instance.NotifyInventoryChanged();
+        HotbarUI.Instance.RefreshHotbar();
     }
 
 
@@ -524,27 +476,28 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     private void EquipOneHandedProgress(EquipmentManager eq, Item item, InventorySlotUI equipSlot)
     {
-        eq.EquipItem(item, equipSlot.slotType, equipSlot.slotSpecification);
+        eq.EquipItem(item, equipSlot.slotSpecification);
         equipSlot.slot.SetItem(item, 1);
         equipSlot.SetSlot(equipSlot.slot);
 
         slot.count--;
         if (slot.count <= 0) slot.Clear();
         SetSlot(slot);
+        HotbarUI.Instance.RefreshHotbar();
     }
 
     private void EquipTwoHandedProgress(EquipmentManager eq, Item item, InventorySlotUI equipSlot, InventorySlotUI rightHandSlot, InventorySlotUI leftHandSlot)
     {
         if (rightHandSlot != null)
         {
-            eq.EquipItem(item, rightHandSlot.slotType, rightHandSlot.slotSpecification);
+            eq.EquipItem(item, rightHandSlot.slotSpecification);
             rightHandSlot.slot.SetItem(item, 1);
             rightHandSlot.SetSlot(rightHandSlot.slot);
         }
 
         if (leftHandSlot != null)
         {
-            eq.EquipItem(item, leftHandSlot.slotType, leftHandSlot.slotSpecification);
+            eq.EquipItem(item, leftHandSlot.slotSpecification);
             leftHandSlot.slot.SetItem(item, 1);
             leftHandSlot.SetSlot(leftHandSlot.slot);
         }
@@ -552,6 +505,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         slot.count--;
         if (slot.count <= 0) slot.Clear();
         SetSlot(slot);
+        HotbarUI.Instance.RefreshHotbar();
     }
 
 
@@ -571,7 +525,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             return;
         }
         TryEquipItem(item);
-
         Debug.Log("Цей предмет не можливо використати!");
     }
 

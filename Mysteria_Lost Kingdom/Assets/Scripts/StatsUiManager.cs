@@ -66,6 +66,7 @@ public class StatsUiManager : MonoBehaviour
         playerStats.StaminaChanged += UpdateStaminaOnly;
         playerStats.ManaChanged += UpdateManaOnly;
         playerStats.LevelUpEvent += OnLevelUp;
+        playerStats.SatietyChanged += UpdateSatietyOnly;
         UpdateStatsDisplay();
     }
 
@@ -165,6 +166,12 @@ public class StatsUiManager : MonoBehaviour
     {
         manaEquipText.text = $"{playerStats.currentMana.ToString("0.0", CultureInfo.InvariantCulture)} / " +
             $"{playerStats.maxMana.ToString("0.0", CultureInfo.InvariantCulture)}";
+    }
+
+    private void UpdateSatietyOnly()
+    {
+        satietyEquipText.text = $"{playerStats.currentSatiety.ToString("0.0", CultureInfo.InvariantCulture)} / " +
+            $"{playerStats.maxSatiety.ToString("0.0", CultureInfo.InvariantCulture)}";
     }
 
     private void OnLevelUp()

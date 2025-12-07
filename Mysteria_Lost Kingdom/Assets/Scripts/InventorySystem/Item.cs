@@ -48,6 +48,12 @@ public class Item : ScriptableObject
 
     public WeaponHandType weaponHandType = WeaponHandType.None;
 
+    public float durability = 100f;
+
+    [Header("Inactive Position Settings")]
+    public Vector3 inactivePosition;
+    public Vector3 inactiveRotation;
+
     [Header("Armour Position Settings")]
     public Vector3 armourPosition;
     public Vector3 armourRotation;

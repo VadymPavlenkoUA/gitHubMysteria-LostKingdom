@@ -512,6 +512,94 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""HotBar"",
+            ""id"": ""45e95d5b-0265-4b55-b959-81ddb444fe66"",
+            ""actions"": [
+                {
+                    ""name"": ""RightHand"",
+                    ""type"": ""Button"",
+                    ""id"": ""0c8a7d0e-d1f5-4a1a-abdd-86b8825964f0"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""LeftHand"",
+                    ""type"": ""Button"",
+                    ""id"": ""9901b9b5-8689-4f15-a59d-2e49d354bf93"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""RangeWeapon"",
+                    ""type"": ""Button"",
+                    ""id"": ""7f1dea53-9212-40bd-94f0-1ea4b23c2fbb"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ThrowableWeapon"",
+                    ""type"": ""Button"",
+                    ""id"": ""6276c33e-e365-4a54-b6ce-f0b4fb5682f7"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""51b91bf0-c9be-48b3-b95a-8bf0664f0a74"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RightHand"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d812eda4-43ee-4b00-9d9f-98cf17424e72"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LeftHand"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""768508a9-f20f-44f5-8a38-4cb96e2fbd95"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RangeWeapon"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f4db9ec6-925a-4c09-bc79-d3452666a53f"",
+                    ""path"": ""<Keyboard>/g"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ThrowableWeapon"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -530,12 +618,19 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Controls = asset.FindActionMap("Controls", throwIfNotFound: true);
         m_Controls_Escape = m_Controls.FindAction("Escape", throwIfNotFound: true);
         m_Controls_MainPanel = m_Controls.FindAction("MainPanel", throwIfNotFound: true);
+        // HotBar
+        m_HotBar = asset.FindActionMap("HotBar", throwIfNotFound: true);
+        m_HotBar_RightHand = m_HotBar.FindAction("RightHand", throwIfNotFound: true);
+        m_HotBar_LeftHand = m_HotBar.FindAction("LeftHand", throwIfNotFound: true);
+        m_HotBar_RangeWeapon = m_HotBar.FindAction("RangeWeapon", throwIfNotFound: true);
+        m_HotBar_ThrowableWeapon = m_HotBar.FindAction("ThrowableWeapon", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
     {
         UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, PlayerInputActions.Player.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_Controls.enabled, "This will cause a leak and performance issues, PlayerInputActions.Controls.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_HotBar.enabled, "This will cause a leak and performance issues, PlayerInputActions.HotBar.Disable() has not been called.");
     }
 
     /// <summary>
@@ -887,6 +982,135 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="ControlsActions" /> instance referencing this action map.
     /// </summary>
     public ControlsActions @Controls => new ControlsActions(this);
+
+    // HotBar
+    private readonly InputActionMap m_HotBar;
+    private List<IHotBarActions> m_HotBarActionsCallbackInterfaces = new List<IHotBarActions>();
+    private readonly InputAction m_HotBar_RightHand;
+    private readonly InputAction m_HotBar_LeftHand;
+    private readonly InputAction m_HotBar_RangeWeapon;
+    private readonly InputAction m_HotBar_ThrowableWeapon;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "HotBar".
+    /// </summary>
+    public struct HotBarActions
+    {
+        private @PlayerInputActions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public HotBarActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "HotBar/RightHand".
+        /// </summary>
+        public InputAction @RightHand => m_Wrapper.m_HotBar_RightHand;
+        /// <summary>
+        /// Provides access to the underlying input action "HotBar/LeftHand".
+        /// </summary>
+        public InputAction @LeftHand => m_Wrapper.m_HotBar_LeftHand;
+        /// <summary>
+        /// Provides access to the underlying input action "HotBar/RangeWeapon".
+        /// </summary>
+        public InputAction @RangeWeapon => m_Wrapper.m_HotBar_RangeWeapon;
+        /// <summary>
+        /// Provides access to the underlying input action "HotBar/ThrowableWeapon".
+        /// </summary>
+        public InputAction @ThrowableWeapon => m_Wrapper.m_HotBar_ThrowableWeapon;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_HotBar; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="HotBarActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(HotBarActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="HotBarActions" />
+        public void AddCallbacks(IHotBarActions instance)
+        {
+            if (instance == null || m_Wrapper.m_HotBarActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_HotBarActionsCallbackInterfaces.Add(instance);
+            @RightHand.started += instance.OnRightHand;
+            @RightHand.performed += instance.OnRightHand;
+            @RightHand.canceled += instance.OnRightHand;
+            @LeftHand.started += instance.OnLeftHand;
+            @LeftHand.performed += instance.OnLeftHand;
+            @LeftHand.canceled += instance.OnLeftHand;
+            @RangeWeapon.started += instance.OnRangeWeapon;
+            @RangeWeapon.performed += instance.OnRangeWeapon;
+            @RangeWeapon.canceled += instance.OnRangeWeapon;
+            @ThrowableWeapon.started += instance.OnThrowableWeapon;
+            @ThrowableWeapon.performed += instance.OnThrowableWeapon;
+            @ThrowableWeapon.canceled += instance.OnThrowableWeapon;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="HotBarActions" />
+        private void UnregisterCallbacks(IHotBarActions instance)
+        {
+            @RightHand.started -= instance.OnRightHand;
+            @RightHand.performed -= instance.OnRightHand;
+            @RightHand.canceled -= instance.OnRightHand;
+            @LeftHand.started -= instance.OnLeftHand;
+            @LeftHand.performed -= instance.OnLeftHand;
+            @LeftHand.canceled -= instance.OnLeftHand;
+            @RangeWeapon.started -= instance.OnRangeWeapon;
+            @RangeWeapon.performed -= instance.OnRangeWeapon;
+            @RangeWeapon.canceled -= instance.OnRangeWeapon;
+            @ThrowableWeapon.started -= instance.OnThrowableWeapon;
+            @ThrowableWeapon.performed -= instance.OnThrowableWeapon;
+            @ThrowableWeapon.canceled -= instance.OnThrowableWeapon;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="HotBarActions.UnregisterCallbacks(IHotBarActions)" />.
+        /// </summary>
+        /// <seealso cref="HotBarActions.UnregisterCallbacks(IHotBarActions)" />
+        public void RemoveCallbacks(IHotBarActions instance)
+        {
+            if (m_Wrapper.m_HotBarActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="HotBarActions.AddCallbacks(IHotBarActions)" />
+        /// <seealso cref="HotBarActions.RemoveCallbacks(IHotBarActions)" />
+        /// <seealso cref="HotBarActions.UnregisterCallbacks(IHotBarActions)" />
+        public void SetCallbacks(IHotBarActions instance)
+        {
+            foreach (var item in m_Wrapper.m_HotBarActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_HotBarActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="HotBarActions" /> instance referencing this action map.
+    /// </summary>
+    public HotBarActions @HotBar => new HotBarActions(this);
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.
     /// </summary>
@@ -972,5 +1196,41 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnMainPanel(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "HotBar" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="HotBarActions.AddCallbacks(IHotBarActions)" />
+    /// <seealso cref="HotBarActions.RemoveCallbacks(IHotBarActions)" />
+    public interface IHotBarActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "RightHand" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRightHand(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "LeftHand" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnLeftHand(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "RangeWeapon" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRangeWeapon(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ThrowableWeapon" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnThrowableWeapon(InputAction.CallbackContext context);
     }
 }

@@ -38,22 +38,53 @@ public class RTCharacterManager : MonoBehaviour
 
         var main = EquipmentManager.Instance;
 
+        // --- —»Õ’–ŒÕ≤«¿÷≤ﬂ ≈ ≤œ”¬¿ÕÕﬂ ---
+        SyncEquipState(main);
+
+        // --- —»Õ’–ŒÕ≤«¿÷≤ﬂ ¬≤«”¿À” (˘Ó Á‡‡Á Û ÛÍ‡ı) ---
+        SyncDrawState(main);
+    }
+
+
+    private void SyncEquipState(EquipmentManager main)
+    {
         // œ–¿¬¿ –” ¿
         if (main.equippedRightItem != null)
-            rtEquipment.EquipItem(main.equippedRightItem, InventorySlotUI.SlotType.Equipment, InventorySlotUI.SlotSpecification.RightHand);
+            rtEquipment.equippedRightItem = main.equippedRightItem;
         else
-            rtEquipment.Unequip(InventorySlotUI.SlotSpecification.RightHand);
+            rtEquipment.equippedRightItem = null;
 
         // À≤¬¿ –” ¿
         if (main.equippedLeftItem != null)
-            rtEquipment.EquipItem(main.equippedLeftItem, InventorySlotUI.SlotType.Equipment, InventorySlotUI.SlotSpecification.LeftHand);
+            rtEquipment.equippedLeftItem = main.equippedLeftItem;
         else
-            rtEquipment.Unequip(InventorySlotUI.SlotSpecification.LeftHand);
+            rtEquipment.equippedLeftItem = null;
 
         // √ŒÀŒ¬¿
-        if (main.equippedHeadArmourItem != null)
-            rtEquipment.EquipItem(main.equippedHeadArmourItem, InventorySlotUI.SlotType.Equipment, InventorySlotUI.SlotSpecification.HeadSlot);
-        else
-            rtEquipment.Unequip(InventorySlotUI.SlotSpecification.HeadSlot);
+        rtEquipment.Unequip(InventorySlotUI.SlotSpecification.HeadSlot);
+
+        if (main.equippedHeadArmourItem != null) rtEquipment.EquipItem(main.equippedHeadArmourItem, InventorySlotUI.SlotSpecification.HeadSlot);
+
+        rtEquipment.twoHandEquipped = main.twoHandEquipped;
     }
+
+    private void SyncDrawState(EquipmentManager main)
+    {
+        rtEquipment.HideRightHand();
+        rtEquipment.HideLeftHand();
+
+        if (!main.isRightHandDrawn && !main.isLeftHandDrawn) return;
+
+        if (main.twoHandEquipped && main.isRightHandDrawn)
+        {
+            rtEquipment.DrawTwoHand();
+            return;
+        }
+
+        if (main.isRightHandDrawn && main.equippedRightItem != null) rtEquipment.DrawRightHand();
+
+        if (main.isLeftHandDrawn && main.equippedLeftItem != null) rtEquipment.DrawLeftHand();
+    }
+
+
 }
