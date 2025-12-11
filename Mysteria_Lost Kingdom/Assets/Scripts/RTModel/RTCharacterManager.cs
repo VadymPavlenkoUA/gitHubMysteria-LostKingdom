@@ -62,7 +62,6 @@ public class RTCharacterManager : MonoBehaviour
 
         // √ŒÀŒ¬¿
         rtEquipment.Unequip(InventorySlotUI.SlotSpecification.HeadSlot);
-
         if (main.equippedHeadArmourItem != null) rtEquipment.EquipItem(main.equippedHeadArmourItem, InventorySlotUI.SlotSpecification.HeadSlot);
 
         rtEquipment.twoHandEquipped = main.twoHandEquipped;
@@ -70,20 +69,65 @@ public class RTCharacterManager : MonoBehaviour
 
     private void SyncDrawState(EquipmentManager main)
     {
-        rtEquipment.HideRightHand();
-        rtEquipment.HideLeftHand();
+        //rtEquipment.HideRightHand();
+        //rtEquipment.HideLeftHand();
 
-        if (!main.isRightHandDrawn && !main.isLeftHandDrawn) return;
+        //if (!main.isRightHandDrawn && !main.isLeftHandDrawn) return;
 
-        if (main.twoHandEquipped && main.isRightHandDrawn)
+        //if (main.twoHandEquipped && main.isRightHandDrawn)
+        //{
+        //    rtEquipment.DrawTwoHand();
+        //    return;
+        //}
+
+        //if (main.isRightHandDrawn && main.equippedRightItem != null) rtEquipment.DrawRightHand();
+
+        //if (main.isLeftHandDrawn && main.equippedLeftItem != null) rtEquipment.DrawLeftHand();
+
+        if (main.isRightHandDrawn)
         {
-            rtEquipment.DrawTwoHand();
-            return;
+            if (main.equippedRightItem != null)
+            {
+                if (main.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+                {
+                    rtEquipment.HideTwoHanded();
+                    rtEquipment.DrawTwoHand();
+                    return;
+                }
+                rtEquipment.HideRightHand();
+                rtEquipment.DrawRightHand();
+            }
         }
-
-        if (main.isRightHandDrawn && main.equippedRightItem != null) rtEquipment.DrawRightHand();
-
-        if (main.isLeftHandDrawn && main.equippedLeftItem != null) rtEquipment.DrawLeftHand();
+        else
+        {
+            if (main.equippedRightItem != null)
+            {
+                if (main.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+                {
+                    rtEquipment.isRightHandDrawn = true;
+                    rtEquipment.HideTwoHanded();
+                    return;
+                }
+                rtEquipment.isRightHandDrawn = true;
+                rtEquipment.HideRightHand();
+            }
+        }
+        if (main.isLeftHandDrawn)
+        {
+            rtEquipment.HideLeftHand();
+            if (main.equippedLeftItem != null && main.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
+            {
+                rtEquipment.DrawLeftHand();
+            }
+        }
+        else
+        {
+            if (main.equippedLeftItem != null && main.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
+            {
+                rtEquipment.isLeftHandDrawn = true;
+                rtEquipment.HideLeftHand();
+            }
+        }
     }
 
 

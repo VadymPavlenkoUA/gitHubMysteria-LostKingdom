@@ -333,24 +333,50 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         var eq = EquipmentManager.Instance;
 
-        if (eq.isRightHandDrawn) eq.HideRightHand();
-        if (eq.isLeftHandDrawn) eq.HideLeftHand();
-
-        if (eq.equippedRightItem != null)
+        if (eq.isRightHandDrawn)
         {
-            if (eq.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+            if (eq.equippedRightItem != null)
             {
-                eq.DrawTwoHand();
-                return;
+                if (eq.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+                {
+                    eq.HideTwoHanded();
+                    eq.DrawTwoHand();
+                    return;
+                }
+                eq.HideRightHand();
+                eq.DrawRightHand();
             }
-
-            eq.DrawRightHand();
         }
-
-        if (eq.equippedLeftItem != null &&
-            eq.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
+        else
         {
-            eq.DrawLeftHand();
+            if (eq.equippedRightItem != null)
+            {
+                if (eq.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+                {
+                    eq.isRightHandDrawn = true;
+                    eq.isLeftHandDrawn = true;
+                    eq.HideTwoHanded();
+                    return;
+                }
+                eq.isRightHandDrawn = true;
+                eq.HideRightHand();
+            }
+        }
+        if (eq.isLeftHandDrawn)
+        {
+            eq.HideLeftHand();
+            if (eq.equippedLeftItem != null && eq.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
+            {
+                eq.DrawLeftHand();
+            }
+        }
+        else
+        {
+            if (eq.equippedLeftItem != null && eq.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
+            {
+                eq.isLeftHandDrawn = true;
+                eq.HideLeftHand();
+            }
         }
     }
 

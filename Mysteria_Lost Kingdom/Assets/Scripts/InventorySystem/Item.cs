@@ -41,6 +41,8 @@ public class Item : ScriptableObject
     public GameObject itemPrefab;
     public GameObject itemPrefabEquip;
 
+    public int meshIndex = -1;
+
     [Header("Use Settings")]
     public float useDuration = 1.5f;
 
@@ -54,9 +56,13 @@ public class Item : ScriptableObject
     public Vector3 inactivePosition;
     public Vector3 inactiveRotation;
 
-    [Header("Armour Position Settings")]
-    public Vector3 armourPosition;
-    public Vector3 armourRotation;
+    [Header("Alt. Inactive Position Settings (for left hands)")]
+    public Vector3 inactiveAltPosition;
+    public Vector3 inactiveAltRotation;
+
+    //[Header("Armour Position Settings")]
+    //public Vector3 armourPosition;
+    //public Vector3 armourRotation;
 
     [Header("Right Hand Position Settings")]
     public Vector3 rightHandPosition;
