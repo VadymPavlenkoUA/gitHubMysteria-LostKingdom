@@ -130,6 +130,7 @@ public class MenuController : MonoBehaviour
         isEduOpen = true;
         if (isGMOpen) gameMenu.SetActive(false);
         inputActions.Player.Disable();
+        inputActions.HotBar.Disable();
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
 
@@ -142,6 +143,7 @@ public class MenuController : MonoBehaviour
         isEduOpen = false;
         if (isGMOpen) gameMenu.SetActive(true);
         inputActions.Player.Enable();
+        inputActions.HotBar.Enable();
         if (!isGMOpen)
         {
             Cursor.lockState = CursorLockMode.Locked;

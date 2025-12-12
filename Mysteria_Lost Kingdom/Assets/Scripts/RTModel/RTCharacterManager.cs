@@ -46,49 +46,79 @@ public class RTCharacterManager : MonoBehaviour
     }
 
 
+    // ============================================================
+    //  —»Õ’–ŒÕ≤«¿÷≤ﬂ ≈ ≤œ”¬¿ÕÕﬂ («¡–Œﬂ + ¬—ﬂ ¡–ŒÕﬂ)
+    // ============================================================
     private void SyncEquipState(EquipmentManager main)
     {
-        // œ–¿¬¿ –” ¿
-        if (main.equippedRightItem != null)
-            rtEquipment.equippedRightItem = main.equippedRightItem;
-        else
-            rtEquipment.equippedRightItem = null;
+        // --- —»Õ’–Œ Ã≈ÿ≤¬ ¡–ŒÕ≤ ---
+        SyncArmour(main);
 
-        // À≤¬¿ –” ¿
-        if (main.equippedLeftItem != null)
-            rtEquipment.equippedLeftItem = main.equippedLeftItem;
-        else
-            rtEquipment.equippedLeftItem = null;
+        // --- —»Õ’–Œ œ–≈ƒÃ≈“≤¬ ” —ÀŒ“¿’ ---
+        rtEquipment.equippedRightItem = main.equippedRightItem;
+        rtEquipment.equippedLeftItem = main.equippedLeftItem;
 
-        // √ŒÀŒ¬¿
-        rtEquipment.Unequip(InventorySlotUI.SlotSpecification.HeadSlot);
-        if (main.equippedHeadArmourItem != null) rtEquipment.EquipItem(main.equippedHeadArmourItem, InventorySlotUI.SlotSpecification.HeadSlot);
+        rtEquipment.equippedHeadArmourItem = main.equippedHeadArmourItem;
+        rtEquipment.equippedChestArmourItem = main.equippedChestArmourItem;
+        rtEquipment.equippedLegArmourItem = main.equippedLegArmourItem;
+        rtEquipment.equippedBootsItem = main.equippedBootsItem;
+        rtEquipment.equippedGlovesItem = main.equippedGlovesItem;
+        rtEquipment.equippedBeltItem = main.equippedBeltItem;
 
         rtEquipment.twoHandEquipped = main.twoHandEquipped;
     }
 
+    private void SyncArmour(EquipmentManager main)
+    {
+        // √ŒÀŒ¬¿
+        rtEquipment.SetArmour(rtEquipment.armourMeshes.headArmourMeshes,
+            main.equippedHeadArmourItem != null ? main.equippedHeadArmourItem.meshIndex : -1);
+
+        // √–”ƒ»
+        rtEquipment.SetArmour(rtEquipment.armourMeshes.chestArmourMeshes,
+            main.equippedChestArmourItem != null ? main.equippedChestArmourItem.meshIndex : -1);
+
+        // ÕŒ√»
+        rtEquipment.SetArmour(rtEquipment.armourMeshes.legsArmourMeshes,
+            main.equippedLegArmourItem != null ? main.equippedLegArmourItem.meshIndex : -1);
+
+        // œ¿—Œ 
+        rtEquipment.SetArmour(rtEquipment.armourMeshes.beltArmourMeshes,
+            main.equippedBeltItem != null ? main.equippedBeltItem.meshIndex : -1);
+
+        // –” ¿¬»◊ »
+        rtEquipment.SetArmour(rtEquipment.armourMeshes.glovesArmourMeshes,
+            main.equippedGlovesItem != null ? main.equippedGlovesItem.meshIndex : -1);
+
+        // ◊Œ¡≤“»
+        rtEquipment.SetArmour(rtEquipment.armourMeshes.bootsArmourMeshes,
+            main.equippedBootsItem != null ? main.equippedBootsItem.meshIndex : -1);
+    }
+
+    // ============================================================
+    //  —»Õ’–ŒÕ≤«¿÷≤ﬂ "¬»“ﬂ√Õ”“Œ / —’Œ¬¿ÕŒ"
+    // ============================================================
     private void SyncDrawState(EquipmentManager main)
     {
-        //rtEquipment.HideRightHand();
-        //rtEquipment.HideLeftHand();
-
-        //if (!main.isRightHandDrawn && !main.isLeftHandDrawn) return;
-
-        //if (main.twoHandEquipped && main.isRightHandDrawn)
-        //{
-        //    rtEquipment.DrawTwoHand();
-        //    return;
-        //}
-
-        //if (main.isRightHandDrawn && main.equippedRightItem != null) rtEquipment.DrawRightHand();
-
-        //if (main.isLeftHandDrawn && main.equippedLeftItem != null) rtEquipment.DrawLeftHand();
-
-        if (main.isRightHandDrawn)
+        var eq = EquipmentManager.Instance;
+        bool isRightHandDrawn = eq.isRightHandDrawn;
+        bool isLeftHandDrawn = eq.isLeftHandDrawn;
+        
+        if (eq.equippedRightItem == null && eq.equippedLeftItem == null)
         {
-            if (main.equippedRightItem != null)
+            if (rtEquipment.currentRightHandItem != null) Destroy(rtEquipment.currentRightHandItem);
+            if (rtEquipment.currentLeftHandItem != null) Destroy(rtEquipment.currentLeftHandItem);
+        }
+
+        rtEquipment.HideRightHand();
+        rtEquipment.HideLeftHand();
+        rtEquipment.HideTwoHanded();
+
+        if (isRightHandDrawn)
+        {
+            if (eq.equippedRightItem != null)
             {
-                if (main.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+                if (eq.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
                 {
                     rtEquipment.HideTwoHanded();
                     rtEquipment.DrawTwoHand();
@@ -100,11 +130,12 @@ public class RTCharacterManager : MonoBehaviour
         }
         else
         {
-            if (main.equippedRightItem != null)
+            if (eq.equippedRightItem != null)
             {
-                if (main.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+                if (eq.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
                 {
                     rtEquipment.isRightHandDrawn = true;
+                    rtEquipment.isLeftHandDrawn = true;
                     rtEquipment.HideTwoHanded();
                     return;
                 }
@@ -112,23 +143,21 @@ public class RTCharacterManager : MonoBehaviour
                 rtEquipment.HideRightHand();
             }
         }
-        if (main.isLeftHandDrawn)
+        if (isLeftHandDrawn)
         {
             rtEquipment.HideLeftHand();
-            if (main.equippedLeftItem != null && main.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
+            if (eq.equippedLeftItem != null && eq.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
             {
                 rtEquipment.DrawLeftHand();
             }
         }
         else
         {
-            if (main.equippedLeftItem != null && main.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
+            if (eq.equippedLeftItem != null && eq.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
             {
                 rtEquipment.isLeftHandDrawn = true;
                 rtEquipment.HideLeftHand();
             }
         }
     }
-
-
 }

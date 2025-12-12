@@ -46,11 +46,17 @@ public class Item : ScriptableObject
     [Header("Use Settings")]
     public float useDuration = 1.5f;
 
+    [Header("Combat Stats")]
+    public float baseDamage = 0f;       // ÿךשמ צו חבנמÿ
+    public float baseArmor = 0f;        // ÿךשמ צו בנמםÿ
+
+    [Header("Durability")]
+    public float maxDurability = 100f;
+    public float currentDurability = 100f;
+
     public ItemCategory categories;
 
     public WeaponHandType weaponHandType = WeaponHandType.None;
-
-    public float durability = 100f;
 
     [Header("Inactive Position Settings")]
     public Vector3 inactivePosition;
@@ -59,10 +65,6 @@ public class Item : ScriptableObject
     [Header("Alt. Inactive Position Settings (for left hands)")]
     public Vector3 inactiveAltPosition;
     public Vector3 inactiveAltRotation;
-
-    //[Header("Armour Position Settings")]
-    //public Vector3 armourPosition;
-    //public Vector3 armourRotation;
 
     [Header("Right Hand Position Settings")]
     public Vector3 rightHandPosition;

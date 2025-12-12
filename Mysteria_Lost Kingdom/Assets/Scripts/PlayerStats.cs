@@ -4,6 +4,12 @@ using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.UI;
 
+public class CombatStats
+{
+    public float totalDamage;
+    public float totalArmor;
+}
+
 public class PlayerStats : MonoBehaviour
 {
     [Header("LevelUpSettings")]
@@ -89,6 +95,9 @@ public class PlayerStats : MonoBehaviour
 
     public delegate void OnManaChanged();
     public event OnManaChanged ManaChanged;
+
+    public delegate void OnCombarChanged();
+    public event OnCombarChanged CombatChanged;
 
     public float regenTimer;
     private float manaRegenTimer;
@@ -395,6 +404,80 @@ public class PlayerStats : MonoBehaviour
             p.expToNext = Mathf.Round(p.expToNext * p.growth);
         }
         StatsChanged?.Invoke();
+    }
+
+    public CombatStats CalculateCombatStats()
+    {
+        CombatStats combat = new CombatStats();
+        var eq = EquipmentManager.Instance;
+
+        // 1. ”–ŒÕ
+        float durabilityMod = 1f;
+
+        if (eq.equippedRightItem != null && eq.equippedRightItem.categories != ItemCategory.Shield)
+        {
+            //durabilityMod = eq.equippedRightItem.currentDurability /
+            //                eq.equippedRightItem.maxDurability;
+
+            combat.totalDamage +=
+                eq.equippedRightItem.baseDamage * durabilityMod +
+                strength * 1.5f +
+                agility * 0.5f;
+        }
+
+        if (eq.equippedLeftItem != null && eq.equippedLeftItem.categories != ItemCategory.Shield)
+        {
+            //durabilityMod = eq.equippedRightItem.currentDurability /
+            //                eq.equippedRightItem.maxDurability;
+
+            combat.totalDamage +=
+                eq.equippedLeftItem.baseDamage * durabilityMod +
+                strength * 1.5f +
+                agility * 0.5f;
+        }
+
+        if (eq.equippedRightItem == null && eq.equippedLeftItem == null)
+        {
+            // ”ÓÌ ÍÛÎ‡Í‡ÏË
+            combat.totalDamage = strength * 0.5f;
+        }
+
+
+
+        // ---------------------------
+        // 2. «¿’»—“
+        // ---------------------------
+        float gearArmorSum = 0f;
+
+        Item[] armourItems =
+        {
+        eq.equippedHeadArmourItem,
+        eq.equippedChestArmourItem,
+        eq.equippedLegArmourItem,
+        eq.equippedBootsItem,
+        eq.equippedGlovesItem,
+        eq.equippedBeltItem
+    };
+
+        foreach (var item in armourItems)
+        {
+            if (item == null) continue;
+
+            //float itemDurability = item.currentDurability / item.maxDurability;
+            gearArmorSum += item.baseArmor;
+        }
+
+        combat.totalArmor =
+            gearArmorSum +
+            vitality * 0.5f +
+            endurance * 0.25f;
+
+        return combat;
+    }
+
+    public void InvokeCombatChanged()
+    {
+        CombatChanged?.Invoke();
     }
 
 }

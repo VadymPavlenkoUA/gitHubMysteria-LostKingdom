@@ -35,7 +35,7 @@ public class ItemPickup : MonoBehaviour, IInteractable
         if (playerInventory != null)
         {
             playerInventory.PickUpItem(item, amount);
-            Debug.Log($"Pick up {item.itemName} x{amount}");
+            NotificationSystem.Instance.ShowNotification(item.icon, $"Підібрано {item.itemName} x{amount}");
             Destroy(gameObject);
         }
     }

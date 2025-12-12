@@ -57,6 +57,8 @@ public class StatsUiManager : MonoBehaviour
     public TextMeshProUGUI manaEquipText;
     public TextMeshProUGUI satietyEquipText;
     public TextMeshProUGUI goldEquipText;
+    public TextMeshProUGUI attackEquipText;
+    public TextMeshProUGUI defenseEquipText;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -67,6 +69,7 @@ public class StatsUiManager : MonoBehaviour
         playerStats.ManaChanged += UpdateManaOnly;
         playerStats.LevelUpEvent += OnLevelUp;
         playerStats.SatietyChanged += UpdateSatietyOnly;
+        playerStats.CombatChanged += UpdateCombatOnly;
         UpdateStatsDisplay();
     }
 
@@ -102,6 +105,7 @@ public class StatsUiManager : MonoBehaviour
         manaEquipText.text = $"{playerStats.currentMana.ToString("0.0", CultureInfo.InvariantCulture)} / " +
             $"{playerStats.maxMana.ToString("0.0", CultureInfo.InvariantCulture)}";
         goldEquipText.text = $"{playerStats.gold}";
+        UpdateCombatOnly();
 
         levelStatsText.text = $"Рівень: {playerStats.level}";
         availableStatsPointsText.text = $"Доступно очків: {playerStats.availableStatPoints}";
@@ -172,6 +176,13 @@ public class StatsUiManager : MonoBehaviour
     {
         satietyEquipText.text = $"{playerStats.currentSatiety.ToString("0.0", CultureInfo.InvariantCulture)} / " +
             $"{playerStats.maxSatiety.ToString("0.0", CultureInfo.InvariantCulture)}";
+    }
+
+    private void UpdateCombatOnly()
+    {
+        var combat = playerStats.CalculateCombatStats();
+        attackEquipText.text = $"{combat.totalDamage.ToString("0.0", CultureInfo.InvariantCulture)}";
+        defenseEquipText.text = $"{combat.totalArmor.ToString("0.0", CultureInfo.InvariantCulture)}";
     }
 
     private void OnLevelUp()

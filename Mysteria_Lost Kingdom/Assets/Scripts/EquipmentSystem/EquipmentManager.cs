@@ -19,6 +19,8 @@ public class EquipmentManager : MonoBehaviour
 {
     public static EquipmentManager Instance;
 
+    public PlayerStats playerStats;
+
     [Header("Слоти для екіпіювання")]
     public Transform rightHand;
     public Transform leftHand;
@@ -99,19 +101,27 @@ public class EquipmentManager : MonoBehaviour
         if ((item.categories & ItemCategory.Weapon) != 0 || (item.categories & ItemCategory.Bow) != 0 || (item.categories & ItemCategory.Shield) != 0)
         {
             EquipWeapon(item, slotSpecification);
-            if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+            if (!isRTCharacter)
+            {
+                playerStats.InvokeCombatChanged();
+                RTCharacterManager.Instance?.SyncFromMain();
+            }
             return;
         }
         else if (item.categories == ItemCategory.ArmourHead || item.categories == ItemCategory.ArmourChest || item.categories == ItemCategory.ArmourLegs || 
             item.categories == ItemCategory.ArmourBelt || item.categories == ItemCategory.ArmourGloves || item.categories == ItemCategory.ArmourBoots)
         {
             EquipArmour(item);
-            if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+            if (!isRTCharacter)
+            {
+                playerStats.InvokeCombatChanged();
+                RTCharacterManager.Instance?.SyncFromMain();
+            }
             return;
         }
     }
 
-    private void SetArmour(GameObject[] meshArray, int index)
+    internal void SetArmour(GameObject[] meshArray, int index)
     {
         for (int i = 0; i < meshArray.Length; i++)
             meshArray[i].SetActive(i == index);
@@ -430,13 +440,16 @@ public class EquipmentManager : MonoBehaviour
         isRightHandDrawn = false;
     }
 
-    private void CheckIfAnyWeaponLeft()
+    public void DamageDurability(Item item, float amount)
     {
-        //bool hasWeapon = equippedLeftItem != null || equippedRightItem != null;
+        if (item == null) return;
 
-        //animator.SetBool("WeaponEquipped", hasWeapon);
-
-        //if (!hasWeapon)
-        //    animator.SetInteger("WeaponType", 0);
+        item.currentDurability -= amount;
+        if (item.currentDurability < 0) item.currentDurability = 0;
+    }
+    public float GetDurabilityPercent(Item item)
+    {
+        if (item == null) return 1f;
+        return item.currentDurability / item.maxDurability;
     }
 }

@@ -160,7 +160,15 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             TryStackOrSwap(b);
             return;
         }
-
+        if (slotType == SlotType.Equipment && !b.slot.IsEmpty)
+        {
+            if ((b.slot.item.categories & allowedCategory) == 0)
+            {
+                Debug.Log("Not that category!");
+                UseActionManager.Instance.StartUse(a.slot.item.useDuration, () => UnequipFromThisSlot(), () => Debug.Log("Скасовано!"));
+                return;
+            }
+        }
         UseActionManager.Instance.StartUse(
             a.slot.item.useDuration,
             () => TryStackOrSwap(b),
@@ -226,6 +234,8 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     private void HandleEquipmentSwapWithTwoHand(InventorySlot slotToEquip, InventorySlotUI slotUI)
     {
         var eq = EquipmentManager.Instance;
+        bool isRight = eq.isRightHandDrawn;
+        bool isLeft = eq.isLeftHandDrawn;
 
         // Якщо це не слот екіпірування — нічого не робимо
         if (slotUI.slotType != SlotType.Equipment) return;
@@ -326,14 +336,14 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         InventoryUIManager.Instance.RefreshUI();
         HotbarUI.Instance.RefreshHotbar();
-        UpdateDrawnWeapons();
+        UpdateDrawnWeapons(isRight, isLeft);
     }
 
-    private void UpdateDrawnWeapons()
+    private void UpdateDrawnWeapons(bool isRightHandDrawn, bool isLeftHandDrawn)
     {
         var eq = EquipmentManager.Instance;
 
-        if (eq.isRightHandDrawn)
+        if (isRightHandDrawn)
         {
             if (eq.equippedRightItem != null)
             {
@@ -362,7 +372,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                 eq.HideRightHand();
             }
         }
-        if (eq.isLeftHandDrawn)
+        if (isLeftHandDrawn)
         {
             eq.HideLeftHand();
             if (eq.equippedLeftItem != null && eq.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
@@ -510,6 +520,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (slot.count <= 0) slot.Clear();
         SetSlot(slot);
         HotbarUI.Instance.RefreshHotbar();
+        UpdateDrawnWeapons(eq.isRightHandDrawn, eq.isLeftHandDrawn);
     }
 
     private void EquipTwoHandedProgress(EquipmentManager eq, Item item, InventorySlotUI equipSlot, InventorySlotUI rightHandSlot, InventorySlotUI leftHandSlot)
@@ -532,6 +543,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (slot.count <= 0) slot.Clear();
         SetSlot(slot);
         HotbarUI.Instance.RefreshHotbar();
+        UpdateDrawnWeapons(eq.isRightHandDrawn, eq.isLeftHandDrawn);
     }
 
 
@@ -551,7 +563,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             return;
         }
         TryEquipItem(item);
-        Debug.Log("Цей предмет не можливо використати!");
     }
 
     internal void SplitItem()
