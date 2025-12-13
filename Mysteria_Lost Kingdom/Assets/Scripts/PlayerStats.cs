@@ -78,6 +78,8 @@ public class PlayerStats : MonoBehaviour
     public Slider staminaBar;
     public Image manaBar;
 
+    [HideInInspector] public float blockMultiplier = 1f;
+
     public delegate void OnLevelUp();
     public event OnLevelUp LevelUpEvent;
 
@@ -142,7 +144,7 @@ public class PlayerStats : MonoBehaviour
 
         if (currentMana < maxMana)
         {
-            manaRegenDelay -= Time.deltaTime;
+            manaRegenTimer -= Time.deltaTime;
             if (manaRegenTimer <= 0)
             {
                 float regenAmount = GetManaRegen();
@@ -414,29 +416,29 @@ public class PlayerStats : MonoBehaviour
         // 1. УРОН
         float durabilityMod = 1f;
 
-        if (eq.equippedRightItem != null && eq.equippedRightItem.categories != ItemCategory.Shield)
+        if (eq.equippedRightItem != null && eq.equippedRightItem.item.categories != ItemCategory.Shield && eq.isRightHandDrawn)
         {
             //durabilityMod = eq.equippedRightItem.currentDurability /
             //                eq.equippedRightItem.maxDurability;
 
             combat.totalDamage +=
-                eq.equippedRightItem.baseDamage * durabilityMod +
+                eq.equippedRightItem.item.baseDamage * durabilityMod +
                 strength * 1.5f +
                 agility * 0.5f;
         }
 
-        if (eq.equippedLeftItem != null && eq.equippedLeftItem.categories != ItemCategory.Shield && eq.equippedLeftItem.weaponHandType != WeaponHandType.TwoHand)
+        if (eq.equippedLeftItem != null && eq.equippedLeftItem.item.categories != ItemCategory.Shield && eq.equippedLeftItem.item.weaponHandType != WeaponHandType.TwoHand && eq.isLeftHandDrawn)
         {
             //durabilityMod = eq.equippedRightItem.currentDurability /
             //                eq.equippedRightItem.maxDurability;
 
             combat.totalDamage +=
-                eq.equippedLeftItem.baseDamage * durabilityMod +
+                eq.equippedLeftItem.item.baseDamage * durabilityMod +
                 strength * 1.5f +
                 agility * 0.5f;
         }
 
-        if (eq.equippedRightItem == null && eq.equippedLeftItem == null)
+        if ((eq.equippedRightItem == null && eq.equippedLeftItem == null) || (!eq.isLeftHandDrawn && !eq.isRightHandDrawn))
         {
             // Урон кулаками
             combat.totalDamage = strength * 0.5f;
@@ -449,7 +451,7 @@ public class PlayerStats : MonoBehaviour
         // ---------------------------
         float gearArmorSum = 0f;
 
-        Item[] armourItems =
+        ItemInstance[] armourItems =
         {
         eq.equippedHeadArmourItem,
         eq.equippedChestArmourItem,
@@ -459,12 +461,12 @@ public class PlayerStats : MonoBehaviour
         eq.equippedBeltItem
     };
 
-        foreach (var item in armourItems)
+        foreach (var inst in armourItems)
         {
-            if (item == null) continue;
+            if (inst == null) continue;
 
             //float itemDurability = item.currentDurability / item.maxDurability;
-            gearArmorSum += item.baseArmor;
+            gearArmorSum += inst.item.baseArmor;
         }
 
         combat.totalArmor =

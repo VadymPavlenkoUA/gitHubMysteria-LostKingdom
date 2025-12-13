@@ -122,17 +122,21 @@ public class Inventory : MonoBehaviour
             if (slot.IsEmpty) continue;
             if (slot.item != item) continue;
 
-            if (slot.count >= remaining)
+            var inst = slot.instance;
+
+            if (inst.count >= remaining)
             {
-                slot.count -= remaining;
-                if (slot.count <= 0) slot.Clear();
+                inst.count -= remaining;
+                if (inst.count <= 0)
+                    slot.Clear();
+
                 removedAny = true;
                 remaining = 0;
                 break;
             }
             else
             {
-                remaining -= slot.count;
+                remaining -= inst.count;
                 slot.Clear();
                 removedAny = true;
             }
@@ -146,6 +150,7 @@ public class Inventory : MonoBehaviour
 
         return removedAny;
     }
+
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

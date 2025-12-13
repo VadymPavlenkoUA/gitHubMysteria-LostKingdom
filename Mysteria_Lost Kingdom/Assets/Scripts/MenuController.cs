@@ -11,7 +11,7 @@ public class MenuController : MonoBehaviour
     public GameObject gameMenu;
     public GameObject educationMenu;
     public static PlayerInputActions Controls;
-    private PlayerInputActions inputActions;
+    internal PlayerInputActions inputActions;
     private bool isMMopen = false;
     private bool isGMOpen = false;
     private bool isEduOpen = false;
@@ -110,6 +110,7 @@ public class MenuController : MonoBehaviour
         {
             cinemachineInput.enabled = false;
             Cursor.lockState = CursorLockMode.Confined;
+            inputActions.Combat.Disable();
         }
         else
         {
@@ -119,6 +120,7 @@ public class MenuController : MonoBehaviour
             {
                 CraftingUIManager.Instance.UpdateCloseCraftUI();
             }
+            inputActions.Combat.Enable();
         }
         Cursor.visible = isGMOpen;
         gameMenu.SetActive(isGMOpen);
@@ -131,6 +133,7 @@ public class MenuController : MonoBehaviour
         if (isGMOpen) gameMenu.SetActive(false);
         inputActions.Player.Disable();
         inputActions.HotBar.Disable();
+        inputActions.Combat.Disable();
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
 
@@ -144,6 +147,7 @@ public class MenuController : MonoBehaviour
         if (isGMOpen) gameMenu.SetActive(true);
         inputActions.Player.Enable();
         inputActions.HotBar.Enable();
+        inputActions.Combat.Enable();
         if (!isGMOpen)
         {
             Cursor.lockState = CursorLockMode.Locked;

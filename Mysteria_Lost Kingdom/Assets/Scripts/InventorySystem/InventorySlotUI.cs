@@ -122,7 +122,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
                         if (toMove > 0)
                         {
-                            slot.count -= toMove;
+                            slot.instance.count -= toMove;
                             otherSlotUI.slot.AddItem(slot.item, toMove);
 
                             SetSlot(slot);
@@ -184,7 +184,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             if (slot.item == other.slot.item && slot.item != null)
             {
                 int remaining = other.slot.AddItem(slot.item, slot.count);
-                slot.count = remaining;
+                slot.instance.count = remaining;
 
                 SetSlot(slot);
                 other.SetSlot(other.slot);
@@ -212,24 +212,31 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             }
         }
 
-        InventorySlot temp = new InventorySlot
-        {
-            item = slot.item,
-            count = slot.count
-        };
+        // Зберігаємо тимчасово item та count
+        var tempItem = slot.item;
+        var tempCount = slot.count;
 
-        slot.item = other.slot.item;
-        slot.count = other.slot.count;
+        // Копіюємо значення від іншого слоту
+        if (other.slot.IsEmpty)
+            slot.Clear();
+        else
+            slot.SetItem(other.slot.item, other.slot.count);
 
-        other.slot.item = temp.item;
-        other.slot.count = temp.count;
+        // Копіюємо тимчасові значення в інший слот
+        if (tempItem == null)
+            other.slot.Clear();
+        else
+            other.slot.SetItem(tempItem, tempCount);
 
+        // Оновлюємо UI
         SetSlot(slot);
         other.SetSlot(other.slot);
 
+        // Обробка дворучної зброї
         HandleEquipmentSwapWithTwoHand(slot, this);
         HandleEquipmentSwapWithTwoHand(other.slot, other);
     }
+
 
     private void HandleEquipmentSwapWithTwoHand(InventorySlot slotToEquip, InventorySlotUI slotUI)
     {
@@ -291,14 +298,14 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             // Екіпіруємо нову дворучну
             if (rightHandSlot != null)
             {
-                eq.EquipItem(slotToEquip.item, rightHandSlot.slotSpecification);
+                eq.EquipItem(slotToEquip.instance, rightHandSlot.slotSpecification);
                 rightHandSlot.slot.SetItem(slotToEquip.item, 1);
                 rightHandSlot.SetSlot(rightHandSlot.slot);
             }
 
             if (leftHandSlot != null)
             {
-                eq.EquipItem(slotToEquip.item, leftHandSlot.slotSpecification);
+                eq.EquipItem(slotToEquip.instance, leftHandSlot.slotSpecification);
                 leftHandSlot.slot.SetItem(slotToEquip.item, 1);
                 leftHandSlot.SetSlot(leftHandSlot.slot);
             }
@@ -329,7 +336,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                     eq.Unequip(slotUI.slotSpecification);
                 }
             }
-            eq.EquipItem(slotToEquip.item, slotUI.slotSpecification);
+            eq.EquipItem(slotToEquip.instance, slotUI.slotSpecification);
             slotUI.slot.SetItem(slotToEquip.item, 1);
             slotUI.SetSlot(slotUI.slot);
         }
@@ -347,7 +354,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         {
             if (eq.equippedRightItem != null)
             {
-                if (eq.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+                if (eq.equippedRightItem.item.weaponHandType == WeaponHandType.TwoHand)
                 {
                     eq.HideTwoHanded();
                     eq.DrawTwoHand();
@@ -361,7 +368,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         {
             if (eq.equippedRightItem != null)
             {
-                if (eq.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+                if (eq.equippedRightItem.item.weaponHandType == WeaponHandType.TwoHand)
                 {
                     eq.isRightHandDrawn = true;
                     eq.isLeftHandDrawn = true;
@@ -375,14 +382,14 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (isLeftHandDrawn)
         {
             eq.HideLeftHand();
-            if (eq.equippedLeftItem != null && eq.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
+            if (eq.equippedLeftItem != null && eq.equippedLeftItem.item.weaponHandType == WeaponHandType.OneHand)
             {
                 eq.DrawLeftHand();
             }
         }
         else
         {
-            if (eq.equippedLeftItem != null && eq.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
+            if (eq.equippedLeftItem != null && eq.equippedLeftItem.item.weaponHandType == WeaponHandType.OneHand)
             {
                 eq.isLeftHandDrawn = true;
                 eq.HideLeftHand();
@@ -398,7 +405,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (item.satietyRestore != 0) stats.IncreaseSatiety(item.satietyRestore);
         if (item.healthRestore != 0) stats.Heal(item.healthRestore);
 
-        slot.count--;
+        slot.instance.count--;
         if (slot.count <= 0) slot.Clear();
 
         SetSlot(slot);
@@ -453,8 +460,9 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     }
 
 
-    private void TryEquipItem(Item item)
+    private void TryEquipItem(ItemInstance inst)
     {
+        var item = inst.item;
         var equipSlots = InventoryUIManager.Instance.equipmentSlots;
         InventorySlotUI freeSlot = null;
         foreach (var eSlot in equipSlots)
@@ -475,12 +483,13 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             return;
         }
 
-        EquipToSlot(item, freeSlot);
+        EquipToSlot(inst, freeSlot);
         InventoryUIManager.Instance.NotifyInventoryChanged();
     }
 
-    private void EquipToSlot(Item item, InventorySlotUI equipSlot)
+    private void EquipToSlot(ItemInstance inst, InventorySlotUI equipSlot)
     {
+        var item = inst.item;
         var eq = EquipmentManager.Instance;
         if (item.weaponHandType == WeaponHandType.TwoHand)
         {
@@ -500,46 +509,46 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                 return;
             }
 
-            UseActionManager.Instance.StartUse(item.useDuration, () => EquipTwoHandedProgress(eq, item, equipSlot, rightHandSlot, leftHandSlot), () => Debug.Log("Скасовано!"));
+            UseActionManager.Instance.StartUse(item.useDuration, () => EquipTwoHandedProgress(eq, inst, equipSlot, rightHandSlot, leftHandSlot), () => Debug.Log("Скасовано!"));
         }
         else
         {
-            UseActionManager.Instance.StartUse(item.useDuration, () => EquipOneHandedProgress(eq, item, equipSlot), () => Debug.Log("Скасовано!"));
+            UseActionManager.Instance.StartUse(item.useDuration, () => EquipOneHandedProgress(eq, inst, equipSlot), () => Debug.Log("Скасовано!"));
         }
 
         InventoryUIManager.Instance.RefreshUI();
     }
 
-    private void EquipOneHandedProgress(EquipmentManager eq, Item item, InventorySlotUI equipSlot)
+    private void EquipOneHandedProgress(EquipmentManager eq, ItemInstance inst, InventorySlotUI equipSlot)
     {
-        eq.EquipItem(item, equipSlot.slotSpecification);
-        equipSlot.slot.SetItem(item, 1);
+        eq.EquipItem(inst, equipSlot.slotSpecification);
+        equipSlot.slot.SetItem(inst.item, 1);
         equipSlot.SetSlot(equipSlot.slot);
 
-        slot.count--;
+        slot.instance.count--;
         if (slot.count <= 0) slot.Clear();
         SetSlot(slot);
         HotbarUI.Instance.RefreshHotbar();
         UpdateDrawnWeapons(eq.isRightHandDrawn, eq.isLeftHandDrawn);
     }
 
-    private void EquipTwoHandedProgress(EquipmentManager eq, Item item, InventorySlotUI equipSlot, InventorySlotUI rightHandSlot, InventorySlotUI leftHandSlot)
+    private void EquipTwoHandedProgress(EquipmentManager eq, ItemInstance inst, InventorySlotUI equipSlot, InventorySlotUI rightHandSlot, InventorySlotUI leftHandSlot)
     {
         if (rightHandSlot != null)
         {
-            eq.EquipItem(item, rightHandSlot.slotSpecification);
-            rightHandSlot.slot.SetItem(item, 1);
+            eq.EquipItem(inst, rightHandSlot.slotSpecification);
+            rightHandSlot.slot.SetItem(inst.item, 1);
             rightHandSlot.SetSlot(rightHandSlot.slot);
         }
 
         if (leftHandSlot != null)
         {
-            eq.EquipItem(item, leftHandSlot.slotSpecification);
-            leftHandSlot.slot.SetItem(item, 1);
+            eq.EquipItem(inst, leftHandSlot.slotSpecification);
+            leftHandSlot.slot.SetItem(inst.item, 1);
             leftHandSlot.SetSlot(leftHandSlot.slot);
         }
 
-        slot.count--;
+        slot.instance.count--;
         if (slot.count <= 0) slot.Clear();
         SetSlot(slot);
         HotbarUI.Instance.RefreshHotbar();
@@ -550,7 +559,8 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     internal void UseItem()
     {
         if (slot == null || slot.IsEmpty) return;
-        Item item = slot.item;
+        ItemInstance inst = slot.instance;
+        var item = inst.item;
         if ((item.categories & ItemCategory.Food) != 0)
         {
             UseActionManager.Instance.StartUse(item.useDuration, () => UseFood(item), () => Debug.Log("Скасовано!"));
@@ -562,7 +572,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             UseActionManager.Instance.StartUse(item.useDuration, () => UnequipFromThisSlot(), () => Debug.Log("Скасовано!"));
             return;
         }
-        TryEquipItem(item);
+        TryEquipItem(inst);
     }
 
     internal void SplitItem()
@@ -573,7 +583,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         {
             if (amountChosen <= 0) return;
 
-            slot.count -= amountChosen;
+            slot.instance.count -= amountChosen;
             SetSlot(slot);
 
             InventorySlotUI freeSlot = InventoryUIManager.Instance.FindFirstEmptySlot();
@@ -584,7 +594,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             }
             else
             {
-                slot.count += amountChosen;
+                slot.instance.count += amountChosen;
                 SetSlot(slot);
             }
         });

@@ -33,14 +33,14 @@ public class EquipmentManager : MonoBehaviour
     internal GameObject currentRightHandItem;
     internal GameObject currentLeftHandItem;
 
-    internal Item equippedRightItem;
-    internal Item equippedLeftItem;
-    internal Item equippedHeadArmourItem;
-    internal Item equippedChestArmourItem;
-    internal Item equippedLegArmourItem;
-    internal Item equippedBootsItem;
-    internal Item equippedGlovesItem;
-    internal Item equippedBeltItem;
+    internal ItemInstance equippedRightItem;
+    internal ItemInstance equippedLeftItem;
+    internal ItemInstance equippedHeadArmourItem;
+    internal ItemInstance equippedChestArmourItem;
+    internal ItemInstance equippedLegArmourItem;
+    internal ItemInstance equippedBootsItem;
+    internal ItemInstance equippedGlovesItem;
+    internal ItemInstance equippedBeltItem;
 
     public bool isLeftHandDrawn;
     public bool isRightHandDrawn;
@@ -56,7 +56,7 @@ public class EquipmentManager : MonoBehaviour
         if (!isRTCharacter)
         {
             Instance = this;
-            inputActions = new PlayerInputActions();
+            inputActions = MenuController.Instance.inputActions;
         }
     }
 
@@ -95,29 +95,27 @@ public class EquipmentManager : MonoBehaviour
         }
     }
 
-    public void EquipItem(Item item, InventorySlotUI.SlotSpecification slotSpecification)
+    public void EquipItem(ItemInstance inst, SlotSpecification slotSpecification)
     {
-        if (item == null) return;
-        if ((item.categories & ItemCategory.Weapon) != 0 || (item.categories & ItemCategory.Bow) != 0 || (item.categories & ItemCategory.Shield) != 0)
+        if (inst == null || inst.item == null) return;
+
+        var item = inst.item;
+
+        if ((item.categories & ItemCategory.Weapon) != 0 ||
+            (item.categories & ItemCategory.Bow) != 0 ||
+            (item.categories & ItemCategory.Shield) != 0)
         {
-            EquipWeapon(item, slotSpecification);
-            if (!isRTCharacter)
-            {
-                playerStats.InvokeCombatChanged();
-                RTCharacterManager.Instance?.SyncFromMain();
-            }
-            return;
+            EquipWeapon(inst, slotSpecification);
         }
-        else if (item.categories == ItemCategory.ArmourHead || item.categories == ItemCategory.ArmourChest || item.categories == ItemCategory.ArmourLegs || 
-            item.categories == ItemCategory.ArmourBelt || item.categories == ItemCategory.ArmourGloves || item.categories == ItemCategory.ArmourBoots)
+        else
         {
-            EquipArmour(item);
-            if (!isRTCharacter)
-            {
-                playerStats.InvokeCombatChanged();
-                RTCharacterManager.Instance?.SyncFromMain();
-            }
-            return;
+            EquipArmour(inst);
+        }
+
+        if (!isRTCharacter)
+        {
+            playerStats.InvokeCombatChanged();
+            RTCharacterManager.Instance?.SyncFromMain();
         }
     }
 
@@ -128,12 +126,13 @@ public class EquipmentManager : MonoBehaviour
     }
 
 
-    private void EquipWeapon(Item item, InventorySlotUI.SlotSpecification slotSpecification)
+    private void EquipWeapon(ItemInstance inst, InventorySlotUI.SlotSpecification slotSpecification)
     {
+        var item = inst.item;
         if (item.weaponHandType == WeaponHandType.TwoHand)
         {
-            equippedRightItem = item;
-            equippedLeftItem = item;
+            equippedRightItem = inst;
+            equippedLeftItem = inst;
             twoHandEquipped = true;
 
             return;
@@ -141,13 +140,13 @@ public class EquipmentManager : MonoBehaviour
 
         if (item.weaponHandType == WeaponHandType.OneHand && slotSpecification == InventorySlotUI.SlotSpecification.RightHand)
         {
-            equippedRightItem = item;
+            equippedRightItem = inst;
             return;
         }
 
         if (item.weaponHandType == WeaponHandType.OneHand && slotSpecification == InventorySlotUI.SlotSpecification.LeftHand)
         {
-            equippedLeftItem = item;
+            equippedLeftItem = inst;
 
             return;
         }
@@ -155,38 +154,39 @@ public class EquipmentManager : MonoBehaviour
         Debug.LogWarning("Weapon has NO WeaponHandType assigned!");
     }
 
-    private void EquipArmour(Item item)
+    private void EquipArmour(ItemInstance inst)
     {
+        var item = inst.item;
         switch (item.categories)
         {
             case ItemCategory.ArmourHead:
                 SetArmour(armourMeshes.headArmourMeshes, item.meshIndex);
-                equippedHeadArmourItem = item;
+                equippedHeadArmourItem = inst;
                 break;
 
             case ItemCategory.ArmourChest:
                 SetArmour(armourMeshes.chestArmourMeshes, item.meshIndex);
-                equippedChestArmourItem = item;
+                equippedChestArmourItem = inst;
                 break;
 
             case ItemCategory.ArmourLegs:
                 SetArmour(armourMeshes.legsArmourMeshes, item.meshIndex);
-                equippedLegArmourItem = item;
+                equippedLegArmourItem = inst;
                 break;
 
             case ItemCategory.ArmourBelt:
                 SetArmour(armourMeshes.beltArmourMeshes, item.meshIndex);
-                equippedBeltItem = item;
+                equippedBeltItem = inst;
                 break;
 
             case ItemCategory.ArmourGloves:
                 SetArmour(armourMeshes.glovesArmourMeshes, item.meshIndex);
-                equippedGlovesItem = item;
+                equippedGlovesItem = inst;
                 break;
 
             case ItemCategory.ArmourBoots:
                 SetArmour(armourMeshes.bootsArmourMeshes, item.meshIndex);
-                equippedBootsItem = item;
+                equippedBootsItem = inst;
                 break;
         }
     }
@@ -194,7 +194,7 @@ public class EquipmentManager : MonoBehaviour
 
     private void ConfirmEquipRighHand()
     {
-        if (isRightHandDrawn && equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+        if (isRightHandDrawn && equippedRightItem.item.weaponHandType == WeaponHandType.TwoHand)
         {
             HideTwoHanded();
             return;
@@ -204,7 +204,7 @@ public class EquipmentManager : MonoBehaviour
             HideRightHand();
             return;
         }
-        if (equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+        if (equippedRightItem.item.weaponHandType == WeaponHandType.TwoHand)
         {
             DrawTwoHand();
             return;
@@ -215,7 +215,7 @@ public class EquipmentManager : MonoBehaviour
 
     private void ConfirmEquipLeftHand()
     {
-        if (isLeftHandDrawn && equippedLeftItem.weaponHandType == WeaponHandType.TwoHand)
+        if (isLeftHandDrawn && equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
         {
             HideTwoHanded();
             return;
@@ -225,7 +225,7 @@ public class EquipmentManager : MonoBehaviour
             HideLeftHand();
             return;
         }
-        if (equippedLeftItem.weaponHandType == WeaponHandType.TwoHand)
+        if (equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
         {
             DrawTwoHand();
             return;
@@ -238,7 +238,7 @@ public class EquipmentManager : MonoBehaviour
     {
         if (currentRightHandItem != null) Destroy(currentRightHandItem);
         if (currentLeftHandItem != null) Destroy(currentLeftHandItem);
-        currentRightHandItem = EquipWeaponInHand(equippedRightItem, rightHand, equippedRightItem.rightHandPosition, equippedRightItem.rightHandRotation);
+        currentRightHandItem = EquipWeaponInHand(equippedRightItem, rightHand, equippedRightItem.item.rightHandPosition, equippedRightItem.item.rightHandRotation);
 
         isRightHandDrawn = true;
         isLeftHandDrawn = true;
@@ -246,33 +246,45 @@ public class EquipmentManager : MonoBehaviour
         //animator.SetBool("WeaponEquipped", true);
         //animator.SetInteger("WeaponType", 3); 
 
-        if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+        if (!isRTCharacter)
+        {
+            playerStats.InvokeCombatChanged();
+            RTCharacterManager.Instance?.SyncFromMain();
+        }
     }
 
     internal void DrawRightHand()
     {
         if (currentRightHandItem != null) Destroy(currentRightHandItem);
-        currentRightHandItem = EquipWeaponInHand(equippedRightItem, rightHand, equippedRightItem.rightHandPosition, equippedRightItem.rightHandRotation);
+        currentRightHandItem = EquipWeaponInHand(equippedRightItem, rightHand, equippedRightItem.item.rightHandPosition, equippedRightItem.item.rightHandRotation);
 
         isRightHandDrawn = true;
 
         //animator.SetBool("WeaponEquipped", true);
         //animator.SetInteger("WeaponType", 1);
 
-        if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+        if (!isRTCharacter)
+        {
+            playerStats.InvokeCombatChanged();
+            RTCharacterManager.Instance?.SyncFromMain();
+        }
     }
 
     internal void DrawLeftHand()
     {
         if (currentLeftHandItem != null) Destroy(currentLeftHandItem);
-        currentLeftHandItem = EquipWeaponInHand(equippedLeftItem, leftHand, equippedLeftItem.leftHandPosition, equippedLeftItem.leftHandRotation);
+        currentLeftHandItem = EquipWeaponInHand(equippedLeftItem, leftHand, equippedLeftItem.item.leftHandPosition, equippedLeftItem.item.leftHandRotation);
 
         isLeftHandDrawn = true;
 
         //animator.SetBool("WeaponEquipped", true);
         //animator.SetInteger("WeaponType", 2);
 
-        if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+        if (!isRTCharacter)
+        {
+            playerStats.InvokeCombatChanged();
+            RTCharacterManager.Instance?.SyncFromMain();
+        }
     }
 
     internal void HideRightHand()
@@ -282,11 +294,15 @@ public class EquipmentManager : MonoBehaviour
         if (currentRightHandItem != null) Destroy(currentRightHandItem);
         if (equippedRightItem != null)
         {
-            if (equippedRightItem.categories == ItemCategory.Shield) currentRightHandItem = EquipWeaponInactive(equippedRightItem, backSocket, equippedRightItem.inactivePosition, equippedRightItem.inactiveRotation);
-            if (equippedRightItem.categories == ItemCategory.Weapon && equippedRightItem.weaponHandType == WeaponHandType.OneHand) currentRightHandItem = EquipWeaponInactive(equippedRightItem, rightBeltSocket, equippedRightItem.inactivePosition, equippedRightItem.inactiveRotation);
+            if (equippedRightItem.item.categories == ItemCategory.Shield) currentRightHandItem = EquipWeaponInactive(equippedRightItem, backSocket, equippedRightItem.item.inactivePosition, equippedRightItem.item.inactiveRotation);
+            if (equippedRightItem.item.categories == ItemCategory.Weapon && equippedRightItem.item.weaponHandType == WeaponHandType.OneHand) currentRightHandItem = EquipWeaponInactive(equippedRightItem, rightBeltSocket, equippedRightItem.item.inactivePosition, equippedRightItem.item.inactiveRotation);
         }
 
-        if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+        if (!isRTCharacter)
+        {
+            playerStats.InvokeCombatChanged();
+            RTCharacterManager.Instance?.SyncFromMain();
+        }
     }
 
     internal void HideLeftHand()
@@ -296,11 +312,15 @@ public class EquipmentManager : MonoBehaviour
         if (currentLeftHandItem != null) Destroy(currentLeftHandItem);
         if (equippedLeftItem != null)
         {
-            if (equippedLeftItem.categories == ItemCategory.Shield) currentLeftHandItem = EquipWeaponInactive(equippedLeftItem, backSocket, equippedLeftItem.inactivePosition, equippedLeftItem.inactiveRotation);
-            if (equippedLeftItem.categories == ItemCategory.Weapon && equippedLeftItem.weaponHandType == WeaponHandType.OneHand) currentLeftHandItem = EquipWeaponInactive(equippedLeftItem, leftBeltSocket, equippedLeftItem.inactiveAltPosition, equippedLeftItem.inactiveAltRotation);
+            if (equippedLeftItem.item.categories == ItemCategory.Shield) currentLeftHandItem = EquipWeaponInactive(equippedLeftItem, backSocket, equippedLeftItem.item.inactivePosition, equippedLeftItem.item.inactiveRotation);
+            if (equippedLeftItem.item.categories == ItemCategory.Weapon && equippedLeftItem.item.weaponHandType == WeaponHandType.OneHand) currentLeftHandItem = EquipWeaponInactive(equippedLeftItem, leftBeltSocket, equippedLeftItem.item.inactiveAltPosition, equippedLeftItem.item.inactiveAltRotation);
         }
 
-        if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+        if (!isRTCharacter)
+        {
+            playerStats.InvokeCombatChanged();
+            RTCharacterManager.Instance?.SyncFromMain();
+        }
     }
 
     internal void HideTwoHanded()
@@ -310,13 +330,18 @@ public class EquipmentManager : MonoBehaviour
         isLeftHandDrawn = false;
         if (currentRightHandItem != null) Destroy(currentRightHandItem);
         if (currentLeftHandItem != null) Destroy(currentLeftHandItem);
-        if (equippedRightItem != null) currentRightHandItem = EquipWeaponInactive(equippedRightItem, backSocket, equippedRightItem.inactivePosition, equippedRightItem.inactiveRotation);
+        if (equippedRightItem != null) currentRightHandItem = EquipWeaponInactive(equippedRightItem, backSocket, equippedRightItem.item.inactivePosition, equippedRightItem.item.inactiveRotation);
 
-        if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+        if (!isRTCharacter)
+        {
+            playerStats.InvokeCombatChanged();
+            RTCharacterManager.Instance?.SyncFromMain();
+        }
     }
 
-    internal GameObject EquipWeaponInHand(Item item, Transform hand, Vector3 position, Vector3 rotation)
+    internal GameObject EquipWeaponInHand(ItemInstance inst, Transform hand, Vector3 position, Vector3 rotation)
     {
+        var item = inst.item;
         GameObject handItem = Instantiate(item.itemPrefabEquip, hand);
         FixItemScale(handItem.transform, hand, item.itemPrefabEquip.transform.localScale);
         handItem.transform.localPosition = position;
@@ -325,8 +350,9 @@ public class EquipmentManager : MonoBehaviour
         return handItem;
     }
 
-    internal GameObject EquipWeaponInactive(Item item, Transform hand, Vector3 position, Vector3 rotation)
+    internal GameObject EquipWeaponInactive(ItemInstance inst, Transform hand, Vector3 position, Vector3 rotation)
     {
+        var item = inst.item;
         GameObject handItem = Instantiate(item.itemPrefabEquip, hand);
         FixItemScale(handItem.transform, hand, item.itemPrefabEquip.transform.localScale);
         handItem.transform.localPosition = position;
@@ -452,16 +478,15 @@ public class EquipmentManager : MonoBehaviour
         isRightHandDrawn = false;
     }
 
-    public void DamageDurability(Item item, float amount)
+    public void DamageDurability(ItemInstance inst, float amount)
     {
-        if (item == null) return;
+        if (inst == null || !inst.HasDurability) return;
 
-        item.currentDurability -= amount;
-        if (item.currentDurability < 0) item.currentDurability = 0;
-    }
-    public float GetDurabilityPercent(Item item)
-    {
-        if (item == null) return 1f;
-        return item.currentDurability / item.maxDurability;
+        inst.currentDurability -= amount;
+        if (inst.currentDurability <= 0)
+        {
+            inst.currentDurability = 0;
+            Debug.Log($"{inst.item.itemName} зламалась");
+        }
     }
 }

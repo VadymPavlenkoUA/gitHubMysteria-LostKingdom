@@ -2,10 +2,11 @@ using UnityEngine;
 
 public class InventorySlot
 {
-    public Item item;
-    public int count;
+    public ItemInstance instance;
 
-    public bool IsEmpty => item == null;
+    public bool IsEmpty => instance == null;
+    public Item item => instance?.item;
+    public int count => instance?.count ?? 0;
 
     public bool CanAddItem(Item newItem)
     {
@@ -16,16 +17,16 @@ public class InventorySlot
     {
         if (IsEmpty)
         {
-            item = newItem;
-            int added = Mathf.Min(amount, item.maxStack);
-            count = added;
+            int added = Mathf.Min(amount, newItem.maxStack);
+            instance = new ItemInstance(newItem, added);
             return amount - added;
         }
-        else if (item == newItem)
+
+        if (item == newItem && newItem.maxStack > 1)
         {
-            int spaceLeft = item.maxStack - count;
+            int spaceLeft = newItem.maxStack - instance.count;
             int added = Mathf.Min(spaceLeft, amount);
-            count += added;
+            instance.count += added;
             return amount - added;
         }
 
@@ -33,12 +34,11 @@ public class InventorySlot
     }
     public void SetItem(Item newItem, int newCount = 1)
     {
-        item = newItem;
-        count = newCount;
+        instance = new ItemInstance(newItem, newCount);
     }
+
     public void Clear()
     {
-        item = null;
-        count = 0;
+        instance = null;
     }
 }

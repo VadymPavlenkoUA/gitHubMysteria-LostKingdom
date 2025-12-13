@@ -10,9 +10,9 @@ public class HotbarSlot : MonoBehaviour
 
     private Item assignedItem;
 
-    public void SetItem(Item item)
+    public void SetItem(ItemInstance item)
     {
-        assignedItem = item;
+        //assignedItem = item.item;
         if (item == null)
         {
             icon.enabled = false;
@@ -22,12 +22,12 @@ public class HotbarSlot : MonoBehaviour
         {
             backIcon.enabled = false;
             icon.enabled = true;
-            icon.sprite = item.icon;
+            icon.sprite = item.item.icon;
         }
     }
 
-    public Item GetItem()
-    {
-        return assignedItem;
-    }
+    //public Item GetItem()
+    //{
+    //    return assignedItem;
+    //}
 }

@@ -72,27 +72,27 @@ public class RTCharacterManager : MonoBehaviour
     {
         // √ŒÀŒ¬¿
         rtEquipment.SetArmour(rtEquipment.armourMeshes.headArmourMeshes,
-            main.equippedHeadArmourItem != null ? main.equippedHeadArmourItem.meshIndex : -1);
+            main.equippedHeadArmourItem != null ? main.equippedHeadArmourItem.item.meshIndex : -1);
 
         // √–”ƒ»
         rtEquipment.SetArmour(rtEquipment.armourMeshes.chestArmourMeshes,
-            main.equippedChestArmourItem != null ? main.equippedChestArmourItem.meshIndex : -1);
+            main.equippedChestArmourItem != null ? main.equippedChestArmourItem.item.meshIndex : -1);
 
         // ÕŒ√»
         rtEquipment.SetArmour(rtEquipment.armourMeshes.legsArmourMeshes,
-            main.equippedLegArmourItem != null ? main.equippedLegArmourItem.meshIndex : -1);
+            main.equippedLegArmourItem != null ? main.equippedLegArmourItem.item.meshIndex : -1);
 
         // œ¿—Œ 
         rtEquipment.SetArmour(rtEquipment.armourMeshes.beltArmourMeshes,
-            main.equippedBeltItem != null ? main.equippedBeltItem.meshIndex : -1);
+            main.equippedBeltItem != null ? main.equippedBeltItem.item.meshIndex : -1);
 
         // –” ¿¬»◊ »
         rtEquipment.SetArmour(rtEquipment.armourMeshes.glovesArmourMeshes,
-            main.equippedGlovesItem != null ? main.equippedGlovesItem.meshIndex : -1);
+            main.equippedGlovesItem != null ? main.equippedGlovesItem.item.meshIndex : -1);
 
         // ◊Œ¡≤“»
         rtEquipment.SetArmour(rtEquipment.armourMeshes.bootsArmourMeshes,
-            main.equippedBootsItem != null ? main.equippedBootsItem.meshIndex : -1);
+            main.equippedBootsItem != null ? main.equippedBootsItem.item.meshIndex : -1);
     }
 
     // ============================================================
@@ -118,7 +118,7 @@ public class RTCharacterManager : MonoBehaviour
         {
             if (eq.equippedRightItem != null)
             {
-                if (eq.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+                if (eq.equippedRightItem.item.weaponHandType == WeaponHandType.TwoHand)
                 {
                     rtEquipment.HideTwoHanded();
                     rtEquipment.DrawTwoHand();
@@ -132,7 +132,7 @@ public class RTCharacterManager : MonoBehaviour
         {
             if (eq.equippedRightItem != null)
             {
-                if (eq.equippedRightItem.weaponHandType == WeaponHandType.TwoHand)
+                if (eq.equippedRightItem.item.weaponHandType == WeaponHandType.TwoHand)
                 {
                     rtEquipment.isRightHandDrawn = true;
                     rtEquipment.isLeftHandDrawn = true;
@@ -146,14 +146,14 @@ public class RTCharacterManager : MonoBehaviour
         if (isLeftHandDrawn)
         {
             rtEquipment.HideLeftHand();
-            if (eq.equippedLeftItem != null && eq.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
+            if (eq.equippedLeftItem != null && eq.equippedLeftItem.item.weaponHandType == WeaponHandType.OneHand)
             {
                 rtEquipment.DrawLeftHand();
             }
         }
         else
         {
-            if (eq.equippedLeftItem != null && eq.equippedLeftItem.weaponHandType == WeaponHandType.OneHand)
+            if (eq.equippedLeftItem != null && eq.equippedLeftItem.item.weaponHandType == WeaponHandType.OneHand)
             {
                 rtEquipment.isLeftHandDrawn = true;
                 rtEquipment.HideLeftHand();

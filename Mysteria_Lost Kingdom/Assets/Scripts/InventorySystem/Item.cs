@@ -52,7 +52,6 @@ public class Item : ScriptableObject
 
     [Header("Durability")]
     public float maxDurability = 100f;
-    public float currentDurability = 100f;
 
     public ItemCategory categories;
 
