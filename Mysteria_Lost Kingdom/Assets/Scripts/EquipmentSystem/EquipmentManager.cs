@@ -354,7 +354,11 @@ public class EquipmentManager : MonoBehaviour
                 {
                     UnequipTwoHand();
                     twoHandEquipped = false;
-                    if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+                    if (!isRTCharacter)
+                    {
+                        playerStats.InvokeCombatChanged();
+                        RTCharacterManager.Instance?.SyncFromMain();
+                    }
                     return;
                 }
                 UnequipRightHand();
@@ -365,7 +369,11 @@ public class EquipmentManager : MonoBehaviour
                 {
                     UnequipTwoHand();
                     twoHandEquipped = false;
-                    if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+                    if (!isRTCharacter)
+                    {
+                        playerStats.InvokeCombatChanged();
+                        RTCharacterManager.Instance?.SyncFromMain();
+                    }
                     return;
                 }
                 UnequipLeftHand();
@@ -403,7 +411,11 @@ public class EquipmentManager : MonoBehaviour
 
         }
 
-        if (!isRTCharacter) RTCharacterManager.Instance?.SyncFromMain();
+        if (!isRTCharacter)
+        {
+            playerStats.InvokeCombatChanged();
+            RTCharacterManager.Instance?.SyncFromMain();
+        }
     }
 
     public void UnequipRightHand()

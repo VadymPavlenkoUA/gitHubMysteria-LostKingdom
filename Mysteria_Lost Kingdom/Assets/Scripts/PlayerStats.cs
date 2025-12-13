@@ -425,7 +425,7 @@ public class PlayerStats : MonoBehaviour
                 agility * 0.5f;
         }
 
-        if (eq.equippedLeftItem != null && eq.equippedLeftItem.categories != ItemCategory.Shield)
+        if (eq.equippedLeftItem != null && eq.equippedLeftItem.categories != ItemCategory.Shield && eq.equippedLeftItem.weaponHandType != WeaponHandType.TwoHand)
         {
             //durabilityMod = eq.equippedRightItem.currentDurability /
             //                eq.equippedRightItem.maxDurability;
