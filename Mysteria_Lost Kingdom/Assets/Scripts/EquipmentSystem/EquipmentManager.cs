@@ -489,4 +489,34 @@ public class EquipmentManager : MonoBehaviour
             Debug.Log($"{inst.item.itemName} зламалась");
         }
     }
+
+    public void EnableWeaponHitboxes()
+    {
+        EnableHitbox(currentRightHandItem);
+        EnableHitbox(currentLeftHandItem);
+    }
+
+    public void DisableWeaponHitboxes()
+    {
+        DisableHitbox(currentRightHandItem);
+        DisableHitbox(currentLeftHandItem);
+    }
+
+    void EnableHitbox(GameObject item)
+    {
+        if (item == null) return;
+
+        var hitbox = item.GetComponentInChildren<WeaponHitbox>();
+        if (hitbox != null)
+            hitbox.EnableHitbox();
+    }
+
+    void DisableHitbox(GameObject item)
+    {
+        if (item == null) return;
+
+        var hitbox = item.GetComponentInChildren<WeaponHitbox>();
+        if (hitbox != null)
+            hitbox.DisableHitbox();
+    }
 }

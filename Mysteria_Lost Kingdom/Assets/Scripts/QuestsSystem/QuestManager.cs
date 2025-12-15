@@ -1,5 +1,6 @@
-using UnityEngine;
+using NUnit.Framework.Interfaces;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class QuestManager : MonoBehaviour
 {
@@ -31,7 +32,7 @@ public class QuestManager : MonoBehaviour
 
         var instance = new QuestInstance(questData);
         activeQuests.Add(instance);
-        Debug.Log($"Квест '{questData.questName}' розпочато!");
+        NotificationSystem.Instance.ShowNotification(NotificationSystem.Instance.questSprite, $"Квест '{questData.questName}' розпочато!");
         instance.UpdateStepStatus(playerInventory);
         CheckQuestCompletion(instance);
         return instance;
@@ -60,7 +61,7 @@ public class QuestManager : MonoBehaviour
         var step = instance.steps[stepIndex];
 
         instance.CompleteStep(stepIndex);
-        Debug.Log($"Крок {stepIndex + 1} у квесті '{questData.questName}' виконано!");
+        NotificationSystem.Instance.ShowNotification(NotificationSystem.Instance.questSprite, $"Крок {stepIndex + 1} у квесті '{questData.questName}' виконано!");
 
         if (step.stepType == QuestStepType.DeliverItems && step.removeItemsOnComplete)
         {
@@ -86,8 +87,7 @@ public class QuestManager : MonoBehaviour
             completedQuests.Add(instance);
 
             if (trackedQuest == instance) trackedQuest = null;
-
-            Debug.Log($"Квест '{instance.data.questName}' виконано!");
+            NotificationSystem.Instance.ShowNotification(NotificationSystem.Instance.questSprite, $"Квест '{instance.data.questName}' виконано!");
             ClaimReward(instance);
         }
     }
@@ -136,7 +136,7 @@ public class QuestManager : MonoBehaviour
         completedQuests.Remove(instance);
         finishedQuests.Add(instance);
 
-        Debug.Log($"Квест '{instance.data.questName}' завершено!");
+        //NotificationSystem.Instance.ShowNotification(NotificationSystem.Instance.questSprite, $"Квест '{instance.data.questName}' виконано!");
     }
 
     public bool IsQuestActive(QuestData questData)

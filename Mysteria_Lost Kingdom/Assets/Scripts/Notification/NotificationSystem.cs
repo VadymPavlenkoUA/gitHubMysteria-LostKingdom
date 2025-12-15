@@ -11,6 +11,9 @@ public class NotificationSystem : MonoBehaviour
     public GameObject notificationPrefab;
     public int maxNotifications = 3;
 
+    [Header("Icons")]
+    public Sprite questSprite;
+
     private readonly List<NotificationUI> activeNotifications = new();
 
     private void Awake()

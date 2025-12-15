@@ -7,9 +7,7 @@ public class PlayerCombat : MonoBehaviour
     public Animator animator;
 
     [Header("Attack Settings")]
-    public float attackRange = 2f;
     public float attackStaminaCost = 15f;
-    public LayerMask enemyLayer;
 
     [Header("Block Settings")]
     public float blockDefenseMultiplier = 2f;
@@ -20,6 +18,7 @@ public class PlayerCombat : MonoBehaviour
 
     private PlayerInputActions inputActions;
     private bool isBlocking = false;
+    public bool IsAttacking { get; private set; }
 
     private void Awake()
     {
@@ -70,52 +69,53 @@ public class PlayerCombat : MonoBehaviour
 
     void TryAttack()
     {
+        if (IsAttacking) return;
         if (!playerStats.TryUseStamina(attackStaminaCost)) return;
 
-        if (!equipment.isLeftHandDrawn && !equipment.isLeftHandDrawn)
+        if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
         {
-            animator.SetTrigger("Attack");
+            IsAttacking = true;
+            animator.SetTrigger("AttackWithRightHands");
         }
         else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
         {
+            IsAttacking = true;
             //animator.SetTrigger("AttackWithShield");
         }
         else if (equipment.equippedRightItem != null && equipment.equippedRightItem.item.categories == ItemCategory.Shield)
         {
+            IsAttacking = true;
             //animator.SetTrigger("AttackWithShieldRight");
         }
         else if (equipment.equippedRightItem != null && equipment.equippedRightItem.item.weaponHandType != WeaponHandType.TwoHand && equipment.equippedRightItem.item.categories == ItemCategory.Weapon && 
             equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Weapon)
         {
+            IsAttacking = true;
             //animator.SetTrigger("AttackWithTwoWeapons");
         }
         else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
         {
+            IsAttacking = true;
             //animator.SetTrigger("AttackTwoHanded");
         }
         else
         {
-            animator.SetTrigger("Attack");
+            IsAttacking = true;
+            animator.SetTrigger("AttackWithRightWeapon");
         }
-
-        PerformAttack();
     }
 
-    void PerformAttack()
+    public void AnimationHit()
     {
-        Ray ray = new Ray(transform.position + Vector3.up * 1.4f, transform.forward);
+        EnableHitbox();
+        DamageWeaponDurability();
+    }
 
-        if (Physics.Raycast(ray, out RaycastHit hit, attackRange, enemyLayer))
-        {
-            var enemy = hit.collider.GetComponent<EnemyStats>();
-            if (enemy == null) return;
-
-            CombatStats combat = playerStats.CalculateCombatStats();
-            float damage = Mathf.Max(combat.totalDamage - enemy.armor, 1f);
-
-            enemy.TakeDamage(damage);
-            DamageWeaponDurability();
-        }
+    public void AnimationAttackEnd()
+    {
+        IsAttacking = false;
+        DisableHitbox();
+        Debug.Log(IsAttacking);
     }
 
     void DamageWeaponDurability()
@@ -156,4 +156,24 @@ public class PlayerCombat : MonoBehaviour
         //animator.SetBool("Block", false);
         playerStats.blockMultiplier = 1f;
     }
+
+    public void OnWeaponHit(EnemyStats enemy)
+    {
+        CombatStats combatStats = playerStats.CalculateCombatStats();
+        float damage = Mathf.Max(combatStats.totalDamage - enemy.armor, 1f);
+
+        enemy.TakeDamage(damage);
+        DamageWeaponDurability();
+    }
+
+    public void EnableHitbox()
+    {
+        equipment.EnableWeaponHitboxes();
+    }
+
+    public void DisableHitbox()
+    {
+        equipment.DisableWeaponHitboxes();
+    }
+
 }

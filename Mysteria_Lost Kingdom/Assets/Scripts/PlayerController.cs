@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
     private Animator animator;
     public PlayerStats stats;
+    public PlayerCombat combat;
 
     private Vector2 moveInput;
     private bool isFreeLook = false;
@@ -59,14 +60,8 @@ public class PlayerController : MonoBehaviour
     {
         inputActions.Player.Enable();
 
-        inputActions.Player.Move.performed += ctx =>
-        {
-            moveInput = ctx.ReadValue<Vector2>();
-        };
-        inputActions.Player.Move.canceled += ctx =>
-        {
-            moveInput = Vector2.zero;
-        };
+        inputActions.Player.Move.performed += OnMove;
+        inputActions.Player.Move.canceled += OnMoveCanceled;
 
         inputActions.Player.FreeLook.performed += ctx => isFreeLook = true;
         inputActions.Player.FreeLook.canceled += ctx => isFreeLook = false;
@@ -74,7 +69,30 @@ public class PlayerController : MonoBehaviour
 
     private void OnDisable()
     {
+        inputActions.Player.Move.performed -= OnMove;
+        inputActions.Player.Move.canceled -= OnMoveCanceled;
+
+        inputActions.Player.FreeLook.performed -= ctx => isFreeLook = true;
+        inputActions.Player.FreeLook.canceled -= ctx => isFreeLook = false;
+
         inputActions?.Player.Disable();
+    }
+
+
+    private void OnMove(InputAction.CallbackContext ctx)
+    {
+        //if (combat != null && combat.IsAttacking)
+        //{
+        //    moveInput = Vector2.zero;
+        //    return;
+        //}
+
+        moveInput = ctx.ReadValue<Vector2>();
+    }
+
+    private void OnMoveCanceled(InputAction.CallbackContext ctx)
+    {
+        moveInput = Vector2.zero;
     }
 
     private void FixedUpdate()
@@ -88,6 +106,13 @@ public class PlayerController : MonoBehaviour
         camRight.Normalize();
 
         Vector3 moveDir = camForward * moveInput.y + camRight * moveInput.x;
+
+        if (combat != null && combat.IsAttacking)
+        {
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+            moveDir = Vector3.zero; // рух не враховуємо
+        }
+
         float currentSpeed = moveSpeed;
 
         if (isRolling)
@@ -204,7 +229,7 @@ public class PlayerController : MonoBehaviour
         if (MenuController.Instance.IsInputBlocked()) return;
 
         // JUMP
-        if (inputActions.Player.Jump.WasPressedThisFrame())
+        if (!combat.IsAttacking && inputActions.Player.Jump.WasPressedThisFrame())
         {
             if (IsGrounded())
             {
@@ -217,7 +242,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // ROLL
-        if (!isRolling)
+        if (!combat.IsAttacking && !isRolling)
         {
             if (inputActions.Player.Roll.WasPressedThisFrame())
             {
@@ -233,7 +258,7 @@ public class PlayerController : MonoBehaviour
 
         // SPRINT
         bool sprintPressed = inputActions.Player.Sprint.IsPressed();
-        if (!isRolling && sprintPressed && moveInput.sqrMagnitude > 0.01f && stats != null && stats.currentStamina > 0f)
+        if (!combat.IsAttacking && !isRolling && sprintPressed && moveInput.sqrMagnitude > 0.01f && stats != null && stats.currentStamina > 0f)
         {
             isSprinting = true;
         }
@@ -242,7 +267,7 @@ public class PlayerController : MonoBehaviour
             isSprinting = false;
         }
 
-        if (animator != null)
+        if (animator != null && (combat == null || !combat.IsAttacking))
         {
             float speedValue = new Vector2(moveInput.x, moveInput.y).magnitude;
             animator.SetFloat("Speed", speedValue);
@@ -270,6 +295,11 @@ public class PlayerController : MonoBehaviour
                     isSprinting = false;
                 }
             }
+        }
+
+        if (combat != null && combat.IsAttacking)
+        {
+            Debug.Log("ATTACKING: " + animator.GetCurrentAnimatorStateInfo(0).IsName("Attack"));
         }
     }
 

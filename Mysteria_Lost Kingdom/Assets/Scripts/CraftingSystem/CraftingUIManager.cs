@@ -282,6 +282,10 @@ public class CraftingUIManager : MonoBehaviour
 
         playerStats.AddProfessionExp(currentProfession, selectedRecipe.expGained * craftAmount);
 
+        var p = playerStats.GetProfession(currentProfession);
+        NotificationSystem.Instance.ShowNotification(NotificationSystem.Instance.questSprite, $"Предмет '{selectedRecipe.resultItem.name}' створено х{craftAmount}! " +
+            $"Здобуто досвіду +{selectedRecipe.expGained * craftAmount} з професії {p.proffesionName}");
+
         //UpdateProfessionPanel();
         PopulateIngredients();
         PopulateRecipes();
