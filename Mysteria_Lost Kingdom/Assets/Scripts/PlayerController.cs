@@ -200,8 +200,7 @@ public class PlayerController : MonoBehaviour
 
         if (animator != null)
         {
-            //animator.SetTrigger("Roll");
-            animator.Play("Roll", 0, 0f);
+            animator.SetTrigger("Roll");
             animator.applyRootMotion = useRootMotionForRoll;
         }
     }
@@ -267,11 +266,15 @@ public class PlayerController : MonoBehaviour
             isSprinting = false;
         }
 
-        if (animator != null && (combat == null || !combat.IsAttacking))
+        if (animator != null)
         {
-            float speedValue = new Vector2(moveInput.x, moveInput.y).magnitude;
+            float baseSpeed = moveInput.magnitude;       
+            float targetSpeed = isSprinting ? 1f : 0.4f * baseSpeed; 
+
+            // Плавне згладжування від поточного значення Speed до targetSpeed
+            float speedValue = Mathf.Lerp(animator.GetFloat("Speed"), targetSpeed, 5f * Time.deltaTime);
+
             animator.SetFloat("Speed", speedValue);
-            animator.SetBool("IsSprinting", isSprinting);
         }
 
         if (rollCoolDownTimer > 0f) rollCoolDownTimer -= Time.deltaTime;

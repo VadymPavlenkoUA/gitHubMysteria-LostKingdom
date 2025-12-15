@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class PlayerCombat : MonoBehaviour
@@ -75,7 +76,8 @@ public class PlayerCombat : MonoBehaviour
         if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
         {
             IsAttacking = true;
-            animator.SetTrigger("AttackWithRightHands");
+            animator.SetFloat("AttackIndex", 0);
+            animator.SetTrigger("Attack");
         }
         else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
         {
@@ -101,7 +103,8 @@ public class PlayerCombat : MonoBehaviour
         else
         {
             IsAttacking = true;
-            animator.SetTrigger("AttackWithRightWeapon");
+            animator.SetFloat("AttackIndex", 1);
+            animator.SetTrigger("Attack");
         }
     }
 

@@ -26,7 +26,11 @@ public class RTCharacterManager : MonoBehaviour
         Animator anim = clone.GetComponentInChildren<Animator>();
         if (anim != null)
         {
-            anim.Play("Idle");
+            anim.Rebind();        
+            anim.Update(0f);
+
+            anim.SetFloat("Speed", 0f);
+            anim.SetBool("IsAttacking", false);
         }
 
         rtEquipment = clone.GetComponent<EquipmentManager>();
