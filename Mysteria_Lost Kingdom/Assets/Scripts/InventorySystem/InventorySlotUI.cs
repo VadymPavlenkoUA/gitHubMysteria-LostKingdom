@@ -459,6 +459,12 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         HotbarUI.Instance.RefreshHotbar();
     }
 
+    private bool HasShieldEquipped(out InventorySlotUI shieldSlot)
+    {
+        shieldSlot = InventoryUIManager.Instance.equipmentSlots
+            .FirstOrDefault(s => !s.slot.IsEmpty && s.slot.item.categories == ItemCategory.Shield);
+        return shieldSlot != null;
+    }
 
     private void TryEquipItem(ItemInstance inst)
     {

@@ -28,10 +28,12 @@ public class EquipmentManager : MonoBehaviour
     public Transform rightBeltSocket;
     public Transform leftBeltSocket;
     public ArmourMeshes armourMeshes;
-    //public Animator animator;
+    public Animator animator;
 
     internal GameObject currentRightHandItem;
     internal GameObject currentLeftHandItem;
+    public GameObject rightHandHitBox;
+    public GameObject leftHandHitBox;
 
     internal ItemInstance equippedRightItem;
     internal ItemInstance equippedLeftItem;
@@ -243,8 +245,7 @@ public class EquipmentManager : MonoBehaviour
         isRightHandDrawn = true;
         isLeftHandDrawn = true;
 
-        //animator.SetBool("WeaponEquipped", true);
-        //animator.SetInteger("WeaponType", 3); 
+        UpdateWeaponIdle();
 
         if (!isRTCharacter)
         {
@@ -260,8 +261,7 @@ public class EquipmentManager : MonoBehaviour
 
         isRightHandDrawn = true;
 
-        //animator.SetBool("WeaponEquipped", true);
-        //animator.SetInteger("WeaponType", 1);
+        UpdateWeaponIdle();
 
         if (!isRTCharacter)
         {
@@ -277,8 +277,7 @@ public class EquipmentManager : MonoBehaviour
 
         isLeftHandDrawn = true;
 
-        //animator.SetBool("WeaponEquipped", true);
-        //animator.SetInteger("WeaponType", 2);
+        UpdateWeaponIdle();
 
         if (!isRTCharacter)
         {
@@ -291,6 +290,7 @@ public class EquipmentManager : MonoBehaviour
     {
         if (!isRightHandDrawn) return;
         isRightHandDrawn = false;
+        UpdateWeaponIdle();
         if (currentRightHandItem != null) Destroy(currentRightHandItem);
         if (equippedRightItem != null)
         {
@@ -309,6 +309,7 @@ public class EquipmentManager : MonoBehaviour
     {
         if (!isLeftHandDrawn) return;
         isLeftHandDrawn = false;
+        UpdateWeaponIdle();
         if (currentLeftHandItem != null) Destroy(currentLeftHandItem);
         if (equippedLeftItem != null)
         {
@@ -492,16 +493,47 @@ public class EquipmentManager : MonoBehaviour
 
     public void EnableWeaponHitboxes()
     {
+        if (!isRightHandDrawn && !isLeftHandDrawn)
+        {
+            EnableHandsHitBox();
+            return;
+        }
         EnableHitbox(currentRightHandItem);
         EnableHitbox(currentLeftHandItem);
     }
 
     public void DisableWeaponHitboxes()
     {
+        if (!isRightHandDrawn && !isLeftHandDrawn)
+        {
+            DisableHandsHitBox();
+            return;
+        }
         DisableHitbox(currentRightHandItem);
         DisableHitbox(currentLeftHandItem);
     }
 
+    public void EnableHandsHitBox()
+    {
+        rightHandHitBox.SetActive(true);
+        leftHandHitBox.SetActive(true);
+        var hitboxRight = rightHandHitBox.GetComponentInChildren<WeaponHitbox>();
+        var hitBoxLeft = leftHandHitBox.GetComponentInChildren<WeaponHitbox>();
+        if (hitboxRight != null) hitboxRight.EnableHitbox();
+        if (hitBoxLeft != null) hitBoxLeft.EnableHitbox();
+
+    }
+
+    public void DisableHandsHitBox()
+    {
+        rightHandHitBox.SetActive(false);
+        leftHandHitBox.SetActive(false);
+        var hitboxRight = rightHandHitBox.GetComponentInChildren<WeaponHitbox>();
+        var hitBoxLeft = leftHandHitBox.GetComponentInChildren<WeaponHitbox>();
+        if (hitboxRight != null) hitboxRight.DisableHitbox();
+        if (hitBoxLeft != null) hitBoxLeft.DisableHitbox();
+
+    }
     void EnableHitbox(GameObject item)
     {
         if (item == null) return;
@@ -519,4 +551,36 @@ public class EquipmentManager : MonoBehaviour
         if (hitbox != null)
             hitbox.DisableHitbox();
     }
+
+    internal void UpdateWeaponIdle()
+    {
+        if (animator == null) return;
+
+        if (isRightHandDrawn && isLeftHandDrawn && twoHandEquipped)
+        {
+            animator.SetBool("WeaponEquipped", true);
+            animator.SetFloat("WeaponType", 3);
+        }
+        else if (isRightHandDrawn && !isLeftHandDrawn)
+        {
+            animator.SetBool("WeaponEquipped", true);
+            animator.SetFloat("WeaponType", 1);
+        }
+        else if (isLeftHandDrawn && !isRightHandDrawn && equippedLeftItem != null && equippedLeftItem.item.categories != ItemCategory.Shield)
+        {
+            animator.SetBool("WeaponEquipped", true);
+            animator.SetFloat("WeaponType", 2);
+        }
+        else if (isRightHandDrawn && isLeftHandDrawn && equippedLeftItem.item.categories == ItemCategory.Shield)
+        {
+            animator.SetBool("WeaponEquipped", true);
+            animator.SetFloat("WeaponType", 4);
+        }
+        else
+        {
+            animator.SetBool("WeaponEquipped", false);
+            animator.SetFloat("WeaponType", 0);
+        }
+    }
+
 }

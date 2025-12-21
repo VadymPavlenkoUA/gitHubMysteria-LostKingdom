@@ -19,6 +19,8 @@ public class PlayerCombat : MonoBehaviour
 
     private PlayerInputActions inputActions;
     private bool isBlocking = false;
+    private bool useLeftHandIK = false;
+
     public bool IsAttacking { get; private set; }
 
     private void Awake()
@@ -68,6 +70,17 @@ public class PlayerCombat : MonoBehaviour
         EndBlock();
     }
 
+    public void AnimationEnableLeftHandIK()
+    {
+        useLeftHandIK = true;
+    }
+
+    public void AnimationDisableLeftHandIK()
+    {
+        useLeftHandIK = false;
+    }
+
+
     void TryAttack()
     {
         if (IsAttacking) return;
@@ -79,25 +92,27 @@ public class PlayerCombat : MonoBehaviour
             animator.SetFloat("AttackIndex", 0);
             animator.SetTrigger("Attack");
         }
-        else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+        else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield && equipment.isLeftHandDrawn)
         {
             IsAttacking = true;
             //animator.SetTrigger("AttackWithShield");
         }
-        else if (equipment.equippedRightItem != null && equipment.equippedRightItem.item.categories == ItemCategory.Shield)
+        else if (equipment.equippedRightItem != null && equipment.equippedRightItem.item.categories == ItemCategory.Shield && equipment.isRightHandDrawn)
         {
             IsAttacking = true;
             //animator.SetTrigger("AttackWithShieldRight");
         }
         else if (equipment.equippedRightItem != null && equipment.equippedRightItem.item.weaponHandType != WeaponHandType.TwoHand && equipment.equippedRightItem.item.categories == ItemCategory.Weapon && 
-            equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Weapon)
+            equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Weapon && equipment.isRightHandDrawn && equipment.isLeftHandDrawn)
         {
             IsAttacking = true;
             //animator.SetTrigger("AttackWithTwoWeapons");
         }
-        else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
+        else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand && equipment.isRightHandDrawn)
         {
             IsAttacking = true;
+            animator.SetFloat("AttackIndex", 2);
+            animator.SetTrigger("Attack");
             //animator.SetTrigger("AttackTwoHanded");
         }
         else
@@ -108,17 +123,50 @@ public class PlayerCombat : MonoBehaviour
         }
     }
 
+    void OnAnimatorIK(int layerIndex)
+    {
+        if (!useLeftHandIK)
+        {
+            animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0f);
+            animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0f);
+            return;
+        }
+
+        if (equipment.twoHandEquipped &&
+            equipment.currentRightHandItem != null &&
+            equipment.isRightHandDrawn)
+        {
+            Transform leftGrip = equipment.currentRightHandItem.transform.Find("LeftHandGrip");
+            if (leftGrip == null) return;
+
+            animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1f);
+            animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 1f);
+
+            animator.SetIKPosition(AvatarIKGoal.LeftHand, leftGrip.position);
+            animator.SetIKRotation(AvatarIKGoal.LeftHand, leftGrip.rotation);
+        }
+    }
+
+
     public void AnimationHit()
     {
         EnableHitbox();
         DamageWeaponDurability();
     }
 
+    public void AnimationHitWithHands()
+    {
+        EnableHitbox();
+    }
+
     public void AnimationAttackEnd()
     {
         IsAttacking = false;
+    }
+
+    public void AnimationDisableHitBox()
+    {
         DisableHitbox();
-        Debug.Log(IsAttacking);
     }
 
     void DamageWeaponDurability()

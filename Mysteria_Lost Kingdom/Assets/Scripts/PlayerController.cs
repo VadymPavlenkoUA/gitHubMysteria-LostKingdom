@@ -28,7 +28,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Roll")]
     public float rollSpeed = 7f;
-    public float rollDuration = 0.6f;
+    public AnimationCurve rollSpeedCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
     public float rollStaminaCost = 20f;
     public float rollCoolDown = 0.5f;
     public float rollInvulTime = 0.35f; // час "ірвінгі" (без урону)
@@ -42,7 +42,7 @@ public class PlayerController : MonoBehaviour
 
     private bool isSprinting = false;
     private bool isRolling = false;
-    private float rollTimer = 0f;
+    private bool isJumping = false;
     private float rollCoolDownTimer = 0f;
     private Vector3 rollDirection = Vector3.zero;
 
@@ -117,17 +117,31 @@ public class PlayerController : MonoBehaviour
 
         if (isRolling)
         {
-            Vector3 vel = rb.linearVelocity; // !!!
-            Vector3 target = rollDirection * rollSpeed;
-            rb.linearVelocity = new Vector3(target.x, vel.y, target.z);
+            float animNormalizedTime = 0f;
 
-            if (rollDirection.sqrMagnitude > 0.0001f)
+            if (animator != null)
             {
-                Quaternion targetRot = Quaternion.LookRotation(rollDirection);
-                rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, 20f * Time.fixedDeltaTime));
+                AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+                animNormalizedTime = Mathf.Clamp01(state.normalizedTime);
             }
+
+            float speedMultiplier = rollSpeedCurve.Evaluate(animNormalizedTime);
+            Vector3 targetVel = rollDirection * rollSpeed * speedMultiplier;
+
+            rb.linearVelocity = new Vector3(targetVel.x, 0f, targetVel.z);
+
+            if (rollDirection.sqrMagnitude > 0.001f)
+            {
+                Quaternion rot = Quaternion.LookRotation(rollDirection);
+                rb.MoveRotation(
+                    Quaternion.Slerp(rb.rotation, rot, 25f * Time.fixedDeltaTime)
+                );
+            }
+
             return;
         }
+
+
 
         if (isSprinting)
         {
@@ -167,53 +181,49 @@ public class PlayerController : MonoBehaviour
 
     private void StartRoll()
     {
-        isRolling = true;
-        rollTimer = rollDuration;
         rollCoolDownTimer = rollCoolDown;
 
-        //Vector3 horizontalMove = new Vector3(moveInput.x, 0f, moveInput.y);
-        //Vector3 camForward = cameraTransform.forward; camForward.y = 0f; camForward.Normalize();
-        //Vector3 camRight = cameraTransform.right; camRight.y = 0f; camRight.Normalize();
-        //Vector3 moveDirWorld = camForward * moveInput.y + camRight * moveInput.x;
-
         Vector3 camForward = cameraTransform.forward;
-        camForward.y = 0f;
-        camForward.Normalize();
-
         Vector3 camRight = cameraTransform.right;
+
+        camForward.y = 0f;
         camRight.y = 0f;
-        camRight.Normalize();
 
-        Vector3 moveDirWorld = camForward * moveInput.y + camRight * moveInput.x;
+        Vector3 dir = camForward.normalized * moveInput.y +
+                      camRight.normalized * moveInput.x;
 
-        if (moveDirWorld.sqrMagnitude > 0.05f)
-        {
-            rollDirection = moveDirWorld.normalized;
-        }
-        else
-        {
-            rollDirection = camForward;
-        }
+        rollDirection = dir.sqrMagnitude > 0.01f
+            ? dir.normalized
+            : camForward.normalized;
 
-        Quaternion targetRot = Quaternion.LookRotation(rollDirection);
-        rb.MoveRotation(targetRot);
+        rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+        rb.MoveRotation(Quaternion.LookRotation(rollDirection));
 
         if (animator != null)
         {
             animator.SetTrigger("Roll");
-            animator.applyRootMotion = useRootMotionForRoll;
         }
     }
+    public void RollStart()
+    {
+        isRolling = true;
+    }
+    public void RollRootMotion()
+    {
+        animator.applyRootMotion = useRootMotionForRoll;
+    }
 
-    private void EndRoll()
+    public void RollEnd()
     {
         isRolling = false;
         rollDirection = Vector3.zero;
-        if (animator != null)
-        {
-            if (useRootMotionForRoll) animator.applyRootMotion = false;
-        }
+
+        rb.linearVelocity = Vector3.zero;
+
+        if (useRootMotionForRoll)
+            animator.applyRootMotion = false;
     }
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -230,12 +240,11 @@ public class PlayerController : MonoBehaviour
         // JUMP
         if (!combat.IsAttacking && inputActions.Player.Jump.WasPressedThisFrame())
         {
-            if (IsGrounded())
+            if (IsGrounded() && !isJumping)
             {
                 if (stats != null && TryUseStaminaSafe(jumpStaminaCost))
                 {
-                    rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-                    if (animator != null) animator.SetTrigger("Jump");
+                    StartJump();
                 }
             }
         }
@@ -278,14 +287,6 @@ public class PlayerController : MonoBehaviour
         }
 
         if (rollCoolDownTimer > 0f) rollCoolDownTimer -= Time.deltaTime;
-        if (isRolling)
-        {
-            rollTimer -= Time.deltaTime;
-            if (rollTimer <= 0f)
-            {
-                EndRoll();
-            }
-        }
 
         if (isSprinting)
         {
@@ -300,9 +301,35 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if (combat != null && combat.IsAttacking)
+        //if (combat != null && combat.IsAttacking)
+        //{
+        //    Debug.Log("ATTACKING: " + animator.GetCurrentAnimatorStateInfo(0).IsName("Attack"));
+        //}
+    }
+
+    private void StartJump()
+    {
+        isJumping = true;
+
+        if (animator != null)
         {
-            Debug.Log("ATTACKING: " + animator.GetCurrentAnimatorStateInfo(0).IsName("Attack"));
+            animator.SetTrigger("Jump");
+        }
+    }
+
+    public void OnJumpImpulse()
+    {
+        rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+    }
+
+    public void OnLand()
+    {
+        isJumping = false;
+
+        if (animator != null)
+        {
+            animator.ResetTrigger("Jump");
         }
     }
 
