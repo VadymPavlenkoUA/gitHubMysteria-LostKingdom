@@ -37,7 +37,7 @@ ModelImporter:
       firstFrame: 0
       lastFrame: 71
       wrapMode: 0
-      orientationOffsetY: 0
+      orientationOffsetY: 5
       level: 0
       cycleOffset: 0
       loop: 0
@@ -55,8 +55,8 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.24388887
-        functionName: RollRootMotion
+      - time: 0
+        functionName: RollStart
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: 7d4f0bfe55a18f64485fa0c8e87d7488, type: 3}
         floatParameter: 0
@@ -64,13 +64,6 @@ ModelImporter:
         messageOptions: 0
       - time: 0.6483333
         functionName: RollEnd
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: 7d4f0bfe55a18f64485fa0c8e87d7488, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0
-        functionName: RollStart
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: 7d4f0bfe55a18f64485fa0c8e87d7488, type: 3}
         floatParameter: 0

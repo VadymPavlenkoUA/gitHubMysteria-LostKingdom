@@ -207,11 +207,12 @@ public class PlayerController : MonoBehaviour
     public void RollStart()
     {
         isRolling = true;
-    }
-    public void RollRootMotion()
-    {
         animator.applyRootMotion = useRootMotionForRoll;
     }
+    //public void RollRootMotion()
+    //{
+    //    animator.applyRootMotion = useRootMotionForRoll;
+    //}
 
     public void RollEnd()
     {

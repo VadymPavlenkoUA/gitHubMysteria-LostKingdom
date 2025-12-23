@@ -45,4 +45,31 @@ public class HotbarUI : MonoBehaviour
         rightHandSlot.SetItem(EquipmentManager.Instance.equippedRightItem);
         leftHandSlot.SetItem(EquipmentManager.Instance.equippedLeftItem);
     }
+
+    public void ClearActive()
+    {
+        rightHandSlot.SetActive(false);
+        leftHandSlot.SetActive(false);
+        rangeSlot.SetActive(false);
+        throwableSlot.SetActive(false);
+    }
+
+    public void SyncWeaponState(bool rightActive, bool leftActive, bool twoHanded)
+    {
+        ClearActive();
+
+        if (twoHanded)
+        {
+            rightHandSlot.SetActive(true);
+            leftHandSlot.SetActive(true);
+            return;
+        }
+
+        if (rightActive)
+            rightHandSlot.SetActive(true);
+
+        if (leftActive)
+            leftHandSlot.SetActive(true);
+    }
+
 }

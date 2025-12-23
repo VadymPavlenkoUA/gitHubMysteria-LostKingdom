@@ -12,8 +12,13 @@ public class ItemDescriptionUI : MonoBehaviour
         Instance = this;
     }
 
-    public void ShowDescription(string text)
+    public void ShowDescription(string text, ItemInstance item)
     {
+        if (item.item.categories == ItemCategory.Weapon)
+        {
+            descriptionText.text = $"{text}\nÓðîí: {item.currentDamage}\nÌ³öí³ñòü: {item.currentDurability}";
+            return;
+        }
         descriptionText.text = text;
     }
 

@@ -31,15 +31,18 @@ public class DialogueManager : MonoBehaviour
     [HideInInspector]
     internal bool isDialogueOpen;
     [SerializeField] private CinemachineInputAxisController cinemachineInput;
+    private PlayerInputActions inputActions;
 
     private void Awake()
     {
         Instance = this;
+        inputActions = MenuController.Instance.inputActions;
         dialogueUI.SetActive(false);
     }
 
     public void StartDialogue(DialogueData dialogue)
     {
+        if (MenuController.Instance.isGMOpen) MenuController.Instance.OpenGameMenu();
         isDialogueOpen = true;
         currentDialogue = dialogue;
         currentLineIndex = 0;
@@ -48,6 +51,7 @@ public class DialogueManager : MonoBehaviour
         cinemachineInput.enabled = false;
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
+        inputActions.Combat.Disable();
         ShowLine();
     }
 
@@ -327,6 +331,7 @@ public class DialogueManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         isDialogueOpen = false;
+        inputActions.Combat.Enable();
     }
 
     private void FinishCurrentTyping()

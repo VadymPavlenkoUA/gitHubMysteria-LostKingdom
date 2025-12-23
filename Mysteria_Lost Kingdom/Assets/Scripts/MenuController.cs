@@ -13,7 +13,7 @@ public class MenuController : MonoBehaviour
     public static PlayerInputActions Controls;
     internal PlayerInputActions inputActions;
     private bool isMMopen = false;
-    private bool isGMOpen = false;
+    internal bool isGMOpen = false;
     private bool isEduOpen = false;
     public bool inputBlocked = false;
     [SerializeField] private CinemachineInputAxisController cinemachineInput;
@@ -91,6 +91,7 @@ public class MenuController : MonoBehaviour
             Cursor.lockState = CursorLockMode.Confined;
             Cursor.visible = true;
             Time.timeScale = 0f;
+            inputActions.Combat.Disable();
         }
         else
         {
@@ -98,6 +99,7 @@ public class MenuController : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             Time.timeScale = 1f;
+            inputActions.Combat.Enable();
         }
 
         mainMenu.SetActive(state);
@@ -108,6 +110,7 @@ public class MenuController : MonoBehaviour
         isGMOpen = !isGMOpen;
         if (isGMOpen)
         {
+            DialogueManager.Instance.EndDialogue();
             cinemachineInput.enabled = false;
             Cursor.lockState = CursorLockMode.Confined;
             inputActions.Combat.Disable();

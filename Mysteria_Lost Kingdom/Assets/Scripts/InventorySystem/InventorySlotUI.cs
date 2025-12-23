@@ -47,7 +47,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         if (slot != null && !slot.IsEmpty)
         {
-            ItemDescriptionUI.Instance.ShowDescription(slot.item.description);
+            ItemDescriptionUI.Instance.ShowDescription(slot.item.description, slot.instance);
             if (eventData.button == PointerEventData.InputButton.Right)
             {
                 ContextMenuUI.Instance.Show(this, transform.position + (Vector3)offset);
@@ -97,7 +97,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             InventorySlotUI otherSlotUI = eventData.pointerEnter.GetComponentInParent<InventorySlotUI>();
             if (otherSlotUI != null && otherSlotUI != this)
             {
-                ItemDescriptionUI.Instance.ShowDescription(slot.item.description);
+                ItemDescriptionUI.Instance.ShowDescription(slot.item.description, slot.instance);
                 if (otherSlotUI.slotType == SlotType.Equipment)
                 {
                     if ((slot.item.categories & otherSlotUI.allowedCategory) == 0)

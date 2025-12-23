@@ -37,6 +37,11 @@ public class InventorySlot
         instance = new ItemInstance(newItem, newCount);
     }
 
+    //public void SetInstance(ItemInstance inst)
+    //{
+    //    instance = inst;
+    //}
+
     public void Clear()
     {
         instance = null;

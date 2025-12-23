@@ -4,12 +4,14 @@ public class ItemInstance
     public Item item;
     public float currentDurability;
     public int count;
+    public float currentDamage;
 
     public ItemInstance(Item item, int count = 1)
     {
         this.item = item;
         this.count = count;
         currentDurability = item.maxDurability;
+        currentDamage = item.baseDamage;
     }
 
     public bool HasDurability =>

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerCombat : MonoBehaviour
 {
@@ -31,16 +32,16 @@ public class PlayerCombat : MonoBehaviour
     private void OnEnable()
     {
         inputActions.Combat.Enable();
-        inputActions.Combat.RightHandAction.performed += ctx => OnRightAttack();
-        inputActions.Combat.LeftHandAction.performed += ctx => OnBlockStart();
-        inputActions.Combat.LeftHandAction.canceled += ctx => OnBlockEnd();
+        inputActions.Combat.RightHandAction.performed += OnRightAttack;
+        inputActions.Combat.LeftHandAction.performed += OnBlockStart;
+        inputActions.Combat.LeftHandAction.canceled += OnBlockEnd;
     }
 
     private void OnDisable()
     {
-        inputActions.Combat.RightHandAction.performed -= ctx => OnRightAttack();
-        inputActions.Combat.LeftHandAction.performed -= ctx => OnBlockStart();
-        inputActions.Combat.LeftHandAction.canceled -= ctx => OnBlockEnd();
+        inputActions.Combat.RightHandAction.performed -= OnRightAttack;
+        inputActions.Combat.LeftHandAction.performed -= OnBlockStart;
+        inputActions.Combat.LeftHandAction.canceled -= OnBlockEnd;
         inputActions.Combat.Disable();
     }
 
@@ -55,17 +56,17 @@ public class PlayerCombat : MonoBehaviour
         }
     }
 
-    private void OnRightAttack()
+    private void OnRightAttack(InputAction.CallbackContext ctx)
     {
         TryAttack();
     }
 
-    private void OnBlockStart()
+    private void OnBlockStart(InputAction.CallbackContext ctx)
     {
         StartBlock();
     }
 
-    private void OnBlockEnd()
+    private void OnBlockEnd(InputAction.CallbackContext ctx)
     {
         EndBlock();
     }
@@ -92,33 +93,40 @@ public class PlayerCombat : MonoBehaviour
             animator.SetFloat("AttackIndex", 0);
             animator.SetTrigger("Attack");
         }
+        else if (equipment.isRightHandDrawn && !equipment.isLeftHandDrawn)
+        {
+            IsAttacking = true;
+            animator.SetFloat("AttackIndex", 1);
+            animator.SetTrigger("Attack");
+        }
+        else if (equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
+        {
+            IsAttacking = true;
+            animator.SetFloat("AttackIndex", 2);
+            animator.SetTrigger("Attack");
+        }
+        else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand && equipment.isRightHandDrawn)
+        {
+            IsAttacking = true;
+            animator.SetFloat("AttackIndex", 3);
+            animator.SetTrigger("Attack");
+        }
         else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield && equipment.isLeftHandDrawn)
         {
             IsAttacking = true;
-            //animator.SetTrigger("AttackWithShield");
+            animator.SetFloat("AttackIndex", 4);
+            animator.SetTrigger("Attack");
         }
-        else if (equipment.equippedRightItem != null && equipment.equippedRightItem.item.categories == ItemCategory.Shield && equipment.isRightHandDrawn)
-        {
-            IsAttacking = true;
-            //animator.SetTrigger("AttackWithShieldRight");
-        }
-        else if (equipment.equippedRightItem != null && equipment.equippedRightItem.item.weaponHandType != WeaponHandType.TwoHand && equipment.equippedRightItem.item.categories == ItemCategory.Weapon && 
+        else if (equipment.equippedRightItem != null && equipment.equippedRightItem.item.weaponHandType != WeaponHandType.TwoHand && equipment.equippedRightItem.item.categories == ItemCategory.Weapon &&
             equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Weapon && equipment.isRightHandDrawn && equipment.isLeftHandDrawn)
         {
             IsAttacking = true;
             //animator.SetTrigger("AttackWithTwoWeapons");
         }
-        else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand && equipment.isRightHandDrawn)
-        {
-            IsAttacking = true;
-            animator.SetFloat("AttackIndex", 2);
-            animator.SetTrigger("Attack");
-            //animator.SetTrigger("AttackTwoHanded");
-        }
         else
         {
             IsAttacking = true;
-            animator.SetFloat("AttackIndex", 1);
+            animator.SetFloat("AttackIndex", 0);
             animator.SetTrigger("Attack");
         }
     }

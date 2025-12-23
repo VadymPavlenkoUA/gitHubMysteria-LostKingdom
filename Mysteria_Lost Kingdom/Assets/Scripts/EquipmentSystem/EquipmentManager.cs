@@ -235,6 +235,10 @@ public class EquipmentManager : MonoBehaviour
 
         DrawLeftHand();
     }
+    private void SyncHotbar()
+    {
+        HotbarUI.Instance?.SyncWeaponState(isRightHandDrawn, isLeftHandDrawn, twoHandEquipped);
+    }
 
     internal void DrawTwoHand()
     {
@@ -246,7 +250,7 @@ public class EquipmentManager : MonoBehaviour
         isLeftHandDrawn = true;
 
         UpdateWeaponIdle();
-
+        SyncHotbar();
         if (!isRTCharacter)
         {
             playerStats.InvokeCombatChanged();
@@ -262,7 +266,7 @@ public class EquipmentManager : MonoBehaviour
         isRightHandDrawn = true;
 
         UpdateWeaponIdle();
-
+        SyncHotbar();
         if (!isRTCharacter)
         {
             playerStats.InvokeCombatChanged();
@@ -278,7 +282,7 @@ public class EquipmentManager : MonoBehaviour
         isLeftHandDrawn = true;
 
         UpdateWeaponIdle();
-
+        SyncHotbar();
         if (!isRTCharacter)
         {
             playerStats.InvokeCombatChanged();
@@ -291,6 +295,7 @@ public class EquipmentManager : MonoBehaviour
         if (!isRightHandDrawn) return;
         isRightHandDrawn = false;
         UpdateWeaponIdle();
+        SyncHotbar();
         if (currentRightHandItem != null) Destroy(currentRightHandItem);
         if (equippedRightItem != null)
         {
@@ -310,6 +315,7 @@ public class EquipmentManager : MonoBehaviour
         if (!isLeftHandDrawn) return;
         isLeftHandDrawn = false;
         UpdateWeaponIdle();
+        SyncHotbar();
         if (currentLeftHandItem != null) Destroy(currentLeftHandItem);
         if (equippedLeftItem != null)
         {
@@ -329,6 +335,8 @@ public class EquipmentManager : MonoBehaviour
         if (!isRightHandDrawn && !isLeftHandDrawn) return;
         isRightHandDrawn = false;
         isLeftHandDrawn = false;
+        UpdateWeaponIdle();
+        SyncHotbar();
         if (currentRightHandItem != null) Destroy(currentRightHandItem);
         if (currentLeftHandItem != null) Destroy(currentLeftHandItem);
         if (equippedRightItem != null) currentRightHandItem = EquipWeaponInactive(equippedRightItem, backSocket, equippedRightItem.item.inactivePosition, equippedRightItem.item.inactiveRotation);
@@ -484,6 +492,7 @@ public class EquipmentManager : MonoBehaviour
         if (inst == null || !inst.HasDurability) return;
 
         inst.currentDurability -= amount;
+        ItemDescriptionUI.Instance.ShowDescription(inst.item.description, inst);
         if (inst.currentDurability <= 0)
         {
             inst.currentDurability = 0;
