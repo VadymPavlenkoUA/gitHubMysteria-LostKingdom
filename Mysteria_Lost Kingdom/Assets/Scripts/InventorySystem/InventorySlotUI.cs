@@ -194,10 +194,12 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                     slot.Clear();
                     SetSlot(slot);
                 }
+                EquipmentManager.Instance.UpdateWeaponIdle();
                 return;
             }
         }
         SwapSlots(other);
+        EquipmentManager.Instance.UpdateWeaponIdle();
     }
 
     private void SwapSlots(InventorySlotUI other)
@@ -453,7 +455,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             slot.Clear();
             SetSlot(slot);
         }
-
+        eq.UpdateWeaponIdle();
         InventoryUIManager.Instance.RefreshUI();
         InventoryUIManager.Instance.NotifyInventoryChanged();
         HotbarUI.Instance.RefreshHotbar();

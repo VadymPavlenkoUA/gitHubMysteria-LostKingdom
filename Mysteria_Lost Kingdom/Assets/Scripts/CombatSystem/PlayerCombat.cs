@@ -18,6 +18,18 @@ public class PlayerCombat : MonoBehaviour
     [Header("Durability")]
     public float durabilityDamagePerHit = 1.5f;
 
+    [Header("Combo Settings")]
+    public int maxCombo = 3;
+    public float comboResetTime = 0.9f;
+
+    [Header("Combo Buffer")]
+    public float postAttackComboBuffer = 1f;
+
+    private bool comboBufferActive;
+    private float comboBufferTimer;
+
+    private int comboStep = 0;
+
     private PlayerInputActions inputActions;
     private bool isBlocking = false;
     private bool useLeftHandIK = false;
@@ -54,10 +66,27 @@ public class PlayerCombat : MonoBehaviour
                 EndBlock();
             }
         }
+
+        if (comboBufferActive)
+        {
+            comboBufferTimer -= Time.deltaTime;
+            if (comboBufferTimer <= 0f)
+            {
+                comboBufferActive = false;
+                comboStep = 0;
+            }
+        }
     }
 
     private void OnRightAttack(InputAction.CallbackContext ctx)
     {
+        if (!IsAttacking && comboBufferActive)
+        {
+            comboBufferActive = false;
+            TryAttack();
+            return;
+        }
+
         TryAttack();
     }
 
@@ -84,52 +113,48 @@ public class PlayerCombat : MonoBehaviour
 
     void TryAttack()
     {
-        if (IsAttacking) return;
-        if (!playerStats.TryUseStamina(attackStaminaCost)) return;
+        if (IsAttacking)
+        {
+            return;
+        }
 
-        if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
-        {
-            IsAttacking = true;
-            animator.SetFloat("AttackIndex", 0);
-            animator.SetTrigger("Attack");
-        }
-        else if (equipment.isRightHandDrawn && !equipment.isLeftHandDrawn)
-        {
-            IsAttacking = true;
-            animator.SetFloat("AttackIndex", 1);
-            animator.SetTrigger("Attack");
-        }
-        else if (equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
-        {
-            IsAttacking = true;
-            animator.SetFloat("AttackIndex", 2);
-            animator.SetTrigger("Attack");
-        }
-        else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand && equipment.isRightHandDrawn)
-        {
-            IsAttacking = true;
-            animator.SetFloat("AttackIndex", 3);
-            animator.SetTrigger("Attack");
-        }
-        else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield && equipment.isLeftHandDrawn)
-        {
-            IsAttacking = true;
-            animator.SetFloat("AttackIndex", 4);
-            animator.SetTrigger("Attack");
-        }
-        else if (equipment.equippedRightItem != null && equipment.equippedRightItem.item.weaponHandType != WeaponHandType.TwoHand && equipment.equippedRightItem.item.categories == ItemCategory.Weapon &&
-            equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Weapon && equipment.isRightHandDrawn && equipment.isLeftHandDrawn)
-        {
-            IsAttacking = true;
-            //animator.SetTrigger("AttackWithTwoWeapons");
-        }
-        else
-        {
-            IsAttacking = true;
-            animator.SetFloat("AttackIndex", 0);
-            animator.SetTrigger("Attack");
-        }
+        if (!playerStats.TryUseStamina(attackStaminaCost))
+            return;
+
+        IsAttacking = true;
+
+        SetAttackIndexByWeapon();
+
+        animator.SetFloat("ComboStep", Mathf.Clamp(comboStep, 0, maxCombo - 1));
+        animator.SetTrigger("Attack");
+
+        comboStep++;
     }
+
+    void SetAttackIndexByWeapon()
+    {
+        if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
+            animator.SetFloat("AttackIndex", 0);
+
+        else if (equipment.isRightHandDrawn && !equipment.isLeftHandDrawn)
+            animator.SetFloat("AttackIndex", 1);
+
+        else if (equipment.isLeftHandDrawn && !equipment.isRightHandDrawn &&
+                 equipment.equippedLeftItem.item.categories != ItemCategory.Shield)
+            animator.SetFloat("AttackIndex", 2);
+
+        else if (equipment.equippedLeftItem != null &&
+                 equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
+            animator.SetFloat("AttackIndex", 3);
+
+        else if (equipment.equippedLeftItem != null &&
+                 equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+            animator.SetFloat("AttackIndex", 4);
+
+        else
+            animator.SetFloat("AttackIndex", 0);
+    }
+
 
     void OnAnimatorIK(int layerIndex)
     {
@@ -159,7 +184,6 @@ public class PlayerCombat : MonoBehaviour
     public void AnimationHit()
     {
         EnableHitbox();
-        DamageWeaponDurability();
     }
 
     public void AnimationHitWithHands()
@@ -170,6 +194,16 @@ public class PlayerCombat : MonoBehaviour
     public void AnimationAttackEnd()
     {
         IsAttacking = false;
+
+        if (comboStep >= maxCombo)
+        {
+            comboStep = 0;
+            comboBufferActive = false;
+            return;
+        }
+
+        comboBufferActive = true;
+        comboBufferTimer = postAttackComboBuffer;
     }
 
     public void AnimationDisableHitBox()
@@ -234,5 +268,4 @@ public class PlayerCombat : MonoBehaviour
     {
         equipment.DisableWeaponHitboxes();
     }
-
 }

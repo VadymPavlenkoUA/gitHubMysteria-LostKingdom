@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: ed7b320baec19d34c9ba48f9e77c507a
+guid: f477f9f72ec1e174fab51e5432d32a9f
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -29,71 +29,7 @@ ModelImporter:
     animationWrapMode: 0
     extraExposedTransformPaths: []
     extraUserProperties: []
-    clipAnimations:
-    - serializedVersion: 16
-      name: AttackWithTwoHandedAxe
-      takeName: mixamo.com
-      internalID: -203655887218126122
-      firstFrame: 0
-      lastFrame: 156
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 0
-      loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
-      loopBlendPositionXZ: 1
-      keepOriginalOrientation: 1
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events:
-      - time: 0
-        functionName: AnimationEnableLeftHandIK
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.2733872
-        functionName: AnimationHit
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.39609277
-        functionName: AnimationDisableHitBox
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.59416485
-        functionName: AnimationAttackEnd
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.78799653
-        functionName: AnimationDisableLeftHandIK
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
+    clipAnimations: []
     isReadable: 0
   meshes:
     lODScreenPercentages: []

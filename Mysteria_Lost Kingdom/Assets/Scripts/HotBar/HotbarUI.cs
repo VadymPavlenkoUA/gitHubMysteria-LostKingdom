@@ -58,7 +58,7 @@ public class HotbarUI : MonoBehaviour
     {
         ClearActive();
 
-        if (twoHanded)
+        if (rightActive && leftActive && twoHanded)
         {
             rightHandSlot.SetActive(true);
             leftHandSlot.SetActive(true);

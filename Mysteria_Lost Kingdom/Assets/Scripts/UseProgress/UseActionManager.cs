@@ -8,6 +8,8 @@ public class UseActionManager : MonoBehaviour
 {
     public static UseActionManager Instance;
 
+    public PlayerCombat combat;
+
     [Header("UI Elements")]
     public GameObject panel;       
     public Slider slider;
@@ -28,7 +30,7 @@ public class UseActionManager : MonoBehaviour
 
     public void StartUse(float duration, Action onComplete, Action onCancel = null)
     {
-        if (isUsing) return;
+        if (isUsing || combat.IsAttacking) return;
 
         this.duration = duration;
         this.onComplete = onComplete;
@@ -53,6 +55,11 @@ public class UseActionManager : MonoBehaviour
     private void Update()
     {
         if (!isUsing) return;
+        if (combat.IsAttacking)
+        {
+            CancelUse();
+            return;
+        }
 
         timer += Time.deltaTime;
         float progress = timer / duration;

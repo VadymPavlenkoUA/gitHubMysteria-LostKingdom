@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 15a6d032fb7bbb3429db88338c9693d6
+guid: fbdbe0128edd076428690111f205a352
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -29,57 +29,7 @@ ModelImporter:
     animationWrapMode: 0
     extraExposedTransformPaths: []
     extraUserProperties: []
-    clipAnimations:
-    - serializedVersion: 16
-      name: AttackWithLeftAxe
-      takeName: mixamo.com
-      internalID: -203655887218126122
-      firstFrame: 0
-      lastFrame: 68
-      wrapMode: 0
-      orientationOffsetY: 20
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 0
-      loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
-      loopBlendPositionXZ: 1
-      keepOriginalOrientation: 1
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 1
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events:
-      - time: 0.2882031
-        functionName: AnimationHit
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.82777506
-        functionName: AnimationAttackEnd
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.66849184
-        functionName: AnimationDisableHitBox
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
+    clipAnimations: []
     isReadable: 0
   meshes:
     lODScreenPercentages: []
