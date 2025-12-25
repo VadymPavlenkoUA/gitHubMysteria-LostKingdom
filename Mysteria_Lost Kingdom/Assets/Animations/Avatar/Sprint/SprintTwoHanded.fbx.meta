@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 6eec21e4dc9e6464783307565877e794
+guid: 26ea147e327a01a4f8dc9bba338bb1fc
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -31,13 +31,13 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: IdleWithRightWeaponAndLeftShield
+      name: SprintTwoHanded
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 98
+      lastFrame: 18
       wrapMode: 0
-      orientationOffsetY: 30
+      orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
@@ -46,7 +46,7 @@ ModelImporter:
       loopBlend: 0
       loopBlendOrientation: 1
       loopBlendPositionY: 1
-      loopBlendPositionXZ: 1
+      loopBlendPositionXZ: 0
       keepOriginalOrientation: 1
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0

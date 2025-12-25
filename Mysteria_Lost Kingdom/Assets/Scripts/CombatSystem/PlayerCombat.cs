@@ -8,13 +8,6 @@ public class PlayerCombat : MonoBehaviour
     public EquipmentManager equipment;
     public Animator animator;
 
-    [Header("Attack Settings")]
-    public float attackStaminaCost = 15f;
-
-    [Header("Block Settings")]
-    public float blockDefenseMultiplier = 2f;
-    public float blockStaminaCostPerSecond = 5f;
-
     [Header("Durability")]
     public float durabilityDamagePerHit = 1.5f;
 
@@ -25,14 +18,20 @@ public class PlayerCombat : MonoBehaviour
     [Header("Combo Buffer")]
     public float postAttackComboBuffer = 1f;
 
+    [SerializeField] private float ikBlendSpeed = 8f;
+    private float leftHandIKWeight;
+
     private bool comboBufferActive;
     private float comboBufferTimer;
 
     private int comboStep = 0;
 
     private PlayerInputActions inputActions;
-    private bool isBlocking = false;
+    internal bool isBlocking = false;
     private bool useLeftHandIK = false;
+
+    public event Action OnBlockStarted;
+    public event Action OnBlockEnded;
 
     public bool IsAttacking { get; private set; }
 
@@ -61,7 +60,7 @@ public class PlayerCombat : MonoBehaviour
     {
         if (isBlocking)
         {
-            if (!playerStats.TryUseStamina(blockStaminaCostPerSecond * Time.deltaTime))
+            if (!playerStats.TryUseStamina(GetBlockStaminaCost() * Time.deltaTime))
             {
                 EndBlock();
             }
@@ -118,8 +117,10 @@ public class PlayerCombat : MonoBehaviour
             return;
         }
 
-        if (!playerStats.TryUseStamina(attackStaminaCost))
+        if (!playerStats.TryUseStamina(GetAttackStaminaCost()))
             return;
+
+        if (isBlocking) EndBlock();
 
         IsAttacking = true;
 
@@ -127,8 +128,6 @@ public class PlayerCombat : MonoBehaviour
 
         animator.SetFloat("ComboStep", Mathf.Clamp(comboStep, 0, maxCombo - 1));
         animator.SetTrigger("Attack");
-
-        comboStep++;
     }
 
     void SetAttackIndexByWeapon()
@@ -155,30 +154,107 @@ public class PlayerCombat : MonoBehaviour
             animator.SetFloat("AttackIndex", 0);
     }
 
+    float GetAttackStaminaCost()
+    {
+        if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
+            return 5;
+
+        else if (equipment.isRightHandDrawn && !equipment.isLeftHandDrawn)
+            return equipment.equippedRightItem.item.staminaCostPerAttack;
+
+        else if (equipment.isLeftHandDrawn && !equipment.isRightHandDrawn &&
+                 equipment.equippedLeftItem.item.categories != ItemCategory.Shield)
+            return equipment.equippedLeftItem.item.staminaCostPerAttack;
+
+        else if (equipment.equippedLeftItem != null &&
+                 equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
+            return equipment.equippedRightItem.item.staminaCostPerAttack;
+
+        else if (equipment.equippedLeftItem != null &&
+                 equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+            return equipment.equippedRightItem.item.staminaCostPerAttack;
+
+        else
+            return 5f;
+    }
+
+    float GetBlockStaminaCost()
+    {
+        if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
+            return 1;
+
+        else if (equipment.isRightHandDrawn && !equipment.isLeftHandDrawn)
+            return equipment.equippedRightItem.item.staminaShieldCostPerSecond;
+
+        else if (equipment.isLeftHandDrawn && !equipment.isRightHandDrawn &&
+                 equipment.equippedLeftItem.item.categories != ItemCategory.Shield)
+            return equipment.equippedLeftItem.item.staminaShieldCostPerSecond;
+
+        else if (equipment.equippedLeftItem != null &&
+                 equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
+            return equipment.equippedRightItem.item.staminaShieldCostPerSecond;
+
+        else if (equipment.equippedLeftItem != null &&
+                 equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+            return equipment.equippedRightItem.item.staminaShieldCostPerSecond;
+
+        else
+            return 1f;
+    }
+
+    float GetBlockMultiplier()
+    {
+        if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
+            return 1.1f;
+
+        else if (equipment.isRightHandDrawn && !equipment.isLeftHandDrawn)
+            return equipment.equippedRightItem.item.baseDefenseMultiplier;
+
+        else if (equipment.isLeftHandDrawn && !equipment.isRightHandDrawn &&
+                 equipment.equippedLeftItem.item.categories != ItemCategory.Shield)
+            return equipment.equippedLeftItem.item.baseDefenseMultiplier;
+
+        else if (equipment.equippedLeftItem != null &&
+                 equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
+            return equipment.equippedRightItem.item.baseDefenseMultiplier;
+
+        else if (equipment.equippedLeftItem != null &&
+                 equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+            return equipment.equippedRightItem.item.baseDefenseMultiplier;
+
+        else
+            return 1.1f;
+    }
+
 
     void OnAnimatorIK(int layerIndex)
     {
-        if (!useLeftHandIK)
-        {
-            animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0f);
-            animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0f);
-            return;
-        }
-
-        if (equipment.twoHandEquipped &&
+        bool shouldUseIK =
+            useLeftHandIK &&
+            equipment.twoHandEquipped &&
             equipment.currentRightHandItem != null &&
-            equipment.isRightHandDrawn)
-        {
-            Transform leftGrip = equipment.currentRightHandItem.transform.Find("LeftHandGrip");
-            if (leftGrip == null) return;
+            equipment.isRightHandDrawn;
 
-            animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1f);
-            animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 1f);
+        float targetWeight = shouldUseIK ? 1f : 0f;
+        leftHandIKWeight = Mathf.Lerp(
+            leftHandIKWeight,
+            targetWeight,
+            Time.deltaTime * ikBlendSpeed
+        );
 
-            animator.SetIKPosition(AvatarIKGoal.LeftHand, leftGrip.position);
-            animator.SetIKRotation(AvatarIKGoal.LeftHand, leftGrip.rotation);
-        }
+        animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, leftHandIKWeight);
+        animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, leftHandIKWeight);
+
+        if (!shouldUseIK || leftHandIKWeight < 0.01f)
+            return;
+
+        Transform leftGrip = equipment.currentRightHandItem.transform.Find("LeftHandGrip");
+        if (leftGrip == null) return;
+
+        animator.SetIKPosition(AvatarIKGoal.LeftHand, leftGrip.position);
+        animator.SetIKRotation(AvatarIKGoal.LeftHand, leftGrip.rotation);
     }
+
 
 
     public void AnimationHit()
@@ -194,6 +270,13 @@ public class PlayerCombat : MonoBehaviour
     public void AnimationAttackEnd()
     {
         IsAttacking = false;
+
+        if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
+        {
+            equipment.ForceCombatIdle(3f);
+        }
+
+        comboStep++;
 
         if (comboStep >= maxCombo)
         {
@@ -236,18 +319,51 @@ public class PlayerCombat : MonoBehaviour
         }
     }
 
-    void StartBlock()
+    internal void StartBlock()
     {
+        if (isBlocking)
+            return;
+
+        if (IsAttacking)
+            return;
+
+        if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn) return;
+        if (equipment.equippedRightItem == null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield) return;
+
+        if (!playerStats.TryUseStamina(1f))
+            return;
+
         isBlocking = true;
-        //animator.SetBool("Block", true);
-        playerStats.blockMultiplier = blockDefenseMultiplier; 
+        animator.ResetTrigger("BlockExit");
+        animator.SetTrigger("BlockEnter");
+        animator.SetBool("IsBlocking", true);
+
+        playerStats.blockMultiplier = GetBlockMultiplier();
+
+        OnBlockStarted?.Invoke();
     }
 
-    void EndBlock()
+    internal void EndBlock()
     {
+        if (!isBlocking) return;
+
         isBlocking = false;
-        //animator.SetBool("Block", false);
+        animator.SetBool("IsBlocking", false);
+        animator.SetTrigger("BlockExit");
+
         playerStats.blockMultiplier = 1f;
+
+        OnBlockEnded?.Invoke();
+    }
+
+    public void OnBlockedHit(float staminaDamage)
+    {
+        playerStats.UseStamina(staminaDamage);
+
+        if (playerStats.currentStamina <= 0)
+        {
+            EndBlock();
+        }
     }
 
     public void OnWeaponHit(EnemyStats enemy)

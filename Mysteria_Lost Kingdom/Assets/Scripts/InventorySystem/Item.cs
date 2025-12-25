@@ -48,7 +48,10 @@ public class Item : ScriptableObject
 
     [Header("Combat Stats")]
     public float baseDamage = 0f;       // ÿךשמ צו חבנמÿ
+    public float staminaCostPerAttack = 5f;
     public float baseArmor = 0f;        // ÿךשמ צו בנמםÿ
+    public float baseDefenseMultiplier = 10f;     // ÿךשמ צו שטע
+    public float staminaShieldCostPerSecond = 2f;
 
     [Header("Durability")]
     public float maxDurability = 100f;

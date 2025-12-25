@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 6eec21e4dc9e6464783307565877e794
+guid: a3ebb2fa97704374886ba56db58c5ea4
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -31,13 +31,13 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: IdleWithRightWeaponAndLeftShield
+      name: UniversalIdle
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 98
+      lastFrame: 55
       wrapMode: 0
-      orientationOffsetY: 30
+      orientationOffsetY: 20
       level: 0
       cycleOffset: 0
       loop: 0

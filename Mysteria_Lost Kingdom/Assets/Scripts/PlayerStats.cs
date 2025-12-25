@@ -184,7 +184,8 @@ public class PlayerStats : MonoBehaviour
 
     public void TakeDamage(float amount)
     {
-        currentHealth -= amount;
+        float finalDamage = amount / blockMultiplier;
+        currentHealth -= finalDamage;
         if (currentHealth <= 0)
         {
             currentHealth = 0;

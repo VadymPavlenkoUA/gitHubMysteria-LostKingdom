@@ -4,6 +4,7 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+using UnityEngine.Windows;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
@@ -65,6 +66,8 @@ public class PlayerController : MonoBehaviour
 
         inputActions.Player.FreeLook.performed += ctx => isFreeLook = true;
         inputActions.Player.FreeLook.canceled += ctx => isFreeLook = false;
+
+        combat.OnBlockStarted += StopMovement;
     }
 
     private void OnDisable()
@@ -75,19 +78,29 @@ public class PlayerController : MonoBehaviour
         inputActions.Player.FreeLook.performed -= ctx => isFreeLook = true;
         inputActions.Player.FreeLook.canceled -= ctx => isFreeLook = false;
 
+        combat.OnBlockStarted -= StopMovement;
+
         inputActions?.Player.Disable();
     }
 
 
     private void OnMove(InputAction.CallbackContext ctx)
     {
-        //if (combat != null && combat.IsAttacking)
-        //{
-        //    moveInput = Vector2.zero;
-        //    return;
-        //}
+        Vector2 input = ctx.ReadValue<Vector2>();
 
-        moveInput = ctx.ReadValue<Vector2>();
+        if (combat != null && combat.isBlocking && input.sqrMagnitude > 0.01f)
+        {
+            combat.EndBlock();
+        }
+
+        moveInput = input;
+    }
+
+    void StopMovement()
+    {
+        moveInput = Vector2.zero;
+        rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+        animator.SetFloat("Speed", 0f);
     }
 
     private void OnMoveCanceled(InputAction.CallbackContext ctx)
@@ -245,6 +258,7 @@ public class PlayerController : MonoBehaviour
             {
                 if (stats != null && TryUseStaminaSafe(jumpStaminaCost))
                 {
+                    if (combat.isBlocking) combat.EndBlock();
                     StartJump();
                 }
             }
@@ -259,6 +273,7 @@ public class PlayerController : MonoBehaviour
                 {
                     if (TryUseStaminaSafe(rollStaminaCost))
                     {
+                        if (combat.isBlocking) combat.EndBlock();
                         StartRoll();
                     }
                 }
@@ -269,6 +284,7 @@ public class PlayerController : MonoBehaviour
         bool sprintPressed = inputActions.Player.Sprint.IsPressed();
         if (!combat.IsAttacking && !isRolling && sprintPressed && moveInput.sqrMagnitude > 0.01f && stats != null && stats.currentStamina > 0f)
         {
+            if (combat.isBlocking) combat.EndBlock();
             isSprinting = true;
         }
         else
@@ -283,6 +299,11 @@ public class PlayerController : MonoBehaviour
 
             // Плавне згладжування від поточного значення Speed до targetSpeed
             float speedValue = Mathf.Lerp(animator.GetFloat("Speed"), targetSpeed, 5f * Time.deltaTime);
+
+            if (combat != null && combat.equipment != null && !combat.IsAttacking && speedValue > 0.15f && !combat.equipment.isLeftHandDrawn && !combat.equipment.isRightHandDrawn)
+            {
+                combat.equipment.CancelForceCombatIdle();
+            }
 
             animator.SetFloat("Speed", speedValue);
         }

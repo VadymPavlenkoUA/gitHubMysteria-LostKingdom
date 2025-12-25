@@ -76,15 +76,15 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.59416485
-        functionName: AnimationAttackEnd
+      - time: 0.7877193
+        functionName: AnimationDisableLeftHandIK
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.78947365
-        functionName: AnimationDisableLeftHandIK
+      - time: 0.7889017
+        functionName: AnimationAttackEnd
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
         floatParameter: 0

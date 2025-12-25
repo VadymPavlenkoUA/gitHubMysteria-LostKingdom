@@ -20,6 +20,7 @@ public class EquipmentManager : MonoBehaviour
     public static EquipmentManager Instance;
 
     public PlayerStats playerStats;
+    public PlayerCombat combat;
 
     [Header("Слоти для екіпіювання")]
     public Transform rightHand;
@@ -48,6 +49,9 @@ public class EquipmentManager : MonoBehaviour
     public bool isRightHandDrawn;
     internal bool isBowDrawn;
 
+    private bool forceCombatIdle;
+    private float forceCombatIdleTimer;
+
     public bool isRTCharacter = false;
     internal bool twoHandEquipped = false;
 
@@ -64,6 +68,16 @@ public class EquipmentManager : MonoBehaviour
 
     private void Update()
     {
+        if (forceCombatIdle)
+        {
+            forceCombatIdleTimer -= Time.deltaTime;
+            if (forceCombatIdleTimer <= 0f)
+            {
+                forceCombatIdle = false;
+                UpdateWeaponIdle();
+            }
+        }
+
         if (inputActions != null && !isRTCharacter)
         {
             if (inputActions.HotBar.RightHand.WasPressedThisFrame())
@@ -564,6 +578,13 @@ public class EquipmentManager : MonoBehaviour
     internal void UpdateWeaponIdle()
     {
         if (animator == null) return;
+        if (combat.isBlocking) combat.EndBlock();
+        if (forceCombatIdle)
+        {
+            animator.SetBool("WeaponEquipped", true);
+            animator.SetFloat("WeaponType", 5);
+            return;
+        }
 
         if (isRightHandDrawn && isLeftHandDrawn && twoHandEquipped)
         {
@@ -592,4 +613,17 @@ public class EquipmentManager : MonoBehaviour
         }
     }
 
+    public void ForceCombatIdle(float duration)
+    {
+        forceCombatIdle = true;
+        forceCombatIdleTimer = duration;
+        UpdateWeaponIdle();
+    }
+
+    public void CancelForceCombatIdle()
+    {
+        forceCombatIdle = false;
+        forceCombatIdleTimer = 0f;
+        UpdateWeaponIdle();
+    }
 }

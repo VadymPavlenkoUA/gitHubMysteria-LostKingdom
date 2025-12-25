@@ -16,7 +16,13 @@ public class ItemDescriptionUI : MonoBehaviour
     {
         if (item.item.categories == ItemCategory.Weapon)
         {
-            descriptionText.text = $"{text}\nУрон: {item.currentDamage}\nМіцність: {item.currentDurability}";
+            descriptionText.text =
+                 $"<b><size=130%><color=#d15508>{item.item.itemName}</color></size></b>\n\n" +
+                 $"{text}\n\n" +
+                 $"<color=#ff4c4c>Урон:</color> {item.currentDamage} | " +
+                 $"<color=#4cff4c>Витривалість при атаці:</color> -{item.item.staminaCostPerAttack}\n" +
+                 $"<color=#cfcfcf>Міцність:</color> {item.currentDurability} | " +
+                 $"<color=#4ca6ff>Захист при блоці:</color> x{item.item.baseDefenseMultiplier}";
             return;
         }
         descriptionText.text = text;
