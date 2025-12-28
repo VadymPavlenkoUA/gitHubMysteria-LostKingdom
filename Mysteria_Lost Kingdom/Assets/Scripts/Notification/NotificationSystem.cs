@@ -52,7 +52,7 @@ public class NotificationSystem : MonoBehaviour
     {
         for (int i = 0; i < activeNotifications.Count; i++)
         {
-            float alpha = 1f - (i * 0.3f); // нові = 1, старіші = 0.7, ще старіші = 0.4
+            float alpha = 1f - (i * 0.2f); // нові = 1, старіші = 0.7, ще старіші = 0.4
             activeNotifications[i].SetAlpha(alpha);
         }
     }

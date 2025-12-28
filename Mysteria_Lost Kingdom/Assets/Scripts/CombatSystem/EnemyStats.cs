@@ -9,10 +9,25 @@ public class EnemyStats : MonoBehaviour
 
     private float currentHealth;
     private bool isDead = false;
+    public GameObject healthBarPrefab;
+    public GameObject barPosition;
+    public string enemyName;
+    private EnemyHealthBar healthBar;
+
+    public float CurrentHealthNormalized => currentHealth / maxHealth;
 
     private void Awake()
     {
         currentHealth = maxHealth;
+        GameObject barGO = Instantiate(
+            healthBarPrefab,
+            barPosition.transform.position,
+            Quaternion.identity,
+            barPosition.transform
+        );
+        healthBar = barGO.GetComponent<EnemyHealthBar>();
+        healthBar.Init(this, barPosition.transform);
+        healthBar.UpdateHealth(CurrentHealthNormalized);
     }
 
     public void TakeDamage(float amount)
@@ -23,6 +38,8 @@ public class EnemyStats : MonoBehaviour
         Debug.Log($"Манекен отримав {amount} урону");
 
         animator.SetTrigger("Hit");
+
+        if (healthBar != null) healthBar.UpdateHealth(CurrentHealthNormalized);
 
         if (currentHealth <= 0)
         {
@@ -36,6 +53,7 @@ public class EnemyStats : MonoBehaviour
         currentHealth = 0;
 
         animator.SetTrigger("Die");
+        if (healthBar != null) healthBar.OnDeath();
 
         Debug.Log("Манекен знищений");
     }

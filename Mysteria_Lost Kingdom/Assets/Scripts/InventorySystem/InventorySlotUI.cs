@@ -25,6 +25,8 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     internal InventorySlot slot;
     private GameObject draggingIcon;
 
+    private static RectTransform cachedInventoryRoot;
+
     public void SetSlot(InventorySlot slot)
     {
         this.slot = slot;
@@ -85,16 +87,45 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         {
             draggingIcon.transform.position = eventData.position;
         }
+
+        bool overInventory =
+        eventData.pointerEnter != null &&
+        IsPointerInsideInventory(eventData.pointerEnter);
+
+        Image img = draggingIcon.GetComponent<Image>();
+        img.color = overInventory ? new Color(1f, 1f, 1f, 0.7f) : new Color(1f, 0.3f, 0.3f, 0.8f); 
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        //if (UseActionManager.Instance.isUsing) return;
-        if (draggingIcon != null) Destroy(draggingIcon);
+        CleanupDrag();
+
         if (slot == null || slot.IsEmpty) return;
+
+        // 1️⃣ Якщо взагалі ні на що не кинули — ДРОП
+        if (eventData.pointerEnter == null)
+        {
+            DropItem();
+            return;
+        }
+
+        // 2️⃣ Якщо кинули НЕ в межах інвентарю — ДРОП
+        if (!IsPointerInsideInventory(eventData.pointerEnter))
+        {
+            DropItem();
+            return;
+        }
+
+        // 3️⃣ Інакше — пробуємо знайти слот
+        InventorySlotUI otherSlotUI =
+            eventData.pointerEnter.GetComponentInParent<InventorySlotUI>();
+
+        if (otherSlotUI == null || otherSlotUI == this)
+            return;
+
         if (eventData.pointerEnter != null)
         {
-            InventorySlotUI otherSlotUI = eventData.pointerEnter.GetComponentInParent<InventorySlotUI>();
+            otherSlotUI = eventData.pointerEnter.GetComponentInParent<InventorySlotUI>();
             if (otherSlotUI != null && otherSlotUI != this)
             {
                 ItemDescriptionUI.Instance.ShowDescription(slot.item.description, slot.instance);
@@ -139,6 +170,52 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             }
         }
     }
+
+    private void OnDisable()
+    {
+        CleanupDrag();
+    }
+
+    private void OnDestroy()
+    {
+        CleanupDrag();
+    }
+
+    private void CleanupDrag()
+    {
+        if (draggingIcon != null)
+        {
+            Destroy(draggingIcon);
+            draggingIcon = null;
+        }
+    }
+
+    private bool IsPointerInsideInventory(GameObject pointerEnter)
+    {
+        RectTransform root = GetInventoryRoot();
+        if (root == null) return false;
+
+        return pointerEnter.transform.IsChildOf(root);
+    }
+
+
+    private RectTransform GetInventoryRoot()
+    {
+        if (cachedInventoryRoot != null)
+            return cachedInventoryRoot;
+
+        GameObject go = GameObject.FindGameObjectWithTag("InventoryRoot");
+        if (go == null)
+        {
+            Debug.LogError("InventoryRoot with tag not found!");
+            return null;
+        }
+
+        cachedInventoryRoot = go.GetComponent<RectTransform>();
+        return cachedInventoryRoot;
+    }
+
+
 
     private void TryStartEquipTimer(InventorySlotUI a, InventorySlotUI b)
     {

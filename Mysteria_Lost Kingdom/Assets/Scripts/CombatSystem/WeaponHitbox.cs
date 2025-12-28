@@ -28,6 +28,7 @@ public class WeaponHitbox : MonoBehaviour
     public void DisableHitbox()
     {
         hitboxCollider.enabled = false;
+        hitEnemies.Clear();
     }
 
     private void OnTriggerEnter(Collider other)
@@ -43,5 +44,14 @@ public class WeaponHitbox : MonoBehaviour
         hitEnemies.Add(enemy);
 
         combat.OnWeaponHit(enemy);
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (!other.CompareTag("Enemy")) return;
+
+        var enemy = other.GetComponent<EnemyStats>();
+        if (enemy == null) return;
+        hitEnemies.Remove(enemy);
     }
 }

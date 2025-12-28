@@ -80,6 +80,9 @@ public class Item : ScriptableObject
     public float satietyRestore = 0f;
     public float healthRestore = 0f;
 
+    [Header("Attack Animation")]
+    public float attackSpeedMultiplier = 1f;
+
     [TextArea(2, 5)]
     public string description;
 }

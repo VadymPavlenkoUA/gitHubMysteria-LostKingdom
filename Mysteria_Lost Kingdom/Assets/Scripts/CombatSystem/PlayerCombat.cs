@@ -120,6 +120,14 @@ public class PlayerCombat : MonoBehaviour
         if (!playerStats.TryUseStamina(GetAttackStaminaCost()))
             return;
 
+        ItemInstance weapon = GetActiveWeaponItem();
+
+        float attackSpeed = weapon != null
+        ? weapon.item.attackSpeedMultiplier
+        : 1f;
+
+        animator.SetFloat("AttackSpeed", attackSpeed);
+
         if (isBlocking) EndBlock();
 
         IsAttacking = true;
@@ -149,6 +157,9 @@ public class PlayerCombat : MonoBehaviour
         else if (equipment.equippedLeftItem != null &&
                  equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
             animator.SetFloat("AttackIndex", 4);
+        else if (equipment.isRightHandDrawn && equipment.isLeftHandDrawn && equipment.equippedLeftItem.item.categories != ItemCategory.Shield &&
+            equipment.equippedLeftItem.item.weaponHandType != WeaponHandType.TwoHand)
+            animator.SetFloat("AttackIndex", 5);
 
         else
             animator.SetFloat("AttackIndex", 0);
@@ -224,6 +235,26 @@ public class PlayerCombat : MonoBehaviour
 
         else
             return 1.1f;
+    }
+
+    ItemInstance GetActiveWeaponItem()
+    {
+        if (equipment.isRightHandDrawn && !equipment.isLeftHandDrawn)
+            return equipment.equippedRightItem;
+
+        else if (equipment.isLeftHandDrawn && !equipment.isRightHandDrawn &&
+                 equipment.equippedLeftItem.item.categories != ItemCategory.Shield)
+            return equipment.equippedLeftItem;
+
+        else if (equipment.equippedLeftItem != null &&
+                 equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
+            return equipment.equippedRightItem;
+
+        else if (equipment.equippedLeftItem != null &&
+                 equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+            return equipment.equippedRightItem;
+
+        return null;
     }
 
 
@@ -349,6 +380,7 @@ public class PlayerCombat : MonoBehaviour
 
         isBlocking = false;
         animator.SetBool("IsBlocking", false);
+        animator.ResetTrigger("BlockEnter");
         animator.SetTrigger("BlockExit");
 
         playerStats.blockMultiplier = 1f;

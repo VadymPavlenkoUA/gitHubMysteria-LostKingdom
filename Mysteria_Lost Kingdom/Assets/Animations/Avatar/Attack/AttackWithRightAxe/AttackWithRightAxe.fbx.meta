@@ -62,7 +62,7 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.66849184
+      - time: 0.50182515
         functionName: AnimationDisableHitBox
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
