@@ -18,13 +18,5 @@ public class ItemInstance
         currentArmor = item.baseArmor;
     }
 
-    public bool HasDurability =>
-        (item.categories & ItemCategory.Weapon) != 0 ||
-        (item.categories & ItemCategory.ArmourHead) != 0 ||
-        (item.categories & ItemCategory.ArmourChest) != 0 ||
-        (item.categories & ItemCategory.ArmourLegs) != 0 ||
-        (item.categories & ItemCategory.ArmourBoots) != 0 ||
-        (item.categories & ItemCategory.ArmourGloves) != 0 ||
-        (item.categories & ItemCategory.ArmourBelt) != 0 ||
-        (item.categories & ItemCategory.Shield) != 0;
+    public bool HasDurability => item.isUnique;
 }

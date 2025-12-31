@@ -41,6 +41,8 @@ public class Item : ScriptableObject
     public GameObject itemPrefab;
     public GameObject itemPrefabEquip;
 
+    public bool isUnique = false;
+
     public int meshIndex = -1;
 
     [Header("Use Settings")]

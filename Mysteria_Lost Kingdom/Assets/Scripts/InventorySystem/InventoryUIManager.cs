@@ -71,6 +71,8 @@ public class InventoryUIManager : MonoBehaviour
         }
 
         RefreshWeightEquipText();
+
+        //if (ItemDescriptionUI.Instance != null) ItemDescriptionUI.Instance.ClearDescription();
     }
 
     public void NotifyInventoryChanged()

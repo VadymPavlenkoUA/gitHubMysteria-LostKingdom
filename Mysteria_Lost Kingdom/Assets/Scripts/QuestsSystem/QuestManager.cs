@@ -111,13 +111,24 @@ public class QuestManager : MonoBehaviour
 
             if (reward.items != null && reward.items.Count > 0)
             {
+                bool added = false;
                 foreach (var it in reward.items)
                 {
-                    bool added = playerInventory.AddItem(it.item, it.amount);
-                    if (!added)
+                    if (it.item.isUnique)
                     {
-                        Debug.LogWarning($"Не вдалося додати до інвентаря предмет: {it.item.itemName}.");
-                        // реалізувати fallback (падіння предмета на землю)
+                        for (int i = 0; i < it.amount; i++)
+                        {
+                            added = playerInventory.AddInstance(new ItemInstance(it.item));
+                        }
+                    }
+                    else
+                    {
+                        added = playerInventory.AddItem(it.item, it.amount);
+                        if (!added)
+                        {
+                            Debug.LogWarning($"Не вдалося додати до інвентаря предмет: {it.item.itemName}.");
+                            // реалізувати fallback (падіння предмета на землю)
+                        }
                     }
                 }
                 InventoryUIManager.Instance.RefreshUI();

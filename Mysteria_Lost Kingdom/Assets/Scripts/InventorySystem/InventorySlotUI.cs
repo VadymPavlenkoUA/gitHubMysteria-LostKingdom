@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using NUnit.Framework.Internal.Execution;
+using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -83,6 +84,8 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     public void OnDrag(PointerEventData eventData)
     {
         //if (UseActionManager.Instance.isUsing) return;
+
+        if (slot.IsEmpty) return;
         if (draggingIcon != null)
         {
             draggingIcon.transform.position = eventData.position;
@@ -293,19 +296,38 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         // Зберігаємо тимчасово item та count
         var tempItem = slot.item;
+        var tempInst = slot.instance;
         var tempCount = slot.count;
 
         // Копіюємо значення від іншого слоту
         if (other.slot.IsEmpty)
             slot.Clear();
         else
-            slot.SetItem(other.slot.item, other.slot.count);
+        {
+            if (other.slot.item.categories == ItemCategory.Weapon)
+            {
+                slot.SetItem(other.slot.instance);
+            }
+            else
+            {
+                slot.SetItem(other.slot.item, other.slot.count);
+            }
+        }
 
         // Копіюємо тимчасові значення в інший слот
         if (tempItem == null)
             other.slot.Clear();
         else
-            other.slot.SetItem(tempItem, tempCount);
+        {
+            if (tempItem.categories == ItemCategory.Weapon)
+            {
+                other.slot.SetItem(tempInst);
+            }
+            else
+            {
+                other.slot.SetItem(tempItem, tempCount);
+            }
+        }
 
         // Оновлюємо UI
         SetSlot(slot);
@@ -378,14 +400,14 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             if (rightHandSlot != null)
             {
                 eq.EquipItem(slotToEquip.instance, rightHandSlot.slotSpecification);
-                rightHandSlot.slot.SetItem(slotToEquip.item, 1);
+                rightHandSlot.slot.SetItem(slotToEquip.instance);
                 rightHandSlot.SetSlot(rightHandSlot.slot);
             }
 
             if (leftHandSlot != null)
             {
                 eq.EquipItem(slotToEquip.instance, leftHandSlot.slotSpecification);
-                leftHandSlot.slot.SetItem(slotToEquip.item, 1);
+                leftHandSlot.slot.SetItem(slotToEquip.instance);
                 leftHandSlot.SetSlot(leftHandSlot.slot);
             }
         }
@@ -416,7 +438,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                 }
             }
             eq.EquipItem(slotToEquip.instance, slotUI.slotSpecification);
-            slotUI.slot.SetItem(slotToEquip.item, 1);
+            slotUI.slot.SetItem(slotToEquip.instance);
             slotUI.SetSlot(slotUI.slot);
         }
 
@@ -508,7 +530,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             var leftHandSlot = InventoryUIManager.Instance.equipmentSlots
                 .FirstOrDefault(s => s.slotSpecification == SlotSpecification.LeftHand);
 
-            InventoryUIManager.Instance.inventory.AddItem(slot.item, 1);
+            InventoryUIManager.Instance.inventory.AddInstance(slot.instance);
 
             if (rightHandSlot != null && !rightHandSlot.slot.IsEmpty)
             {
@@ -528,7 +550,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         {
             // Одноручна зброя або інший предмет
             eq.Unequip(slotSpecification);
-            InventoryUIManager.Instance.inventory.AddItem(slot.item, 1);
+            InventoryUIManager.Instance.inventory.AddInstance(slot.instance);
             slot.Clear();
             SetSlot(slot);
         }
@@ -536,13 +558,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         InventoryUIManager.Instance.RefreshUI();
         InventoryUIManager.Instance.NotifyInventoryChanged();
         HotbarUI.Instance.RefreshHotbar();
-    }
-
-    private bool HasShieldEquipped(out InventorySlotUI shieldSlot)
-    {
-        shieldSlot = InventoryUIManager.Instance.equipmentSlots
-            .FirstOrDefault(s => !s.slot.IsEmpty && s.slot.item.categories == ItemCategory.Shield);
-        return shieldSlot != null;
     }
 
     private void TryEquipItem(ItemInstance inst)
@@ -607,7 +622,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     private void EquipOneHandedProgress(EquipmentManager eq, ItemInstance inst, InventorySlotUI equipSlot)
     {
         eq.EquipItem(inst, equipSlot.slotSpecification);
-        equipSlot.slot.SetItem(inst.item, 1);
+        equipSlot.slot.SetItem(inst);
         equipSlot.SetSlot(equipSlot.slot);
 
         slot.instance.count--;
@@ -622,14 +637,14 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (rightHandSlot != null)
         {
             eq.EquipItem(inst, rightHandSlot.slotSpecification);
-            rightHandSlot.slot.SetItem(inst.item, 1);
+            rightHandSlot.slot.SetItem(inst);
             rightHandSlot.SetSlot(rightHandSlot.slot);
         }
 
         if (leftHandSlot != null)
         {
             eq.EquipItem(inst, leftHandSlot.slotSpecification);
-            leftHandSlot.slot.SetItem(inst.item, 1);
+            leftHandSlot.slot.SetItem(inst);
             leftHandSlot.SetSlot(leftHandSlot.slot);
         }
 
@@ -689,10 +704,11 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     internal void DropItem()
     {
         if (UseActionManager.Instance.isUsing)
-        {
             UseActionManager.Instance.CancelUse();
-        }
-        if (slot == null || slot.IsEmpty) return;
+
+        if (slot == null || slot.IsEmpty)
+            return;
+
         if (slot.item.itemPrefab == null)
         {
             Debug.Log("Prefab missing!");
@@ -702,52 +718,148 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player == null) return;
 
+        Vector3 dropPos = player.transform.position + player.transform.forward * 1f;
+        dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 1f, Random.Range(-0.2f, 0.2f));
+
+        // ===== UNIQUE =====
+        if (slot.item.isUnique)
+        {
+            GameObject go = Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
+
+            var worldItem = go.GetComponent<ItemPickup>();
+            if (worldItem != null) worldItem.Init(slot.instance);
+
+            // екіпіровка
+            if (slotType == SlotType.Equipment)
+            {
+                EquipmentManager.Instance?.Unequip(slotSpecification);
+            }
+
+            if (slot.instance.item.weaponHandType == WeaponHandType.TwoHand && (slotSpecification == SlotSpecification.RightHand || slotSpecification == SlotSpecification.LeftHand))
+            {
+                var rightHandSlot = InventoryUIManager.Instance.equipmentSlots
+                    .FirstOrDefault(s => s.slotSpecification == SlotSpecification.RightHand);
+                var leftHandSlot = InventoryUIManager.Instance.equipmentSlots
+                    .FirstOrDefault(s => s.slotSpecification == SlotSpecification.LeftHand);
+
+                rightHandSlot.slot.Clear();
+                rightHandSlot.SetSlot(rightHandSlot.slot);
+                leftHandSlot.slot.Clear();
+                leftHandSlot.SetSlot(leftHandSlot.slot);
+            }
+            else
+            {
+                slot.Clear();
+                SetSlot(slot);
+            }
+            InventoryUIManager.Instance.RefreshUI();
+            ItemDescriptionUI.Instance?.ClearDescription();
+            HotbarUI.Instance.RefreshHotbar();
+            EquipmentManager.Instance.UpdateWeaponIdle();
+            return;
+        }
+
+        // ===== STACKABLE =====
+        //int amountToDrop = slot.count;
+
+        //GameObject stackGo = Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
+        //var stackWorldItem = stackGo.GetComponent<ItemPickup>();
+
+        //if (stackWorldItem != null)
+        //    stackWorldItem.Init(slot.item, amountToDrop);
+
+        // ===== STACKABLE =====
         int amountToDrop = slot.count;
 
         for (int i = 0; i < amountToDrop; i++)
         {
-            Vector3 dropPos = player.transform.position + transform.forward * 1f;
-            dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 1f, Random.Range(-0.2f, 0.2f));
-            Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
+            Vector3 pos = player.transform.position + player.transform.forward * 1f;
+            pos += new Vector3(
+                Random.Range(-0.2f, 0.2f),
+                1f,
+                Random.Range(-0.2f, 0.2f)
+            );
+
+            GameObject go = Instantiate(slot.item.itemPrefab, pos, Quaternion.identity);
+            var pickup = go.GetComponent<ItemPickup>();
+
+            if (pickup != null)
+                pickup.Init(slot.item, 1);
         }
 
-        if (slotType == SlotType.Equipment)
-        {
-            var eq = EquipmentManager.Instance;
-
-            if (slot.item.weaponHandType == WeaponHandType.TwoHand)
-            {
-                foreach (var eqSlotUI in InventoryUIManager.Instance.equipmentSlots)
-                {
-                    if (eqSlotUI.slotSpecification == SlotSpecification.RightHand ||
-                        eqSlotUI.slotSpecification == SlotSpecification.LeftHand)
-                    {
-                        eq?.Unequip(eqSlotUI.slotSpecification);
-                        eqSlotUI.slot.Clear();
-                        eqSlotUI.SetSlot(eqSlotUI.slot);
-                    }
-                }
-            }
-            else
-            {
-                eq?.Unequip(slotSpecification);
-                slot.Clear();
-                SetSlot(slot);
-            }
-
-            InventoryUIManager.Instance.RefreshUI();
-            return;
-        }
 
         Inventory inventory = InventoryUIManager.Instance.inventory;
-        if (inventory != null)
-        {
-            inventory.RemoveItem(slot.item, amountToDrop);
-        }
+        inventory.RemoveItem(slot.item, amountToDrop);
 
         SetSlot(slot);
         InventoryUIManager.Instance.RefreshUI();
+        ItemDescriptionUI.Instance?.ClearDescription();
+        HotbarUI.Instance.RefreshHotbar();
+        EquipmentManager.Instance.UpdateWeaponIdle();
     }
+
+    //internal void DropItem()
+    //{
+    //    if (UseActionManager.Instance.isUsing)
+    //    {
+    //        UseActionManager.Instance.CancelUse();
+    //    }
+    //    if (slot == null || slot.IsEmpty) return;
+    //    if (slot.item.itemPrefab == null)
+    //    {
+    //        Debug.Log("Prefab missing!");
+    //        return;
+    //    }
+
+    //    GameObject player = GameObject.FindGameObjectWithTag("Player");
+    //    if (player == null) return;
+
+    //    int amountToDrop = slot.count;
+
+    //    for (int i = 0; i < amountToDrop; i++)
+    //    {
+    //        Vector3 dropPos = player.transform.position + transform.forward * 1f;
+    //        dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 1f, Random.Range(-0.2f, 0.2f));
+    //        Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
+    //    }
+
+    //    if (slotType == SlotType.Equipment)
+    //    {
+    //        var eq = EquipmentManager.Instance;
+
+    //        if (slot.item.weaponHandType == WeaponHandType.TwoHand)
+    //        {
+    //            foreach (var eqSlotUI in InventoryUIManager.Instance.equipmentSlots)
+    //            {
+    //                if (eqSlotUI.slotSpecification == SlotSpecification.RightHand ||
+    //                    eqSlotUI.slotSpecification == SlotSpecification.LeftHand)
+    //                {
+    //                    eq?.Unequip(eqSlotUI.slotSpecification);
+    //                    eqSlotUI.slot.Clear();
+    //                    eqSlotUI.SetSlot(eqSlotUI.slot);
+    //                }
+    //            }
+    //        }
+    //        else
+    //        {
+    //            eq?.Unequip(slotSpecification);
+    //            slot.Clear();
+    //            SetSlot(slot);
+    //        }
+
+    //        InventoryUIManager.Instance.RefreshUI();
+    //        return;
+    //    }
+
+    //    Inventory inventory = InventoryUIManager.Instance.inventory;
+    //    if (inventory != null)
+    //    {
+    //        inventory.RemoveItem(slot.item, amountToDrop);
+    //    }
+
+    //    SetSlot(slot);
+    //    InventoryUIManager.Instance.RefreshUI();
+    //}
 
     internal void DropItem(int amount)
     {
@@ -792,5 +904,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         SetSlot(slot);
         InventoryUIManager.Instance.RefreshUI();
+        ItemDescriptionUI.Instance?.ClearDescription();
+        if (ItemDescriptionUI.Instance != null) ItemDescriptionUI.Instance.ClearDescription();
     }
 }

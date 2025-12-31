@@ -5,6 +5,22 @@ public class ItemPickup : MonoBehaviour, IInteractable
     public Item item;
     public int amount = 1;
 
+    public ItemInstance instance;
+
+    public void Init(ItemInstance inst)
+    {
+        instance = inst;
+        item = inst.item;
+        amount = inst.count;
+    }
+
+    public void Init(Item item, int amount)
+    {
+        this.item = item;
+        this.amount = amount;
+        instance = null;
+    }
+
     //private void OnTriggerEnter(Collider other)
     //{
     //    if (other.CompareTag("Player"))
@@ -29,16 +45,34 @@ public class ItemPickup : MonoBehaviour, IInteractable
         return $"Натисніть \"E\"";
     }
 
+    //public void Interact()
+    //{
+    //    PlayerInventory playerInventory = FindAnyObjectByType<PlayerInventory>();
+    //    if (playerInventory != null)
+    //    {
+    //        playerInventory.PickUpItem(item, amount);
+    //        NotificationSystem.Instance.ShowNotification(item.icon, $"Підібрано {item.itemName} x{amount}");
+    //        Destroy(gameObject);
+    //    }
+    //}
+
     public void Interact()
     {
-        PlayerInventory playerInventory = FindAnyObjectByType<PlayerInventory>();
-        if (playerInventory != null)
+        var inv = FindAnyObjectByType<PlayerInventory>();
+
+        if (item.isUnique)
         {
-            playerInventory.PickUpItem(item, amount);
-            NotificationSystem.Instance.ShowNotification(item.icon, $"Підібрано {item.itemName} x{amount}");
-            Destroy(gameObject);
+            inv.PickUpInstance(instance);
         }
+        else
+        {
+            inv.PickUpItem(item, amount);
+        }
+
+        NotificationSystem.Instance.ShowNotification(item.icon, $"Підібрано {item.itemName} x{amount}");
+        Destroy(gameObject);
     }
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

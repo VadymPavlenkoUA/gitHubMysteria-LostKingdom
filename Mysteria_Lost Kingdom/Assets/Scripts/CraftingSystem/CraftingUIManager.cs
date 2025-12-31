@@ -278,7 +278,17 @@ public class CraftingUIManager : MonoBehaviour
         foreach (var ing in selectedRecipe.ingredients)
             inventory.RemoveItem(ing.item, ing.amount * craftAmount);
 
-        inventory.AddItem(selectedRecipe.resultItem, selectedRecipe.resultAmount * craftAmount);
+        if (selectedRecipe.resultItem.isUnique)
+        {
+            for (int i = 0; i < selectedRecipe.resultAmount * craftAmount; i++)
+            {
+                inventory.AddInstance(new ItemInstance(selectedRecipe.resultItem));
+            }
+        }
+        else
+        {
+            inventory.AddItem(selectedRecipe.resultItem, selectedRecipe.resultAmount * craftAmount);
+        }
 
         playerStats.AddProfessionExp(currentProfession, selectedRecipe.expGained * craftAmount);
 

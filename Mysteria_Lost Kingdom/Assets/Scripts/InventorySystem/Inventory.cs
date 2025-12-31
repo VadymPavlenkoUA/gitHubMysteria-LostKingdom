@@ -46,6 +46,11 @@ public class Inventory : MonoBehaviour
 
     public bool AddItem(Item item, int amount = 1)
     {
+        if (item.isUnique)
+        {
+            Debug.LogError("AddItem called for UNIQUE item!");
+            return false;
+        }
         if (CurrentWeight + item.weight * amount > playerStats.maxWeight)
         {
             Debug.Log("Перевищено вагу!");
@@ -54,7 +59,7 @@ public class Inventory : MonoBehaviour
 
         int remaining = amount;
 
-        foreach(var slot in slots)
+        foreach (var slot in slots)
         {
             if (slot.item == item && slot.count < item.maxStack)
             {
@@ -83,6 +88,40 @@ public class Inventory : MonoBehaviour
         Debug.Log("Немає місця в інвентарі!");
         return remaining <= 0;
     }
+
+    public bool AddInstance(ItemInstance inst)
+    {
+        if (inst == null || inst.item == null)
+            return false;
+
+        if (!inst.item.isUnique)
+        {
+            Debug.LogError("AddInstance called for non-unique item!");
+            return false;
+        }
+
+        // вага
+        if (CurrentWeight + inst.item.weight > playerStats.maxWeight)
+        {
+            Debug.Log("Перевищено вагу!");
+            return false;
+        }
+
+        // шукаємо порожній слот
+        foreach (var slot in slots)
+        {
+            if (slot.IsEmpty)
+            {
+                slot.SetItem(inst);
+                NotifyInventoryChanged();
+                return true;
+            }
+        }
+
+        Debug.Log("Немає місця в інвентарі!");
+        return false;
+    }
+
 
     public bool HasItem(Item item, int amount = 1)
     {
