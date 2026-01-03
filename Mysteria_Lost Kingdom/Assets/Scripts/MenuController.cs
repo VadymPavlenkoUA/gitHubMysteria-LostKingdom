@@ -133,7 +133,7 @@ public class MenuController : MonoBehaviour
     public void ShowEducationMenu()
     {
         isEduOpen = true;
-        if (isGMOpen) gameMenu.SetActive(false);
+        if (isGMOpen) OpenGameMenu();
         inputActions.Player.Disable();
         inputActions.HotBar.Disable();
         inputActions.Combat.Disable();
@@ -147,7 +147,7 @@ public class MenuController : MonoBehaviour
     public void HideEducationMenu()
     {
         isEduOpen = false;
-        if (isGMOpen) gameMenu.SetActive(true);
+        //if (isGMOpen) gameMenu.SetActive(true);
         inputActions.Player.Enable();
         inputActions.HotBar.Enable();
         inputActions.Combat.Enable();

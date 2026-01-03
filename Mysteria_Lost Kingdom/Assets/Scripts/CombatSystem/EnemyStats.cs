@@ -2,12 +2,21 @@ using UnityEngine;
 
 public class EnemyStats : MonoBehaviour
 {
+    [Header("Identity")]
+    public string enemyId; // goblin_warrior, boss_dragon_01
+    public bool isUnique;
+
+    [Header("Health")]
     public float maxHealth = 100f;
     public float armor = 5f;
+    private float currentHealth;
+
+    [Header("Experience")]
+    public float expBase = 50f;
+    public float expVariance = 18f;
 
     public Animator animator;
 
-    private float currentHealth;
     private bool isDead = false;
     public GameObject healthBarPrefab;
     public GameObject barPosition;
@@ -30,7 +39,7 @@ public class EnemyStats : MonoBehaviour
         healthBar.UpdateHealth(CurrentHealthNormalized);
     }
 
-    public void TakeDamage(float amount)
+    public void TakeDamage(float amount, PlayerStats attacker = null)
     {
         if (isDead) return;
 
@@ -43,14 +52,26 @@ public class EnemyStats : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            Die();
+            Die(attacker);
         }
     }
 
-    void Die()
+    void Die(PlayerStats killer)
     {
         isDead = true;
         currentHealth = 0;
+
+        if (killer != null)
+        {
+            PlayerStats playerStats = killer.GetComponent<PlayerStats>();
+            if (playerStats != null)
+            {
+                float finalExp = Random.Range(expBase - expVariance, expBase + expVariance);
+                playerStats.AddExperience(Mathf.Max(0f, finalExp));
+            }
+        }
+
+        PlayerKillStats.Instance.RegisterKill(enemyId);
 
         animator.SetTrigger("Die");
         if (healthBar != null) healthBar.OnDeath();

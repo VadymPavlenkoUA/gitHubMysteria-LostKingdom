@@ -403,7 +403,7 @@ public class PlayerCombat : MonoBehaviour
         CombatStats combatStats = playerStats.CalculateCombatStats();
         float damage = Mathf.Max(combatStats.totalDamage - enemy.armor, 1f);
 
-        enemy.TakeDamage(damage);
+        enemy.TakeDamage(damage, playerStats);
         DamageWeaponDurability();
     }
 

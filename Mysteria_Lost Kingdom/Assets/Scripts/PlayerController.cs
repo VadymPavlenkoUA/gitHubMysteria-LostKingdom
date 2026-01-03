@@ -32,7 +32,10 @@ public class PlayerController : MonoBehaviour
     public AnimationCurve rollSpeedCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
     public float rollStaminaCost = 20f;
     public float rollCoolDown = 0.5f;
-    public float rollInvulTime = 0.35f; // час "ірвінгі" (без урону)
+
+    [Header("Invulnerability")]
+    [SerializeField] private bool isInvulnerable = false;
+    public bool IsInvulnerable => isInvulnerable;
 
     [Header("Ground Check")]
     public float groundCheckDistance = 0.3f;
@@ -141,7 +144,7 @@ public class PlayerController : MonoBehaviour
             float speedMultiplier = rollSpeedCurve.Evaluate(animNormalizedTime);
             Vector3 targetVel = rollDirection * rollSpeed * speedMultiplier;
 
-            rb.linearVelocity = new Vector3(targetVel.x, 0f, targetVel.z);
+            rb.linearVelocity = new Vector3(targetVel.x, rb.linearVelocity.y, targetVel.z);
 
             if (rollDirection.sqrMagnitude > 0.001f)
             {
@@ -233,6 +236,8 @@ public class PlayerController : MonoBehaviour
         rollDirection = Vector3.zero;
 
         rb.linearVelocity = Vector3.zero;
+
+        EndInvulnerability();
 
         if (useRootMotionForRoll)
             animator.applyRootMotion = false;
@@ -366,4 +371,16 @@ public class PlayerController : MonoBehaviour
         if (stats == null) return false;
         return stats.TryUseStamina(amount);
     }
+    public void StartInvulnerability()
+    {
+        isInvulnerable = true;
+        Debug.Log("INVUL START");
+    }
+
+    public void EndInvulnerability()
+    {
+        isInvulnerable = false;
+        Debug.Log("INVUL END");
+    }
+
 }

@@ -12,6 +12,8 @@ public class CombatStats
 
 public class PlayerStats : MonoBehaviour
 {
+    public PlayerController controller;
+
     [Header("LevelUpSettings")]
     public int level = 1;
     public int statPointsPerLevel = 3;
@@ -182,15 +184,35 @@ public class PlayerStats : MonoBehaviour
         UpdateUI();
     }
 
-    public void TakeDamage(float amount)
+    public void TakeDamage(float incomingDamage)
     {
-        float finalDamage = amount / blockMultiplier;
+        if (controller != null && controller.IsInvulnerable)
+        {
+            Debug.Log("Damage ignored (INVUL)");
+            return;
+        }
+
+        CombatStats combat = CalculateCombatStats();
+
+        float armor = combat.totalArmor;
+
+        // Блок (щит, парирування і т.п.)
+        float blockedDamage = incomingDamage / blockMultiplier;
+
+        // Формула з урахуванням броні
+        float finalDamage = blockedDamage *
+            (blockedDamage / (blockedDamage + armor));
+
+        finalDamage = Mathf.Max(finalDamage, 1f); // мінімальний урон
+
         currentHealth -= finalDamage;
+
         if (currentHealth <= 0)
         {
             currentHealth = 0;
             Die();
         }
+
         HealthChanged?.Invoke();
         UpdateUI();
     }
@@ -246,6 +268,7 @@ public class PlayerStats : MonoBehaviour
         }
 
         StatsChanged?.Invoke();
+        NotificationSystem.Instance.ShowNotification(NotificationSystem.Instance.expSprite, $"Досвід +{amount:F2} EXP");
     }
 
     public void AddGold(int amount)

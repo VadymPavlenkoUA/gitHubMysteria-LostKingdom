@@ -13,6 +13,7 @@ public class NotificationSystem : MonoBehaviour
 
     [Header("Icons")]
     public Sprite questSprite;
+    public Sprite expSprite;
 
     private readonly List<NotificationUI> activeNotifications = new();
 
