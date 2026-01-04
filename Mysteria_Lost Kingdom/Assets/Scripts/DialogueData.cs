@@ -47,6 +47,12 @@ public class DialogueLine
     public List<DialogueOption> options;
     public bool isRepeatable;
 
+    [Header("Умови показу лінії")]
+    public QuestData requiredActiveQuest;     // квест має бути активний
+    public QuestData requiredCompletedQuest;  // квест має бути виконаний
+    public bool invertCondition;              // якщо true — показувати коли умова НЕ виконана
+
+    [Header("Квестові дії")]
     public QuestData questToStart;     
     public QuestData questToComplete;  
     public int stepIndexToComplete;     

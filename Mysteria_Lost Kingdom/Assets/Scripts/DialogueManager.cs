@@ -55,6 +55,24 @@ public class DialogueManager : MonoBehaviour
         ShowLine();
     }
 
+    private bool CanShowLine(DialogueLine line)
+    {
+        var qm = QuestManager.Instance;
+        bool result = true;
+
+        if (line.requiredActiveQuest != null)
+            result &= qm.IsQuestActive(line.requiredActiveQuest);
+
+        if (line.requiredCompletedQuest != null)
+            result &= qm.IsQuestFinished(line.requiredCompletedQuest);
+
+        if (line.invertCondition)
+            result = !result;
+
+        return result;
+    }
+
+
     private void ShowLine()
     {
         if (currentDialogue == null || currentLineIndex >= currentDialogue.lines.Count)
@@ -64,6 +82,13 @@ public class DialogueManager : MonoBehaviour
         }
 
         var line = currentDialogue.lines[currentLineIndex];
+
+        if (!CanShowLine(line))
+        {
+            currentLineIndex++;
+            ShowLine();
+            return;
+        }
 
         if (DialogueTracker.Instance.IsLineCompleted(currentDialogue.name, currentLineIndex))
         {
