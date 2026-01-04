@@ -20,7 +20,8 @@ public enum ItemCategory
     Tool = 1 << 12,
     Material = 1 << 13,
     QuestItem = 1 << 14,
-    Shield = 1 << 15
+    Shield = 1 << 15,
+    Lockpick = 1 << 16
 }
 
 public enum WeaponHandType

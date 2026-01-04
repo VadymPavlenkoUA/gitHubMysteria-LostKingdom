@@ -15,6 +15,9 @@ public class EnemyStats : MonoBehaviour
     public float expBase = 50f;
     public float expVariance = 18f;
 
+    [Header("Loot")]
+    public LootTable lootTable;
+
     public Animator animator;
 
     private bool isDead = false;
@@ -71,7 +74,10 @@ public class EnemyStats : MonoBehaviour
             }
         }
 
+        QuestManager.Instance.OnEnemyKilled(enemyId);
         PlayerKillStats.Instance.RegisterKill(enemyId);
+
+        LootDropper.Drop(lootTable, transform.position);
 
         animator.SetTrigger("Die");
         if (healthBar != null) healthBar.OnDeath();

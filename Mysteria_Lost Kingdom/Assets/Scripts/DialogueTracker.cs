@@ -5,10 +5,23 @@ public class DialogueTracker : MonoBehaviour
 {
     public static DialogueTracker Instance;
     private HashSet<string> completedLines = new HashSet<string>();
+    private HashSet<string> usedOptions = new HashSet<string>();
 
     private void Awake()
     {
         Instance = this;
+    }
+
+    public bool IsOptionUsed(string optionID)
+    {
+        if (string.IsNullOrEmpty(optionID)) return false;
+        return usedOptions.Contains(optionID);
+    }
+
+    public void MarkOptionUsed(string optionID)
+    {
+        if (string.IsNullOrEmpty(optionID)) return;
+        usedOptions.Add(optionID);
     }
 
     public bool IsLineCompleted(string dialogueName, int lineIndex)

@@ -33,6 +33,10 @@ public class DialogueOption
 
     [Header("Додаткові параметри")]
     public bool makeLineNonRepeatable;   // якщо треба зробити діалог разовим
+
+    [Header("Одноразова опція")]
+    public bool hideAfterSelect = false;      // якщо true — опція зникає назавжди після вибору
+    public string optionID;
 }
 
 [System.Serializable]

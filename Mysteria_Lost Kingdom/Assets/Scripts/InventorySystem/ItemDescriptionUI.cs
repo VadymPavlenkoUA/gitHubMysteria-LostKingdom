@@ -58,6 +58,16 @@ public class ItemDescriptionUI : MonoBehaviour
                  $"<color=#cfcfcf>Максимальний стак:</color> {item.item.maxStack}";
             return;
         }
+
+        if (item.item.categories == ItemCategory.Lockpick)
+        {
+            descriptionText.text =
+                 $"<b><size=130%><color=#d15508>{item.item.itemName}</color></size></b>\n\n" +
+                 $"{text}\n\n" +
+                 $"<color=#77b52b>Максимальний рівень замка:</color> Звичайний\n" +
+                 $"<color=#827560>Шанс поломки при успішному взломі:</color> 50%";
+            return;
+        }
         descriptionText.text = text;
     }
 

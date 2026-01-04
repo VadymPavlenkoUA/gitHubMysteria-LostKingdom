@@ -27,6 +27,7 @@ public class EnemyAIController : MonoBehaviour
     private Vector3 patrolTarget;
     private bool isPatrolling;
     private float patrolTimer;
+    public float patrolSpeedMultiplier = 0.5f;
 
     public LayerMask playerLayer;
 
@@ -111,7 +112,7 @@ public class EnemyAIController : MonoBehaviour
         if (dist > 0.2f)
         {
             // –ухаЇмось до точки
-            movement.MoveTo(patrolTarget);
+            movement.MoveTo(patrolTarget, patrolSpeedMultiplier);
             animator.SetBool("Walk", true);
         }
         else

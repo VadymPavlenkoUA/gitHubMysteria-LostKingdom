@@ -191,6 +191,8 @@ public class DialogueManager : MonoBehaviour
     {
         FinishCurrentTyping();
 
+        if (option.hideAfterSelect) DialogueTracker.Instance.MarkOptionUsed(option.optionID);
+
         messages.Add($"<b>>>{mainCharacterName}:</b> {option.playerResponse}");
         dialogueHistoryManager.AddEntry(mainCharacterName, option.playerResponse, true);
         chatHistoryText.text = string.Join("\n", messages);
@@ -273,9 +275,11 @@ public class DialogueManager : MonoBehaviour
     {
         var qm = QuestManager.Instance;
 
+        if (option.hideAfterSelect && DialogueTracker.Instance.IsOptionUsed(option.optionID)) return false;
+
         if (option.requiredQuest != null && !qm.IsQuestActive(option.requiredQuest)) return false;
 
-        if (option.completedQuest != null && !qm.IsQuestCompleted(option.completedQuest)) return false;
+        if (option.completedQuest != null && !qm.IsQuestFinished(option.completedQuest)) return false;
 
         if (option.requireQuestNotTaken && qm.IsQuestActive(option.requiredQuest)) return false;
 

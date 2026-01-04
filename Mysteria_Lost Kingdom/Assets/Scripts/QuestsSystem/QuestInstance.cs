@@ -18,12 +18,12 @@ public class QuestInstance
 
         foreach (var step in questData.steps)
         {
-            steps.Add(new QuestStep
+            var runtimeStep = new QuestStep
             {
                 description = step.description,
                 isComplete = false,
                 stepType = step.stepType,
-                requiredItems = step.requiredItems != null ? new List<RequiredItem>(step.requiredItems) : new List<RequiredItem>(),
+                requiredItems = step.requiredItems != null ? new List<RequiredItem>(step.requiredItems) : new(),
                 removeItemsOnComplete = step.removeItemsOnComplete,
                 targetNPC = step.targetNPC,
                 locationName = step.locationName,
@@ -31,8 +31,21 @@ public class QuestInstance
                 requiredAmount = step.requiredAmount,
                 targetName = step.targetName,
                 targetTag = step.targetTag,
-                linkedStepIndices = step.linkedStepIndices != null ? new List<int>(step.linkedStepIndices) : new List<int>()
-            });
+                linkedStepIndices = step.linkedStepIndices != null ? new List<int>(step.linkedStepIndices) : new(),
+                killCountMode = step.killCountMode
+            };
+
+            if (runtimeStep.stepType == QuestStepType.KillEnemy &&
+                runtimeStep.killCountMode == KillCountMode.Lifetime)
+            {
+                int killed = PlayerKillStats.Instance.GetKills(runtimeStep.targetEnemy);
+
+                runtimeStep.requiredAmount = Mathf.Max(0, runtimeStep.requiredAmount - killed);
+
+                runtimeStep.isComplete = runtimeStep.requiredAmount == 0;
+            }
+
+            steps.Add(runtimeStep);
         }
     }
 
@@ -61,6 +74,21 @@ public class QuestInstance
         return null;
     }
 
+    //public void OnEnemyKilled(string enemyId)
+    //{
+    //    foreach (var step in steps)
+    //    {
+    //        if (step.stepType != QuestStepType.KillEnemy) continue;
+    //        if (step.isComplete) continue;
+    //        if (step.targetEnemy != enemyId) continue;
+
+    //        step.requiredAmount--;
+    //        if (step.requiredAmount <= 0)
+    //            step.isComplete = true;
+    //    }
+    //}
+
+
     public void UpdateStepStatus(
         Inventory inventory = null,
         string interactedNPC = null,
@@ -72,51 +100,62 @@ public class QuestInstance
             switch (step.stepType)
             {
                 case QuestStepType.CollectItems:
-                    bool hasAllItems = true;
-
-                    foreach (var req in step.requiredItems)
+                    if (inventory != null)
                     {
-                        if (!inventory.HasItem(req.item, req.amount))
-                        {
-                            hasAllItems = false;
-                            break;
-                        }
-                    }
+                        bool hasAllItems = true;
 
-                    if (!hasAllItems && step.linkedStepIndices != null)
-                    {
-                        foreach (int linkedIndex in step.linkedStepIndices)
+                        foreach (var req in step.requiredItems)
                         {
-                            if (linkedIndex >= 0 && linkedIndex < steps.Count)
+                            if (!inventory.HasItem(req.item, req.amount))
                             {
-                                if (steps[linkedIndex].isComplete)
+                                hasAllItems = false;
+                                break;
+                            }
+                        }
+
+                        if (!hasAllItems && step.linkedStepIndices != null)
+                        {
+                            foreach (int linkedIndex in step.linkedStepIndices)
+                            {
+                                if (linkedIndex >= 0 && linkedIndex < steps.Count)
                                 {
-                                    hasAllItems = true;
-                                    break;
+                                    if (steps[linkedIndex].isComplete)
+                                    {
+                                        hasAllItems = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    step.isComplete = hasAllItems;
+                        step.isComplete = hasAllItems;
 
-                    if (hasAllItems && step.removeItemsOnComplete)
-                    {
-                        foreach (var req in step.requiredItems)
+                        if (hasAllItems && step.removeItemsOnComplete)
                         {
-                            inventory.RemoveItem(req.item, req.amount);
+                            foreach (var req in step.requiredItems)
+                            {
+                                inventory.RemoveItem(req.item, req.amount);
+                            }
+                            Debug.Log($"Крок '{step.description}': предмети забрано.");
                         }
-                        Debug.Log($"Крок '{step.description}': предмети забрано.");
                     }
                     break;
 
 
+
                 case QuestStepType.KillEnemy:
-                    if (!string.IsNullOrEmpty(killedEnemy) && killedEnemy == step.targetEnemy)
+                    if (step.isComplete) break;
+
+                    if (step.killCountMode == KillCountMode.SinceQuest ||
+                        step.killCountMode == KillCountMode.Lifetime)
                     {
-                        step.requiredAmount--;
-                        if (step.requiredAmount <= 0)
-                            step.isComplete = true;
+                        if (!string.IsNullOrEmpty(killedEnemy) &&
+                            killedEnemy == step.targetEnemy)
+                        {
+                            step.requiredAmount--;
+                            if (step.requiredAmount <= 0)
+                                step.isComplete = true;
+                        }
                     }
                     break;
 

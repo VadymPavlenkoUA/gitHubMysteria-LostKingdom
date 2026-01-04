@@ -122,8 +122,8 @@ public class QuestUIManager : MonoBehaviour
             return;
         }
 
-        questTitleText.text = quest.data.questName;
-        questDescriptionText.text = quest.data.description;
+        questTitleText.text = $"<color=#d15508><b>{quest.data.questName}</b></color>";
+        questDescriptionText.text = $"<color=#adadad>{quest.data.description}</color>";
 
         questStepsText.text = "";
         for (int i = 0; i < quest.steps.Count; i++)
@@ -145,17 +145,17 @@ public class QuestUIManager : MonoBehaviour
         if (reward == null) return "Нагороди немає";
 
         string result = "";
-        if (reward.gold > 0) result += $"Золото: {reward.gold}\n";
-        if (reward.experience > 0) result += $"Досвід: {reward.experience}\n";
+        if (reward.gold > 0) result += $"<color=#d6c20d>Золото:</color> {reward.gold}\n";
+        if (reward.experience > 0) result += $"<color=#007ae6>Досвід:</color> {reward.experience}\n"; ;
         if (reward.professions != null && reward.professions.Count > 0)
         {
-            result += "Професійний досвід:\n";
+            result += "<color=#e88b00>Професійний досвід:</color>\n";
             foreach (var prof in reward.professions)
                 result += $"- {prof.proffesionName}: {prof.exp}\n";
         }
         if (reward.items != null && reward.items.Count > 0)
         {
-            result += "Предмети:\n";
+            result += "<color=#20a837>Предмети:</color>\n";
             foreach (var item in reward.items)
                 result += $"- {item.item.itemName} x{item.amount}\n";
         }

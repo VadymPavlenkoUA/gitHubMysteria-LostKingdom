@@ -46,6 +46,12 @@ public enum QuestStepType
     SolvePuzzle     // Розв’язати головоломку
 }
 
+public enum KillCountMode
+{
+    Lifetime,   // враховує всі вбивства (унікальні, лор)
+    SinceQuest  // тільки з моменту взяття квесту (daily, bounty)
+}
+
 [Serializable]
 public class QuestStep
 {
@@ -59,6 +65,8 @@ public class QuestStep
     public string locationName;
     public string targetEnemy;
     public int requiredAmount;
+
+    public KillCountMode killCountMode;
 
     [Header("Navigation")]
     public string targetName;

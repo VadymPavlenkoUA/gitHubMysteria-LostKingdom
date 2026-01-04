@@ -200,6 +200,7 @@ public class QuestManager : MonoBehaviour
 
     public void OnEnemyKilled(string enemyName)
     {
+        Debug.Log($"{enemyName} перевірка по квестам!");
         foreach (var quest in activeQuests)
         {
             quest.UpdateStepStatus(killedEnemy: enemyName);

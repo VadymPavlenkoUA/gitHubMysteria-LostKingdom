@@ -7,6 +7,7 @@ public class EnemyMovement : MonoBehaviour
 
     private bool isMoving = false;
     private Vector3 target;
+    private float currentSpeedMultiplier = 1f;
 
     void Update()
     {
@@ -15,16 +16,20 @@ public class EnemyMovement : MonoBehaviour
         Vector3 dir = (target - transform.position).normalized;
         dir.y = 0;
 
-        transform.position += dir * moveSpeed * Time.deltaTime;
+        transform.position += dir * moveSpeed * currentSpeedMultiplier * Time.deltaTime;
 
-        Quaternion rot = Quaternion.LookRotation(dir);
-        transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotationSpeed * Time.deltaTime);
+        if (dir != Vector3.zero)
+        {
+            Quaternion rot = Quaternion.LookRotation(dir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotationSpeed * Time.deltaTime);
+        }
     }
 
-    public void MoveTo(Vector3 pos)
+    public void MoveTo(Vector3 pos, float speedMultiplier = 1f)
     {
         target = pos;
         isMoving = true;
+        currentSpeedMultiplier = speedMultiplier;
     }
 
     public void Stop()
