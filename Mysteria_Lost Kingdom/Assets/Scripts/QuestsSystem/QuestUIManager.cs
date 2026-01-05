@@ -122,8 +122,8 @@ public class QuestUIManager : MonoBehaviour
             return;
         }
 
-        questTitleText.text = $"<color=#d15508><b>{quest.data.questName}</b></color>";
-        questDescriptionText.text = $"<color=#adadad>{quest.data.description}</color>";
+        questTitleText.text = $"<color=#ad4402><b>{quest.data.questName}</b></color>";
+        questDescriptionText.text = $"<color=#503622>{quest.data.description}</color>";
 
         questStepsText.text = "";
         for (int i = 0; i < quest.steps.Count; i++)

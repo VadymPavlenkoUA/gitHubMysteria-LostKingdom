@@ -23,6 +23,8 @@ public class DialogueManager : MonoBehaviour
     public Button optionButtonPrefab;
     public string mainCharacterName;
     public float typingSpeed = 0.02f;
+    string npcColor = "#E6C48A";
+    string playerColor = "#9FC5E8";
 
     private Coroutine typingCoroutine;
     private DialogueData currentDialogue;
@@ -103,7 +105,7 @@ public class DialogueManager : MonoBehaviour
 
         if (!line.isRepeatable) DialogueTracker.Instance.MarkLineCompleted(currentDialogue.name, currentLineIndex);
 
-        messages.Add($"<b><< {line.npcName}:</b> ");
+        messages.Add($"<color={npcColor}><b><< {line.npcName}: </b></color>");
         dialogueHistoryManager.AddEntry(line.npcName, line.text, false);
         chatHistoryText.text = string.Join("\n", messages);
         ClearOptions();
@@ -218,7 +220,7 @@ public class DialogueManager : MonoBehaviour
 
         if (option.hideAfterSelect) DialogueTracker.Instance.MarkOptionUsed(option.optionID);
 
-        messages.Add($"<b>>>{mainCharacterName}:</b> {option.playerResponse}");
+        messages.Add($"<color={playerColor}><b>>> {mainCharacterName}: </b></color>{option.playerResponse}");
         dialogueHistoryManager.AddEntry(mainCharacterName, option.playerResponse, true);
         chatHistoryText.text = string.Join("\n", messages);
 
@@ -331,7 +333,7 @@ public class DialogueManager : MonoBehaviour
         ClearOptions();
         var npcName = currentDialogue.npcName;
 
-        string initialText = $"<b><< {npcName}:</b> ";
+        string initialText = $"<color={npcColor}><b><< {npcName}: </b></color>";
         messages.Add(initialText);
         int messageIndex = messages.Count - 1;
         chatHistoryText.text = string.Join("\n", messages);
@@ -371,7 +373,7 @@ public class DialogueManager : MonoBehaviour
 
             int index = messages.Count - 1;
             var line = currentDialogue.lines[currentLineIndex];
-            messages[index] = $"<b><< {line.npcName}:</b> {line.text}";
+            messages[index] = $"<color={npcColor}><b><< {line.npcName}: </b></color>{line.text}";
             chatHistoryText.text = string.Join("\n", messages);
 
             typingCoroutine = null;
