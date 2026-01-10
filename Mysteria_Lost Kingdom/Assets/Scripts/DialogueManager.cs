@@ -45,6 +45,7 @@ public class DialogueManager : MonoBehaviour
     public void StartDialogue(DialogueData dialogue)
     {
         if (MenuController.Instance.isGMOpen) MenuController.Instance.OpenGameMenu();
+        InteractionBlocker.Block(InteractionBlockReason.Dialogue);
         isDialogueOpen = true;
         currentDialogue = dialogue;
         currentLineIndex = 0;
@@ -349,6 +350,7 @@ public class DialogueManager : MonoBehaviour
 
     internal void EndDialogue()
     {
+        InteractionBlocker.Unblock(InteractionBlockReason.Dialogue);
         if (typingCoroutine != null)
         {
             StopCoroutine(typingCoroutine);

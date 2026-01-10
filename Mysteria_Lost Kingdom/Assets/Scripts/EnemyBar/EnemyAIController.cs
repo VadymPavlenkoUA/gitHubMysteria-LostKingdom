@@ -200,8 +200,11 @@ public class EnemyAIController : MonoBehaviour
         movement.Stop();
         animator.SetBool("Walk", false);
 
-        isAttacking = true;
-        combat.TryAttack(player);
+        if (!isAttacking)
+        {
+            isAttacking = true;
+            combat.TryAttack(player);
+        }
     }
 
     // ================= HELPERS =================
@@ -268,8 +271,12 @@ public class EnemyAIController : MonoBehaviour
     public void OnHitStart()
     {
         isHit = true;
+        isAttacking = false;
+
         movement.Stop();
-        combat.DisableHitbox();
+
+        combat.DisableHitbox();  
+        animator.ResetTrigger("Attack");
     }
 
     public void OnHitEnd()

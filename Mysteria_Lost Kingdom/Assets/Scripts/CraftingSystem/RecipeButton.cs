@@ -38,7 +38,7 @@ public class RecipeButton : MonoBehaviour
 
         if (levelText != null)
             levelText.text = r.requiredLevel > 0
-                ? $"Ð³â.{r.requiredLevel}"
+                ? $"Ð³â. {r.requiredLevel}"
                 : "";
     }
 

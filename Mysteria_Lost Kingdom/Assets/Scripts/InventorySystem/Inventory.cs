@@ -6,6 +6,7 @@ using System.Linq;
 public class Inventory : MonoBehaviour
 {
     public int slotCount = 20;
+    public bool ignoreWeight = false;
     public PlayerStats playerStats;
 
     public event Action OnInventoryChanged;
@@ -51,7 +52,7 @@ public class Inventory : MonoBehaviour
             Debug.LogError("AddItem called for UNIQUE item!");
             return false;
         }
-        if (CurrentWeight + item.weight * amount > playerStats.maxWeight)
+        if (!ignoreWeight && CurrentWeight + item.weight * amount > playerStats.maxWeight)
         {
             Debug.Log("Перевищено вагу!");
             return false;
@@ -101,7 +102,7 @@ public class Inventory : MonoBehaviour
         }
 
         // вага
-        if (CurrentWeight + inst.item.weight > playerStats.maxWeight)
+        if (!ignoreWeight && CurrentWeight + inst.item.weight > playerStats.maxWeight)
         {
             Debug.Log("Перевищено вагу!");
             return false;
@@ -189,6 +190,31 @@ public class Inventory : MonoBehaviour
 
         return removedAny;
     }
+
+    public Item GetLockpickForLevel(int requiredLevel)
+    {
+        List<Item> lockpicks = new List<Item>();
+
+        foreach (var slot in slots)
+        {
+            if (!slot.IsEmpty && (slot.item.categories & ItemCategory.Lockpick) != 0)
+                lockpicks.Add(slot.item);
+        }
+
+        if (lockpicks.Count == 0)
+            return null; 
+
+        lockpicks.Sort((a, b) => a.lockpickLevel.CompareTo(b.lockpickLevel));
+
+        foreach (var lp in lockpicks)
+        {
+            if (lp.lockpickLevel >= requiredLevel)
+                return lp;
+        }
+
+        return lockpicks[lockpicks.Count - 1];
+    }
+
 
 
 

@@ -158,7 +158,7 @@ public class CraftingUIManager : MonoBehaviour
         var p = playerStats.GetProfession(currentProfession);
 
         professionNameText.text = p.proffesionName;
-        levelText.text = $"Ð³â.{p.level}";
+        levelText.text = $"Ð³â. {p.level}";
         expSlider.maxValue = p.expToNext;
         expSlider.value = p.exp;
     }

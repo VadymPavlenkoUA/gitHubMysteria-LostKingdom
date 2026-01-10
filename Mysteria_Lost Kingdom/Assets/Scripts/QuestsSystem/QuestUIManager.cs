@@ -42,7 +42,7 @@ public class QuestUIManager : MonoBehaviour
         foreach (Transform child in contentParent)Destroy(child.gameObject);
 
         var activeHeader = Instantiate(categoryButtonPrefab, contentParent);
-        activeHeader.GetComponentInChildren<TMP_Text>().text = $"Активні квести ({QuestManager.Instance.activeQuests.Count})";
+        activeHeader.GetComponentInChildren<TMP_Text>().text = $"<color=#FF9700>Активні квести ({QuestManager.Instance.activeQuests.Count})</color>";
         var activeBtn = activeHeader.GetComponent<Button>();
         activeBtn.onClick.AddListener(() =>
         {
@@ -59,7 +59,7 @@ public class QuestUIManager : MonoBehaviour
 
 
         var finishedHeader = Instantiate(categoryButtonPrefab, contentParent);
-        finishedHeader.GetComponentInChildren<TMP_Text>().text = $"Завершені квести ({QuestManager.Instance.finishedQuests.Count})";
+        finishedHeader.GetComponentInChildren<TMP_Text>().text = $"<color=#675B4C>Завершені квести ({QuestManager.Instance.finishedQuests.Count})</color>";
         var finishedBtn = finishedHeader.GetComponent<Button>();
         finishedBtn.onClick.AddListener(() =>
         {

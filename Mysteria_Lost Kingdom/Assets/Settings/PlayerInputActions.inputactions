@@ -398,6 +398,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "CancelUse",
+                    "type": "Button",
+                    "id": "4d322ec3-6abe-4933-b7a2-be04753d905f",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -442,6 +451,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "MainPanel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2e569137-de11-4804-9d41-9b355d520255",
+                    "path": "<Keyboard>/delete",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CancelUse",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -190,7 +190,7 @@ public class TaskUIController : MonoBehaviour
             pointsAwarded = 0,
             givenAnswer = ""
         };
-
+        sfxSource.PlayOneShot(wrongSfx);
         StartCoroutine(FinishAfterDelay(failResult, 3f, "Час вийшов!", wrongImage));
 
     }

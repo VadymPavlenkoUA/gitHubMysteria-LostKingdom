@@ -16,6 +16,19 @@ public class InventoryUIManager : MonoBehaviour
     public InventorySlotUI[] equipmentSlots;
     private InventorySlotUI[] slotUIs;
 
+    [Header("Chest UI")]
+    public GameObject chestPanel;
+    public TextMeshProUGUI chestPanelName;
+    public Transform chestSlotsParent;
+    public GameObject chestSlotPrefab;
+    private ChestVisual currentChestVisual;
+
+    public TabSwitcher tabSwitcher;
+    public int inventoryTabIndex;
+
+    private Inventory chestInventory;
+    private InventorySlotUI[] chestSlotUIs;
+
     private void Awake()
     {
         Instance = this;
@@ -31,12 +44,20 @@ public class InventoryUIManager : MonoBehaviour
         for (int i = 0; i < inventory.slots.Count; i++)
         {
             GameObject obj = Instantiate(slotPrefab, slotsParent);
-            slotUIs[i] = obj.GetComponent<InventorySlotUI>();
+            var slotUI = obj.GetComponent<InventorySlotUI>();
+
+            slotUI.ownerInventory = inventory; 
+            slotUI.slotType = InventorySlotUI.SlotType.Inventory;
+            slotUI.splitStackUI = splitStackUI;
+
+            slotUIs[i] = slotUI;
         }
 
         for (int i = 0; i < equipmentSlots.Length; i++)
         {
             equipmentSlots[i].slot = inventory.equipSlots[i];
+            equipmentSlots[i].ownerInventory = inventory;
+            equipmentSlots[i].slotType = InventorySlotUI.SlotType.Equipment;
         }
 
         foreach (var slot in slotUIs)
@@ -82,13 +103,62 @@ public class InventoryUIManager : MonoBehaviour
 
     private void RefreshWeightEquipText()
     {
-        weightText.text = $"¬ага: {inventory.CurrentWeight.ToString("0.0", CultureInfo.InvariantCulture)} / " +
+        weightText.text = $"{inventory.CurrentWeight.ToString("0.0", CultureInfo.InvariantCulture)} / " +
             $"{inventory.playerStats.maxWeight.ToString("0.0", CultureInfo.InvariantCulture)}";
     }
 
-    // Update is called once per frame
-    void Update()
+    public void OpenChest(Inventory chestInv, ChestVisual chestVisual, string chestName)
     {
+        chestInventory = chestInv;
+        currentChestVisual = chestVisual;
 
+        currentChestVisual?.Open();
+
+        chestPanelName.text = chestName;
+        chestPanel.SetActive(true);
+        BuildChestSlots();
+        RefreshChestUI();
+
+        if (!MenuController.Instance.isGMOpen) MenuController.Instance.OpenGameMenu();
+        if (tabSwitcher != null) tabSwitcher.OpenTab(inventoryTabIndex);
+    }
+
+    private void BuildChestSlots()
+    {
+        // очищаЇмо стар≥
+        foreach (Transform child in chestSlotsParent)
+            Destroy(child.gameObject);
+
+        chestSlotUIs = new InventorySlotUI[chestInventory.slots.Count];
+
+        for (int i = 0; i < chestInventory.slots.Count; i++)
+        {
+            GameObject obj = Instantiate(slotPrefab, chestSlotsParent);
+            var slotUI = obj.GetComponent<InventorySlotUI>();
+
+            slotUI.ownerInventory = chestInventory;
+            slotUI.slotType = InventorySlotUI.SlotType.Chest;
+            slotUI.splitStackUI = splitStackUI;
+
+            chestSlotUIs[i] = slotUI;
+        }
+
+    }
+
+    private void RefreshChestUI()
+    {
+        for (int i = 0; i < chestInventory.slots.Count; i++)
+        {
+            chestSlotUIs[i].SetSlot(chestInventory.slots[i]);
+        }
+    }
+
+    public void CloseChest()
+    {
+        chestPanel.SetActive(false);
+        chestInventory = null;
+
+        currentChestVisual?.Close();
+        currentChestVisual = null;
     }
 }

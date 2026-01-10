@@ -484,6 +484,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""CancelUse"",
+                    ""type"": ""Button"",
+                    ""id"": ""4d322ec3-6abe-4933-b7a2-be04753d905f"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -528,6 +537,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""MainPanel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2e569137-de11-4804-9d41-9b355d520255"",
+                    ""path"": ""<Keyboard>/delete"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CancelUse"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -687,6 +707,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Controls = asset.FindActionMap("Controls", throwIfNotFound: true);
         m_Controls_Escape = m_Controls.FindAction("Escape", throwIfNotFound: true);
         m_Controls_MainPanel = m_Controls.FindAction("MainPanel", throwIfNotFound: true);
+        m_Controls_CancelUse = m_Controls.FindAction("CancelUse", throwIfNotFound: true);
         // HotBar
         m_HotBar = asset.FindActionMap("HotBar", throwIfNotFound: true);
         m_HotBar_RightHand = m_HotBar.FindAction("RightHand", throwIfNotFound: true);
@@ -966,6 +987,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private List<IControlsActions> m_ControlsActionsCallbackInterfaces = new List<IControlsActions>();
     private readonly InputAction m_Controls_Escape;
     private readonly InputAction m_Controls_MainPanel;
+    private readonly InputAction m_Controls_CancelUse;
     /// <summary>
     /// Provides access to input actions defined in input action map "Controls".
     /// </summary>
@@ -985,6 +1007,10 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Controls/MainPanel".
         /// </summary>
         public InputAction @MainPanel => m_Wrapper.m_Controls_MainPanel;
+        /// <summary>
+        /// Provides access to the underlying input action "Controls/CancelUse".
+        /// </summary>
+        public InputAction @CancelUse => m_Wrapper.m_Controls_CancelUse;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1017,6 +1043,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @MainPanel.started += instance.OnMainPanel;
             @MainPanel.performed += instance.OnMainPanel;
             @MainPanel.canceled += instance.OnMainPanel;
+            @CancelUse.started += instance.OnCancelUse;
+            @CancelUse.performed += instance.OnCancelUse;
+            @CancelUse.canceled += instance.OnCancelUse;
         }
 
         /// <summary>
@@ -1034,6 +1063,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @MainPanel.started -= instance.OnMainPanel;
             @MainPanel.performed -= instance.OnMainPanel;
             @MainPanel.canceled -= instance.OnMainPanel;
+            @CancelUse.started -= instance.OnCancelUse;
+            @CancelUse.performed -= instance.OnCancelUse;
+            @CancelUse.canceled -= instance.OnCancelUse;
         }
 
         /// <summary>
@@ -1395,6 +1427,13 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnMainPanel(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "CancelUse" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnCancelUse(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "HotBar" which allows adding and removing callbacks.

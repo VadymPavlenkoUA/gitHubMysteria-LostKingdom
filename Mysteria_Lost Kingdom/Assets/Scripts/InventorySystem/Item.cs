@@ -61,6 +61,9 @@ public class Item : ScriptableObject
 
     public ItemCategory categories;
 
+    [Header("Lockpick")]
+    public int lockpickLevel = 0;
+
     public WeaponHandType weaponHandType = WeaponHandType.None;
 
     [Header("Inactive Position Settings")]

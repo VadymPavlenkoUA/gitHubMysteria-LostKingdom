@@ -12,8 +12,12 @@ public class NotificationSystem : MonoBehaviour
     public int maxNotifications = 3;
 
     [Header("Icons")]
+    public Sprite successSprite;
+    public Sprite errorSprite;
     public Sprite questSprite;
     public Sprite expSprite;
+    public Sprite lockSprite;
+    public Sprite unlockSprite;
 
     private readonly List<NotificationUI> activeNotifications = new();
 

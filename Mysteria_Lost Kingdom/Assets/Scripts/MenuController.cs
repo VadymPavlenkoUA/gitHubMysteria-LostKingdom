@@ -51,6 +51,14 @@ public class MenuController : MonoBehaviour
 
         if (inputBlocked) return;
 
+        if (inputActions.Controls.CancelUse.WasPressedThisFrame())
+        {
+            if (UseActionManager.Instance.isUsing)
+            {
+                UseActionManager.Instance.CancelUse();
+            }
+        }
+
         if (inputActions.Controls.MainPanel.WasPressedThisFrame())
         {
             OpenGameMenu();
@@ -110,6 +118,7 @@ public class MenuController : MonoBehaviour
         isGMOpen = !isGMOpen;
         if (isGMOpen)
         {
+            InteractionBlocker.Block(InteractionBlockReason.Menu);
             DialogueManager.Instance.EndDialogue();
             cinemachineInput.enabled = false;
             Cursor.lockState = CursorLockMode.Confined;
@@ -117,6 +126,7 @@ public class MenuController : MonoBehaviour
         }
         else
         {
+            InteractionBlocker.Unblock(InteractionBlockReason.Menu);
             cinemachineInput.enabled = true;
             Cursor.lockState = CursorLockMode.Locked;
             if (CraftingUIManager.Instance != null)
@@ -124,6 +134,7 @@ public class MenuController : MonoBehaviour
                 CraftingUIManager.Instance.UpdateCloseCraftUI();
             }
             inputActions.Combat.Enable();
+            InventoryUIManager.Instance.CloseChest();
         }
         Cursor.visible = isGMOpen;
         gameMenu.SetActive(isGMOpen);
@@ -133,6 +144,7 @@ public class MenuController : MonoBehaviour
     public void ShowEducationMenu()
     {
         isEduOpen = true;
+        InteractionBlocker.Block(InteractionBlockReason.Education);
         if (isGMOpen) OpenGameMenu();
         inputActions.Player.Disable();
         inputActions.HotBar.Disable();
@@ -147,6 +159,7 @@ public class MenuController : MonoBehaviour
     public void HideEducationMenu()
     {
         isEduOpen = false;
+        InteractionBlocker.Unblock(InteractionBlockReason.Education);
         //if (isGMOpen) gameMenu.SetActive(true);
         inputActions.Player.Enable();
         inputActions.HotBar.Enable();

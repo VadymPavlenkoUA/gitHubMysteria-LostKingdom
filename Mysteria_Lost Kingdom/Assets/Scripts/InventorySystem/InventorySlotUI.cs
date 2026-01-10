@@ -9,9 +9,9 @@ using UnityEngine.UI;
 
 public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
-    public enum SlotType { Inventory, Equipment };
+    public enum SlotType { Inventory, Equipment, Chest };
     public enum SlotSpecification { RightHand, LeftHand, RangeSlot, ThrowSlot, NecklaceSlot, RingSlot, BeltSlot, HeadSlot, ChestSlot, HandsSlot, LegsSlot, BootsSlot, None };
-    [SerializeField] private SlotType slotType = SlotType.Inventory;
+    [SerializeField] internal SlotType slotType = SlotType.Inventory;
     [SerializeField] internal SlotSpecification slotSpecification = SlotSpecification.None;
     [SerializeField] private ItemCategory allowedCategory;
 
@@ -21,12 +21,15 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     public SplitStackUI splitStackUI;
     public GameObject contextMenuPrefab;
 
+    public Inventory ownerInventory;
+
     public Vector2 offset = new Vector2(100f, 30f);
 
     internal InventorySlot slot;
     private GameObject draggingIcon;
 
     private static RectTransform cachedInventoryRoot;
+    private static RectTransform cachedChestRoot;
 
     public void SetSlot(InventorySlot slot)
     {
@@ -91,9 +94,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             draggingIcon.transform.position = eventData.position;
         }
 
-        bool overInventory =
-        eventData.pointerEnter != null &&
-        IsPointerInsideInventory(eventData.pointerEnter);
+        bool overInventory = eventData.pointerEnter != null && IsPointerInsideAnyContainer(eventData.pointerEnter);
 
         Image img = draggingIcon.GetComponent<Image>();
         img.color = overInventory ? new Color(1f, 1f, 1f, 0.7f) : new Color(1f, 0.3f, 0.3f, 0.8f); 
@@ -105,15 +106,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         if (slot == null || slot.IsEmpty) return;
 
-        // 1️⃣ Якщо взагалі ні на що не кинули — ДРОП
-        if (eventData.pointerEnter == null)
-        {
-            DropItem();
-            return;
-        }
-
-        // 2️⃣ Якщо кинули НЕ в межах інвентарю — ДРОП
-        if (!IsPointerInsideInventory(eventData.pointerEnter))
+        if (!IsPointerInsideAnyContainer(eventData.pointerEnter))
         {
             DropItem();
             return;
@@ -125,6 +118,13 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         if (otherSlotUI == null || otherSlotUI == this)
             return;
+
+        //if ((slotType == SlotType.Equipment && otherSlotUI.slotType == SlotType.Chest) || (slotType == SlotType.Chest && otherSlotUI.slotType == SlotType.Equipment))
+        //{
+        //    Debug.Log("Cannot move items between Equipment and Chest");
+        //    return;
+        //}
+
 
         if (eventData.pointerEnter != null)
         {
@@ -168,11 +168,102 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                 }
                 else
                 {
-                    TryStartEquipTimer(this, otherSlotUI);
+                    bool involvesEquipment =
+                        slotType == SlotType.Equipment ||
+                        otherSlotUI.slotType == SlotType.Equipment;
+
+                    if (involvesEquipment)
+                    {
+                        TryStartEquipTimer(this, otherSlotUI);
+                        return;
+                    }
+
+                    if (ownerInventory != otherSlotUI.ownerInventory)
+                    {
+                        TryMoveBetweenContainers(otherSlotUI);
+                        return;
+                    }
+                    else
+                    {
+                        // Якщо обидва слоти у одному контейнері
+                        bool canStack =
+                            slot.item == otherSlotUI.slot.item &&
+                            slot.item != null &&
+                            !slot.item.isUnique;
+
+                        if (canStack)
+                        {
+                            int remaining = otherSlotUI.slot.AddItem(slot.item, slot.count);
+                            slot.instance.count = remaining;
+
+                            if (slot.count <= 0)
+                                slot.Clear();
+
+                            SetSlot(slot);
+                            otherSlotUI.SetSlot(otherSlotUI.slot);
+
+                            ownerInventory.NotifyInventoryChanged();
+                        }
+                        else
+                        {
+                            // Просто свап предметів у межах одного контейнера
+                            SwapSlots(otherSlotUI);
+                            SetSlot(slot);
+                            otherSlotUI.SetSlot(otherSlotUI.slot);
+
+                            ownerInventory.NotifyInventoryChanged();
+                        }
+                    }
+
                 }
             }
         }
     }
+
+
+    private void TryMoveBetweenContainers(InventorySlotUI target)
+    {
+        // 1️⃣ Якщо target — Equipment → перевірка категорії
+        if (target.slotType == SlotType.Equipment && !slot.IsEmpty)
+        {
+            if ((slot.item.categories & target.allowedCategory) == 0)
+            {
+                Debug.Log("Not that category!");
+                return;
+            }
+        }
+
+        // 2️⃣ Якщо обидва НЕ equipment — можна стакати
+        bool canStack =
+            slot.item == target.slot.item &&
+            slot.item != null &&
+            !slot.item.isUnique &&
+            slotType != SlotType.Equipment &&
+            target.slotType != SlotType.Equipment;
+
+        if (canStack)
+        {
+            int remaining = target.slot.AddItem(slot.item, slot.count);
+            slot.instance.count = remaining;
+
+            if (slot.count <= 0)
+                slot.Clear();
+
+            SetSlot(slot);
+            target.SetSlot(target.slot);
+
+            ownerInventory.NotifyInventoryChanged();
+            target.ownerInventory.NotifyInventoryChanged();
+            return;
+        }
+
+        SwapSlots(target);
+
+        ownerInventory.NotifyInventoryChanged();
+        target.ownerInventory.NotifyInventoryChanged();
+    }
+
+
 
     private void OnDisable()
     {
@@ -193,12 +284,22 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         }
     }
 
-    private bool IsPointerInsideInventory(GameObject pointerEnter)
+    private bool IsPointerInsideAnyContainer(GameObject pointerEnter)
     {
-        RectTransform root = GetInventoryRoot();
-        if (root == null) return false;
+        if (pointerEnter == null) return false;
 
-        return pointerEnter.transform.IsChildOf(root);
+        RectTransform inventoryRoot = GetInventoryRoot();
+        RectTransform chestRoot = GetChestRoot();
+
+        Transform t = pointerEnter.transform;
+
+        if (inventoryRoot != null && t.IsChildOf(inventoryRoot))
+            return true;
+
+        if (chestRoot != null && t.IsChildOf(chestRoot))
+            return true;
+
+        return false;
     }
 
 
@@ -210,7 +311,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         GameObject go = GameObject.FindGameObjectWithTag("InventoryRoot");
         if (go == null)
         {
-            Debug.LogError("InventoryRoot with tag not found!");
             return null;
         }
 
@@ -218,6 +318,18 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         return cachedInventoryRoot;
     }
 
+    private RectTransform GetChestRoot()
+    {
+        if (cachedChestRoot != null)
+            return cachedChestRoot;
+
+        GameObject go = GameObject.FindGameObjectWithTag("ChestRoot");
+        if (go == null)
+            return null;
+
+        cachedChestRoot = go.GetComponent<RectTransform>();
+        return cachedChestRoot;
+    }
 
 
     private void TryStartEquipTimer(InventorySlotUI a, InventorySlotUI b)
@@ -259,28 +371,34 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     private void TryStackOrSwap(InventorySlotUI other)
     {
-        if (slotType == SlotType.Inventory && other.slotType == SlotType.Inventory)
+        // перевіряємо, чи обидва слоти в одному контейнері і чи це Inventory або Chest
+        bool sameContainer =
+            slotType == other.slotType &&
+            (slotType == SlotType.Inventory || slotType == SlotType.Chest);
+
+        if (sameContainer && slot.item != null && slot.item == other.slot.item && !slot.item.isUnique)
         {
-            if (slot.item == other.slot.item && slot.item != null)
+            int remaining = other.slot.AddItem(slot.item, slot.count);
+            slot.instance.count = remaining;
+
+            SetSlot(slot);
+            other.SetSlot(other.slot);
+
+            if (slot.count <= 0)
             {
-                int remaining = other.slot.AddItem(slot.item, slot.count);
-                slot.instance.count = remaining;
-
+                slot.Clear();
                 SetSlot(slot);
-                other.SetSlot(other.slot);
-
-                if (slot.count <= 0)
-                {
-                    slot.Clear();
-                    SetSlot(slot);
-                }
-                EquipmentManager.Instance.UpdateWeaponIdle();
-                return;
             }
+
+            EquipmentManager.Instance.UpdateWeaponIdle();
+            return;
         }
+
+        // якщо стакувати не можна — міняємо місцями
         SwapSlots(other);
         EquipmentManager.Instance.UpdateWeaponIdle();
     }
+
 
     private void SwapSlots(InventorySlotUI other)
     {
@@ -389,7 +507,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             {
                 if (hand != null && !hand.slot.IsEmpty && hand.slot.item != slotToEquip.item)
                 {
-                    InventoryUIManager.Instance.inventory.AddItem(hand.slot.item, hand.slot.count);
+                    InventoryUIManager.Instance.inventory.AddInstance(hand.slot.instance);
                     hand.slot.Clear();
                     hand.SetSlot(hand.slot);
                     eq.Unequip(hand.slotSpecification);
@@ -788,8 +906,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         }
 
 
-        Inventory inventory = InventoryUIManager.Instance.inventory;
-        inventory.RemoveItem(slot.item, amountToDrop);
+        ownerInventory?.RemoveItem(slot.item, amountToDrop);
 
         SetSlot(slot);
         InventoryUIManager.Instance.RefreshUI();
@@ -896,11 +1013,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             return;
         }
 
-        Inventory inventory = InventoryUIManager.Instance.inventory;
-        if (inventory != null)
-        {
-            inventory.RemoveItem(slot.item, toDrop);
-        }
+        ownerInventory?.RemoveItem(slot.item, toDrop);
 
         SetSlot(slot);
         InventoryUIManager.Instance.RefreshUI();

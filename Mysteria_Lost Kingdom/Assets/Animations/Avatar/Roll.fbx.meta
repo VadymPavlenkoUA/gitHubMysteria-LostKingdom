@@ -69,6 +69,13 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
+      - time: 0.17285664
+        functionName: OnRolling
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 7d4f0bfe55a18f64485fa0c8e87d7488, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       - time: 0.6483333
         functionName: RollEnd
         data: 

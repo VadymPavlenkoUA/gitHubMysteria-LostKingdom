@@ -15,6 +15,7 @@ public class PlayerInteract : MonoBehaviour
 
     private IInteractable currentTarget;
     private PlayerInputActions inputActions;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -43,47 +44,15 @@ public class PlayerInteract : MonoBehaviour
         CheckForInteractable();
     }
 
-    //void CheckForInteractable()
-    //{
-    //    Collider[] hits = Physics.OverlapSphere(transform.position, interactRange, interactableLayer);
-
-    //    IInteractable best = null;
-    //    float bestDist = Mathf.Infinity;
-
-    //    foreach (var col in hits)
-    //    {
-    //        IInteractable interactable = col.GetComponent<IInteractable>();
-    //        if (interactable == null) continue;
-
-    //        Vector3 dir = (col.transform.position - transform.position).normalized;
-    //        float dot = Vector3.Dot(transform.forward, dir);
-
-    //        if (dot < 0.5f) continue;
-
-    //        float dist = Vector3.Distance(transform.position, col.transform.position);
-    //        if (dist < bestDist)
-    //        {
-    //            bestDist = dist;
-    //            best = interactable;
-    //        }
-    //    }
-
-    //    if (best != null)
-    //    {
-    //        currentTarget = best;
-    //        promptNameText.text = best.GetInteractionNameText();
-    //        promptBTNText.text = best.GetInteractionBTNText();
-    //        promptUI.SetActive(true);
-    //    }
-    //    else
-    //    {
-    //        currentTarget = null;
-    //        promptUI.SetActive(false);
-    //    }
-    //}
-
     void CheckForInteractable()
     {
+        if (InteractionBlocker.IsBlocked)
+        {
+            currentTarget = null;
+            promptUI.SetActive(false);
+            return;
+        }
+
         IInteractable bestTarget = null;
         Ray ray = new Ray(transform.position, transform.forward);
 
@@ -132,28 +101,10 @@ public class PlayerInteract : MonoBehaviour
         }
     }
 
-    //void CheckForInteractable()
-    //{
-    //    Ray ray = new Ray(transform.position, transform.forward);
-    //    float sphereRadius = 0.3f;
-    //    if (Physics.SphereCast(ray, sphereRadius, out RaycastHit hit, interactRange, interactableLayer))
-    //    {
-    //        IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-    //        if (interactable != null)
-    //        {
-    //            currentTarget = interactable;
-    //            promptNameText.text = $"{interactable.GetInteractionNameText()}";
-    //            promptBTNText.text = $"{interactable.GetInteractionBTNText()}";
-    //            promptUI.SetActive(true);
-    //            return;
-    //        }
-    //    }
-    //    currentTarget = null;
-    //    promptUI.SetActive(false);
-    //}
-
     private void OnInteract(InputAction.CallbackContext context)
     {
+        if (InteractionBlocker.IsBlocked) return;
+
         if (currentTarget != null)
         {
             currentTarget.Interact();

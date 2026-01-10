@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class EnemyStats : MonoBehaviour
 {
+    public EnemyCombat combat;
+
     [Header("Identity")]
     public string enemyId; // goblin_warrior, boss_dragon_01
     public bool isUnique;
@@ -49,6 +51,7 @@ public class EnemyStats : MonoBehaviour
         currentHealth -= amount;
         Debug.Log($"Манекен отримав {amount} урону");
 
+        combat.DisableHitbox();
         animator.SetTrigger("Hit");
 
         if (healthBar != null) healthBar.UpdateHealth(CurrentHealthNormalized);

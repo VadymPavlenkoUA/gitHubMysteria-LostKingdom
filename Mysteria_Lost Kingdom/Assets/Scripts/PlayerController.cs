@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     private Animator animator;
     public PlayerStats stats;
     public PlayerCombat combat;
+    public PlayerAudio audioPlayer;
 
     private Vector2 moveInput;
     private bool isFreeLook = false;
@@ -109,6 +110,36 @@ public class PlayerController : MonoBehaviour
     private void OnMoveCanceled(InputAction.CallbackContext ctx)
     {
         moveInput = Vector2.zero;
+    }
+    Surface GetSurfaceUnderPlayer()
+    {
+        RaycastHit hit;
+        Vector3 origin = transform.position + Vector3.up * 0.2f;
+
+        if (Physics.Raycast(origin, Vector3.down, out hit, 1f, groundMask))
+        {
+            if (hit.collider.TryGetComponent<Terrain>(out _))
+                return TerrainSurfaceUtility.GetSurface(hit.point);
+
+            if (hit.collider.TryGetComponent(out SurfaceType st))
+                return st.surface;
+        }
+
+        return Surface.Default;
+    }
+
+    public void OnFootstep()
+    {
+        if (!IsGrounded() || isRolling) return;
+        if (moveInput.sqrMagnitude < 0.01f) return;
+        Surface surface = GetSurfaceUnderPlayer();
+        audioPlayer.PlaySurfaceSound(surface, isSprinting ? SurfaceAction.Sprint : SurfaceAction.Walk);
+    }
+
+    public void OnRolling()
+    {
+        Surface surface = GetSurfaceUnderPlayer();
+        audioPlayer.PlaySurfaceSound(surface, SurfaceAction.Roll);
     }
 
     private void FixedUpdate()
@@ -337,6 +368,8 @@ public class PlayerController : MonoBehaviour
     private void StartJump()
     {
         isJumping = true;
+        Surface surface = GetSurfaceUnderPlayer();
+        audioPlayer.PlaySurfaceSound(surface, SurfaceAction.Jump);
 
         if (animator != null)
         {
@@ -353,6 +386,8 @@ public class PlayerController : MonoBehaviour
     public void OnLand()
     {
         isJumping = false;
+        Surface surface = GetSurfaceUnderPlayer();
+        audioPlayer.PlaySurfaceSound(surface, SurfaceAction.Land);
 
         if (animator != null)
         {
