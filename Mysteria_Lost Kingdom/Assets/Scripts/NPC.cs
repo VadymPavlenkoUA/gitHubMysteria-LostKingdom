@@ -1,9 +1,18 @@
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class NPC : MonoBehaviour, IInteractable
+public class NPC : MonoBehaviour, IInteractable, IClosableInteraction
 {
     public DialogueData dialogueData;
+    public Transform InteractionTransform => transform;
+
+    public void OnInteractionClosed()
+    {
+        if (!DialogueManager.Instance.isDialogueOpen) return;
+
+        DialogueManager.Instance.EndDialogue();
+        Debug.Log("Діалог закрито через відстань");
+    }
 
     public string GetInteractionNameText()
     {
@@ -18,6 +27,7 @@ public class NPC : MonoBehaviour, IInteractable
     public void Interact()
     {
         DialogueManager.Instance.StartDialogue(dialogueData);
+        InteractionDistanceWatcher.Instance.StartWatching(this);
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

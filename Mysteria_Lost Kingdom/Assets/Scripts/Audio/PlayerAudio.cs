@@ -16,6 +16,26 @@ public class FootstepSet
     public AudioClip[] roll;
 }
 
+[System.Serializable]
+public class ItemSoundSet
+{
+    public ItemCategory itemCategory;
+
+    public AudioClip[] equip;
+    public AudioClip[] unequip;
+    public AudioClip[] pickup;
+}
+
+[System.Serializable]
+public class CombatSoundSet
+{
+    public BlockType blockType;
+
+    [Header("Combat")]
+    public AudioClip[] attack;
+    public AudioClip[] block;
+}
+
 public enum SurfaceAction
 {
     Walk,
@@ -25,19 +45,42 @@ public enum SurfaceAction
     Roll
 }
 
+public enum ItemAction
+{
+    Equip,
+    Unequip,
+    Pickup
+}
+
+public enum CombatAction
+{
+    Attack,
+    Block
+}
+
+public enum BlockType
+{
+    None,
+    WeaponOneHand,
+    WeaponTwoHand,
+    Shield
+}
+
 public class PlayerAudio : MonoBehaviour
 {
     [Header("Audio Sources")]
     public AudioSource footstepsSource;
     public AudioSource actionSource;
+    public AudioSource itemSource;
 
-    [Header("Footsteps")]
+    [Header("Footsteps / Actions")]
     public FootstepSet[] footstepSets;
 
-    [Header("Actions")]
-    public AudioClip rollClip;
-    public AudioClip jumpClip;
-    public AudioClip landClip;
+    [Header("Item Audio")]
+    public ItemSoundSet[] itemSoundSets;
+
+    [Header("Combat Audio")]
+    public CombatSoundSet[] combatSoundSets;
 
     public void PlaySurfaceSound(Surface surface, SurfaceAction action)
     {
@@ -81,34 +124,79 @@ public class PlayerAudio : MonoBehaviour
         source.PlayOneShot(bank[Random.Range(0, bank.Length)]);
     }
 
-    //public void PlayFootstep(Surface surface, bool sprint)
-    //{
-    //    foreach (var set in footstepSets)
-    //    {
-    //        if (set.surface == surface)
-    //        {
-    //            var bank = sprint ? set.sprint : set.walk;
-    //            if (bank.Length == 0) return;
+    public void PlayItemSound(ItemCategory type, ItemAction action)
+    {
+        ItemSoundSet fallback = null;
 
-    //            footstepsSource.PlayOneShot(
-    //                bank[Random.Range(0, bank.Length)]
-    //            );
-    //            return;
-    //        }
-    //    }
-    //}
-    //public void PlayRoll()
-    //{
-    //    actionSource.PlayOneShot(rollClip);
-    //}
+        foreach (var set in itemSoundSets)
+        {
+            if (set.itemCategory == ItemCategory.None)
+                fallback = set;
 
-    //public void PlayJump()
-    //{
-    //    actionSource.PlayOneShot(jumpClip);
-    //}
+            if ((type & set.itemCategory) != 0)
+            {
+                PlayItem(set, action);
+                return;
+            }
+        }
 
-    //public void PlayLand()
-    //{
-    //    actionSource.PlayOneShot(landClip);
-    //}
+        if (fallback != null)
+            PlayItem(fallback, action);
+    }
+
+    void PlayItem(ItemSoundSet set, ItemAction action)
+    {
+        AudioClip[] bank = null;
+
+        switch (action)
+        {
+            case ItemAction.Equip: bank = set.equip; break;
+            case ItemAction.Unequip: bank = set.unequip; break;
+            case ItemAction.Pickup: bank = set.pickup; break;
+        }
+
+        if (bank == null || bank.Length == 0) return;
+
+        itemSource.pitch = Random.Range(0.95f, 1.05f);
+        itemSource.PlayOneShot(bank[Random.Range(0, bank.Length)]);
+    }
+
+    public void PlayCombatSound(BlockType blockType, CombatAction action)
+    {
+        CombatSoundSet fallback = null;
+
+        foreach (var set in combatSoundSets)
+        {
+            if (set.blockType == BlockType.None)
+                fallback = set;
+
+            if (set.blockType == blockType)
+            {
+                PlayCombat(set, action);
+                return;
+            }
+        }
+
+        if (fallback != null)
+            PlayCombat(fallback, action);
+    }
+
+
+    void PlayCombat(CombatSoundSet set, CombatAction action)
+    {
+        AudioClip[] bank = null;
+
+        switch (action)
+        {
+            case CombatAction.Attack: bank = set.attack; break;
+            case CombatAction.Block: bank = set.block; break;
+        }
+
+        if (bank == null || bank.Length == 0) return;
+
+        actionSource.pitch = Random.Range(0.95f, 1.05f);
+        actionSource.PlayOneShot(bank[Random.Range(0, bank.Length)]);
+    }
+
+
 }

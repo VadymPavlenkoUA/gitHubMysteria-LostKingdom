@@ -3,6 +3,10 @@ using UnityEngine;
 public class TabSwitcher : MonoBehaviour
 {
     public GameObject[] panels;
+    public AudioSource audioSource;
+    public AudioClip pageAudio;
+
+    private int tempIndex = -1;
 
     public void OpenTab(int index)
     {
@@ -10,6 +14,9 @@ public class TabSwitcher : MonoBehaviour
         {
             panels[i].SetActive(i == index);
         }
+        if (tempIndex == index) return;
+        tempIndex = index;
+        audioSource.PlayOneShot(pageAudio);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

@@ -6,6 +6,7 @@ public class ChestVisual : MonoBehaviour
     public AudioSource audioSource;
     public AudioClip openSound;
     public AudioClip closeSound;
+    public AudioClip lockSound;
 
     public void Open()
     {
@@ -21,5 +22,10 @@ public class ChestVisual : MonoBehaviour
         animator.SetBool("IsOpen", false);
         if (audioSource && closeSound)
             audioSource.PlayOneShot(closeSound);
+    }
+
+    public void LockSound()
+    {
+        audioSource.PlayOneShot(lockSound);
     }
 }

@@ -161,4 +161,10 @@ public class InventoryUIManager : MonoBehaviour
         currentChestVisual?.Close();
         currentChestVisual = null;
     }
+
+    public bool IsChestOpen(Inventory chest)
+    {
+        if (chestPanel.activeSelf && chestInventory == chest) return true;
+        return false;
+    }
 }

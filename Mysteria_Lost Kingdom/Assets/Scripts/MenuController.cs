@@ -2,7 +2,9 @@ using Unity.Cinemachine;
 using Unity.VisualScripting.Antlr3.Runtime;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class MenuController : MonoBehaviour
 {
@@ -10,6 +12,7 @@ public class MenuController : MonoBehaviour
     public GameObject mainMenu;
     public GameObject gameMenu;
     public GameObject educationMenu;
+    public AudioMixer mixer;
     public static PlayerInputActions Controls;
     internal PlayerInputActions inputActions;
     private bool isMMopen = false;
@@ -100,6 +103,7 @@ public class MenuController : MonoBehaviour
             Cursor.visible = true;
             Time.timeScale = 0f;
             inputActions.Combat.Disable();
+            mixer.FindSnapshot("Paused").TransitionTo(0.2f);
         }
         else
         {
@@ -108,6 +112,7 @@ public class MenuController : MonoBehaviour
             Cursor.visible = false;
             Time.timeScale = 1f;
             inputActions.Combat.Enable();
+            mixer.FindSnapshot("Gameplay").TransitionTo(0.2f);
         }
 
         mainMenu.SetActive(state);
@@ -177,5 +182,15 @@ public class MenuController : MonoBehaviour
     public bool IsInputBlocked()
     {
         return inputBlocked;
+    }
+
+    public void ExitBTN()
+    {
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public void ResumeBTN()
+    {
+        if (isMMopen) ToggleMainMenu(!isMMopen);
     }
 }

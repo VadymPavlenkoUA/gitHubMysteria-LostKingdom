@@ -35,6 +35,7 @@ public class ItemPickup : MonoBehaviour, IInteractable
     public void Interact()
     {
         var inv = FindAnyObjectByType<PlayerInventory>();
+        var playerAudio = FindAnyObjectByType<PlayerAudio>();
 
         if (item.isUnique)
         {
@@ -44,7 +45,7 @@ public class ItemPickup : MonoBehaviour, IInteractable
         {
             inv.PickUpItem(item, amount);
         }
-
+        playerAudio.PlayItemSound(item.categories, ItemAction.Pickup);
         NotificationSystem.Instance.ShowNotification(item.icon, $"Підібрано {item.itemName} x{amount}");
         Destroy(gameObject);
     }

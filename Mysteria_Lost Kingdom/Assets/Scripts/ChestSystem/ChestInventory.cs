@@ -3,7 +3,7 @@ using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class ChestInventory : MonoBehaviour, IInteractable
+public class ChestInventory : MonoBehaviour, IInteractable, IClosableInteraction
 {
     public TaskDatabase taskDB;
     public enum ChestType
@@ -27,6 +27,16 @@ public class ChestInventory : MonoBehaviour, IInteractable
 
     [Header("Loot")]
     public LootTable defaultChestLoot;
+    public Transform InteractionTransform => transform;
+
+    public void OnInteractionClosed()
+    {
+        if (!InventoryUIManager.Instance.IsChestOpen(chestInventory)) return;
+
+        InventoryUIManager.Instance.CloseChest();
+        chestVisual.Close();
+        Debug.Log("Скриня зачинена через відстань");
+    }
 
     public string GetInteractionNameText()
     {
@@ -60,7 +70,11 @@ public class ChestInventory : MonoBehaviour, IInteractable
         }
         else
         {
-            UseActionManager.Instance.StartUse(0.5f, () => InventoryUIManager.Instance.OpenChest(chestInventory, chestVisual, $"{chestType} скриня"), () => Debug.Log("Скасовано!"));
+            UseActionManager.Instance.StartUse(0.5f, () => 
+            {
+                InventoryUIManager.Instance.OpenChest(chestInventory, chestVisual, $"{chestType} скриня");
+                InteractionDistanceWatcher.Instance.StartWatching(this);
+            }, () => Debug.Log("Скасовано!"));
         }
     }
 
@@ -95,6 +109,7 @@ public class ChestInventory : MonoBehaviour, IInteractable
 
         if (lockpick == null)
         {
+            chestVisual.LockSound();
             NotificationSystem.Instance.ShowNotification(NotificationSystem.Instance.lockSprite, $"У вас немає відмички {requiredLevel+1} чи вище!");
             return false;
         }
@@ -112,10 +127,15 @@ public class ChestInventory : MonoBehaviour, IInteractable
                 {
                     NotificationSystem.Instance.ShowNotification(NotificationSystem.Instance.unlockSprite, $"\"{chestType} скриня\" відчинена!");
                     isLocked = false;
-                    UseActionManager.Instance.StartUse(0.5f, () => InventoryUIManager.Instance.OpenChest(chestInventory, chestVisual, $"{chestType} скриня"), () => Debug.Log("Скасовано!"));
+                    UseActionManager.Instance.StartUse(0.5f, () =>
+                    {
+                        InventoryUIManager.Instance.OpenChest(chestInventory, chestVisual, $"{chestType} скриня");
+                        InteractionDistanceWatcher.Instance.StartWatching(this);
+                    }, () => Debug.Log("Скасовано!"));
                 }
                 else
                 {
+                    chestVisual.LockSound();
                     NotificationSystem.Instance.ShowNotification(NotificationSystem.Instance.lockSprite, $"Відмичка {lockpick.lockpickLevel + 1} рівня зламалася!");
                     playerInventory.RemoveItem(lockpick, 1);
                 }
@@ -131,7 +151,11 @@ public class ChestInventory : MonoBehaviour, IInteractable
             NotificationSystem.Instance.ShowNotification(NotificationSystem.Instance.unlockSprite, $"\"{chestType} скриня\" відчинена!");
             Debug.Log($"Відкриваємо скриню \"{chestType}\" без завдання");
             isLocked = false;
-            UseActionManager.Instance.StartUse(0.5f, () => InventoryUIManager.Instance.OpenChest(chestInventory, chestVisual, $"{chestType} скриня"), () => Debug.Log("Скасовано!"));
+            UseActionManager.Instance.StartUse(0.5f, () =>
+            {
+                InventoryUIManager.Instance.OpenChest(chestInventory, chestVisual, $"{chestType} скриня");
+                InteractionDistanceWatcher.Instance.StartWatching(this);
+            }, () => Debug.Log("Скасовано!"));
             return true;
         }
     }
