@@ -2,10 +2,8 @@ using UnityEngine;
 
 public class TimeOfDayLighting : MonoBehaviour
 {
+    [Header("Sun")]
     public Light sunLight;
-    public Light moonLight;
-
-    [Header("Presets")]
     public Gradient sunColor;
     public AnimationCurve sunIntensity;
 
@@ -23,17 +21,24 @@ public class TimeOfDayLighting : MonoBehaviour
     public Gradient fogColor;
     public AnimationCurve fogDensity;
 
+    [Header("Moon")]
+    public Light moonLight;
+    public Gradient moonColor;
+    public AnimationCurve moonIntensity;
+
     private void Update()
     {
         float time = TimeOfDayManager.Instance.timeOfDay / 24f;
 
         float sunAngle = time * 360f - 90f;
         sunLight.transform.rotation = Quaternion.Euler(sunAngle, 270f, 0f);
-
         sunLight.color = sunColor.Evaluate(time);
         sunLight.intensity = sunIntensity.Evaluate(time);
 
-        //moonLight.intensity = TimeOfDayManager.Instance.IsNight ? 0.5f : 0f;
+        float moonAngle = sunAngle + 180f;
+        moonLight.transform.rotation = Quaternion.Euler(moonAngle, 270f, 0f);
+        moonLight.color = moonColor.Evaluate(time);
+        moonLight.intensity = moonIntensity.Evaluate(time);
 
         float daylight = sunIntensity.Evaluate(time);
         RenderSettings.ambientLight = ambientColor.Evaluate(time);

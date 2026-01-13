@@ -7,8 +7,8 @@ public class TimeOfDayManager : MonoBehaviour
 
     [Header("Time")]
     [Range(0f, 24f)]
-    public float timeOfDay = 12f;
-    public float dayLengthInMinutes = 20f;
+    [SerializeField] internal float timeOfDay = 12f;
+    [SerializeField] internal float dayLengthInMinutes = 20f;
 
     public bool IsNight => timeOfDay < 6f || timeOfDay >= 18f;
 
