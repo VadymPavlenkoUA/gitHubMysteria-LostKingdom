@@ -20,6 +20,14 @@ public class EnemyStats : MonoBehaviour
     [Header("Loot")]
     public LootTable lootTable;
 
+    [Header("Balance / Poise")]
+    public float maxBalance = 100f;
+    public float balanceRegenRate = 15f;
+    public float staggerThreshold = 0f;
+
+    private float currentBalance;
+    private float balanceRegenTimer;
+
     public Animator animator;
 
     private bool isDead = false;
@@ -33,6 +41,7 @@ public class EnemyStats : MonoBehaviour
     private void Awake()
     {
         currentHealth = maxHealth;
+        currentBalance = maxBalance;
         GameObject barGO = Instantiate(
             healthBarPrefab,
             barPosition.transform.position,
@@ -44,15 +53,39 @@ public class EnemyStats : MonoBehaviour
         healthBar.UpdateHealth(CurrentHealthNormalized);
     }
 
-    public void TakeDamage(float amount, PlayerStats attacker = null)
+    private void Update()
     {
         if (isDead) return;
 
-        currentHealth -= amount;
-        Debug.Log($"Манекен отримав {amount} урону");
+        if (balanceRegenTimer > 0)
+        {
+            balanceRegenTimer -= Time.deltaTime;
+        }
+        else
+        {
+            currentBalance = Mathf.Min(
+                maxBalance,
+                currentBalance + balanceRegenRate * Time.deltaTime
+            );
+        }
+    }
 
-        combat.DisableHitbox();
-        animator.SetTrigger("Hit");
+    public void TakeDamage(float damage, float balanceDamage, PlayerStats attacker = null)
+    {
+        if (isDead) return;
+
+        float finalDamage = Mathf.Max(1f, damage - armor);
+        currentHealth -= finalDamage;
+        Debug.Log($"Манекен отримав {damage} урону");
+
+        currentBalance -= balanceDamage;
+        balanceRegenTimer = 2f;
+
+        if (currentBalance <= staggerThreshold)
+        {
+            TriggerStagger();
+            currentBalance = maxBalance;
+        }
 
         if (healthBar != null) healthBar.UpdateHealth(CurrentHealthNormalized);
 
@@ -60,6 +93,12 @@ public class EnemyStats : MonoBehaviour
         {
             Die(attacker);
         }
+    }
+
+    void TriggerStagger()
+    {
+        combat.DisableHitbox();
+        animator.SetTrigger("Hit");
     }
 
     void Die(PlayerStats killer)

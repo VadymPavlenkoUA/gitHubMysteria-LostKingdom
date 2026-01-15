@@ -26,7 +26,7 @@ public class CombatManager : MonoBehaviour
         // Нанесення урону
         if (targetStats != null)
         {
-            targetStats.TakeDamage(finalDamage);
+            targetStats.TakeDamage(finalDamage, 50);
         }
 
         // Витрата стаміни

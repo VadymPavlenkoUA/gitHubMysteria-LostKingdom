@@ -16,6 +16,9 @@ public class TimeOfDayManager : MonoBehaviour
     public event Action OnDayStarted;
     public event Action OnNightStarted;
 
+    public float GameMinutesDelta { get; private set; }
+    public float GameHoursDelta { get; private set; }
+
     private int lastHour;
     private bool lastNightState;
 
@@ -29,9 +32,16 @@ public class TimeOfDayManager : MonoBehaviour
     private void Update()
     {
         float timeSpeed = 24f / (dayLengthInMinutes * 60f);
-        timeOfDay += Time.deltaTime * timeSpeed;
+        float prevTime = timeOfDay;
 
+        timeOfDay += Time.deltaTime * timeSpeed;
         timeOfDay %= 24f;
+
+        float deltaHours = timeOfDay - prevTime;
+        if (deltaHours < 0) deltaHours += 24f;
+
+        GameHoursDelta = deltaHours;
+        GameMinutesDelta = deltaHours * 60f;
 
         int hour = Mathf.FloorToInt(timeOfDay);
         if (hour != lastHour)

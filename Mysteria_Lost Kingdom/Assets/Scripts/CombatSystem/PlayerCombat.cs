@@ -155,12 +155,13 @@ public class PlayerCombat : MonoBehaviour
             animator.SetFloat("AttackIndex", 3);
 
         else if (equipment.equippedLeftItem != null &&
-                 equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+                 equipment.equippedLeftItem.item.categories == ItemCategory.Shield && equipment.isRightHandDrawn)
             animator.SetFloat("AttackIndex", 4);
         else if (equipment.isRightHandDrawn && equipment.isLeftHandDrawn && equipment.equippedLeftItem.item.categories != ItemCategory.Shield &&
             equipment.equippedLeftItem.item.weaponHandType != WeaponHandType.TwoHand)
             animator.SetFloat("AttackIndex", 5);
-
+        else if (!equipment.isRightHandDrawn && equipment.isLeftHandDrawn && equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+            animator.SetFloat("AttackIndex", 6);
         else
             animator.SetFloat("AttackIndex", 0);
     }
@@ -182,8 +183,10 @@ public class PlayerCombat : MonoBehaviour
             return equipment.equippedRightItem.item.staminaCostPerAttack;
 
         else if (equipment.equippedLeftItem != null &&
-                 equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+                 equipment.equippedLeftItem.item.categories == ItemCategory.Shield && equipment.isRightHandDrawn)
             return equipment.equippedRightItem.item.staminaCostPerAttack;
+        else if (!equipment.isRightHandDrawn && equipment.isLeftHandDrawn && equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+            return equipment.equippedLeftItem.item.staminaCostPerAttack;
 
         else
             return 5f;
@@ -207,7 +210,7 @@ public class PlayerCombat : MonoBehaviour
 
         else if (equipment.equippedLeftItem != null &&
                  equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
-            return equipment.equippedRightItem.item.staminaShieldCostPerSecond;
+            return equipment.equippedLeftItem.item.staminaShieldCostPerSecond;
 
         else
             return 1f;
@@ -231,7 +234,7 @@ public class PlayerCombat : MonoBehaviour
 
         else if (equipment.equippedLeftItem != null &&
                  equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
-            return equipment.equippedRightItem.item.baseDefenseMultiplier;
+            return equipment.equippedLeftItem.item.baseDefenseMultiplier;
 
         else
             return 1.1f;
@@ -251,8 +254,11 @@ public class PlayerCombat : MonoBehaviour
             return equipment.equippedRightItem;
 
         else if (equipment.equippedLeftItem != null &&
-                 equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+                 equipment.equippedLeftItem.item.categories == ItemCategory.Shield && equipment.isRightHandDrawn)
             return equipment.equippedRightItem;
+
+        else if (!equipment.isRightHandDrawn && equipment.isLeftHandDrawn && equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+            return equipment.equippedLeftItem;
 
         return null;
     }
@@ -331,7 +337,7 @@ public class PlayerCombat : MonoBehaviour
         {
             equipment.DamageDurability(equipment.equippedRightItem, durabilityDamagePerHit);
         }
-        else if (equipment.equippedRightItem != null && equipment.equippedRightItem.item.categories == ItemCategory.Shield)
+        else if (!equipment.isRightHandDrawn && equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
         {
             equipment.DamageDurability(equipment.equippedLeftItem, durabilityDamagePerHit);
         }
@@ -359,7 +365,7 @@ public class PlayerCombat : MonoBehaviour
             return;
 
         if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn) return;
-        if (equipment.equippedRightItem == null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield) return;
+        //if (equipment.equippedRightItem == null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield) return;
 
         if (!playerStats.TryUseStamina(1f))
             return;
@@ -401,9 +407,10 @@ public class PlayerCombat : MonoBehaviour
     public void OnWeaponHit(EnemyStats enemy)
     {
         CombatStats combatStats = playerStats.CalculateCombatStats();
-        float damage = Mathf.Max(combatStats.totalDamage - enemy.armor, 1f);
+        float damage = Mathf.Max(combatStats.totalDamage, 1f);
+        float balanceDamage = Mathf.Max(combatStats.totalBalanceDamage, 1f);
 
-        enemy.TakeDamage(damage, playerStats);
+        enemy.TakeDamage(damage, balanceDamage, playerStats);
         DamageWeaponDurability();
     }
 

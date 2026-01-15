@@ -612,6 +612,11 @@ public class EquipmentManager : MonoBehaviour
             animator.SetBool("WeaponEquipped", true);
             animator.SetFloat("WeaponType", 6);
         }
+        else if (!isRightHandDrawn && isLeftHandDrawn && equippedLeftItem.item.categories == ItemCategory.Shield)
+        {
+            animator.SetBool("WeaponEquipped", true);
+            animator.SetFloat("WeaponType", 7);
+        }
         else
         {
             animator.SetBool("WeaponEquipped", false);

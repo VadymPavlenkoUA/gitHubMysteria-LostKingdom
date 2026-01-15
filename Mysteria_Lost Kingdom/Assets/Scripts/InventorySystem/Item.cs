@@ -51,6 +51,7 @@ public class Item : ScriptableObject
 
     [Header("Combat Stats")]
     public float baseDamage = 0f;       // якщо це зброя
+    public float baseBalanceDamage = 0f; // урон по балансу противника
     public float staminaCostPerAttack = 5f;
     public float baseArmor = 0f;        // якщо це броня
     public float baseDefenseMultiplier = 10f;     // якщо це щит

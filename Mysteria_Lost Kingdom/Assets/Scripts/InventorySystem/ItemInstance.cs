@@ -5,6 +5,7 @@ public class ItemInstance
     public float currentDurability;
     public int count;
     public float currentDamage;
+    public float currentBalanceDamage;
     public float currentDefenseMultiplier;
     public float currentArmor;
 
@@ -14,6 +15,7 @@ public class ItemInstance
         this.count = count;
         currentDurability = item.maxDurability;
         currentDamage = item.baseDamage;
+        currentBalanceDamage = item.baseBalanceDamage;
         currentDefenseMultiplier = item.baseDefenseMultiplier;
         currentArmor = item.baseArmor;
     }

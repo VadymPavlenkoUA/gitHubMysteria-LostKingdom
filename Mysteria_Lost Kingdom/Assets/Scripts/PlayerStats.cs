@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class CombatStats
 {
     public float totalDamage;
+    public float totalBalanceDamage;
     public float totalArmor;
 }
 
@@ -45,6 +46,8 @@ public class PlayerStats : MonoBehaviour
     public float baseSatiety;
     public float maxSatiety = 100f;
     public float currentSatiety = 100f;
+    [SerializeField] private float satietyLossPerHour = 10f;
+    private float satietyMinuteAccumulator = 0f;
 
     [Header("WeightSettings")]
     public float baseWeight = 35f;
@@ -54,6 +57,9 @@ public class PlayerStats : MonoBehaviour
     public float baseHealth = 100f;
     public float maxHealth = 100f;
     public float currentHealth;
+    [SerializeField] private float hpRegenPerHour = 6f;
+    [SerializeField] private float hpRegenTick = 0.1f;
+    private float hpRegenMinuteAccumulator = 0f;
 
     [Header("StaminaSettings")]
     public float baseStamina = 100f;
@@ -61,6 +67,10 @@ public class PlayerStats : MonoBehaviour
     public float currentStamina;
     public float staminaRegen = 5f;
     public float regenDelay = 2f;
+    [SerializeField] private float staminaRegenPerHour = 120f;
+    [SerializeField] private float staminaRegenTick = 1f;
+    private float staminaRegenMinuteAccumulator = 0f;
+    private float staminaRegenDelayTimer = 0f;
 
     [Header("ManaSettings")]
     public float baseMana = 100f;
@@ -68,6 +78,10 @@ public class PlayerStats : MonoBehaviour
     public float currentMana;
     public float manaRegen = 5f;
     public float manaRegenDelay = 2f;
+    [SerializeField] private float manaRegenPerHour = 12f;
+    [SerializeField] private float manaRegenTick = 0.2f;
+    private float manaRegenMinuteAccumulator = 0f;
+    private float manaRegenDelayTimer = 0f;
 
     [Header("Gold")]
     public int gold = 0;
@@ -102,11 +116,6 @@ public class PlayerStats : MonoBehaviour
 
     public delegate void OnCombarChanged();
     public event OnCombarChanged CombatChanged;
-
-    public float regenTimer;
-    private float manaRegenTimer;
-    private float satietyTimer = 0f;
-    private float healthRegenTimer = 0f;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -130,59 +139,117 @@ public class PlayerStats : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        float gameMinutes = TimeOfDayManager.Instance.GameMinutesDelta;
+
+        // ---------------- STAMINA ----------------
         if (currentStamina < maxStamina)
         {
-            regenTimer -= Time.deltaTime;
-            if (regenTimer <= 0)
+            if (staminaRegenDelayTimer > 0f)
             {
-                float regenAmount = GetStaminaRegen();
-                float oldStamina = currentStamina;
-                currentStamina += regenAmount * Time.deltaTime;
-                currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
+                staminaRegenDelayTimer -= gameMinutes;
+            }
+            else
+            {
+                float minutesPerTickStamina =
+                    (60f * staminaRegenTick) / staminaRegenPerHour;
 
-                if (Mathf.Abs(currentStamina - oldStamina) > 0.01f) StaminaChanged?.Invoke();
+                staminaRegenMinuteAccumulator += gameMinutes;
+
+                while (staminaRegenMinuteAccumulator >= minutesPerTickStamina)
+                {
+                    staminaRegenMinuteAccumulator -= minutesPerTickStamina;
+
+                    if (currentStamina >= maxStamina)
+                        break;
+
+                    currentStamina += staminaRegenTick;
+                    currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
+
+                    StaminaChanged?.Invoke();
+                }
             }
         }
+        else
+        {
+            staminaRegenMinuteAccumulator = 0f;
+        }
 
+        // ---------------- MANA ----------------
         if (currentMana < maxMana)
         {
-            manaRegenTimer -= Time.deltaTime;
-            if (manaRegenTimer <= 0)
+            if (manaRegenDelayTimer > 0f)
             {
-                float regenAmount = GetManaRegen();
-                float oldMana = currentMana;
-                currentMana += regenAmount * Time.deltaTime;
-                currentMana = Mathf.Clamp(currentMana, 0, maxMana);
-                if (Mathf.Abs(currentMana - oldMana) > 0.01f) ManaChanged?.Invoke();
+                manaRegenDelayTimer -= gameMinutes;
+            }
+            else
+            {
+                float minutesPerTickMana = (60f * manaRegenTick) / manaRegenPerHour;
+                manaRegenMinuteAccumulator += gameMinutes;
+
+                while (manaRegenMinuteAccumulator >= minutesPerTickMana)
+                {
+                    manaRegenMinuteAccumulator -= minutesPerTickMana;
+
+                    if (currentMana >= maxMana)
+                        break;
+
+                    float oldMana = currentMana;
+                    currentMana += manaRegenTick;
+                    currentMana = Mathf.Clamp(currentMana, 0f, maxMana);
+
+                    if (Mathf.Abs(currentMana - oldMana) > 0.001f)
+                        ManaChanged?.Invoke();
+                }
             }
         }
-
-        satietyTimer += Time.deltaTime;
-        if (satietyTimer >= 60f)
+        else
         {
-            satietyTimer = 0f;
-            if (currentSatiety > 0)
-            {
-                currentSatiety -= 1f;
-                currentSatiety = Mathf.Clamp(currentSatiety, 0f, maxSatiety);
-                SatietyChanged?.Invoke();
-            }
+            manaRegenMinuteAccumulator = 0f;
         }
 
-        healthRegenTimer += Time.deltaTime;
-        if (healthRegenTimer >= 10f)
+        // ---------------- SATIETY ----------------
+        satietyMinuteAccumulator += gameMinutes;
+        float minutesPerSatiety = 60f / satietyLossPerHour;
+
+        while (satietyMinuteAccumulator >= minutesPerSatiety)
         {
-            healthRegenTimer = 0f;
-            if (currentHealth < maxHealth && currentSatiety >= 30)
+            satietyMinuteAccumulator -= minutesPerSatiety;
+
+            if (currentSatiety <= 0f)
+                break;
+
+            currentSatiety -= 1f;
+            currentSatiety = Mathf.Clamp(currentSatiety, 0f, maxSatiety);
+            SatietyChanged?.Invoke();
+        }
+
+        // ---------------- HEALTH ----------------
+        if (currentHealth < maxHealth && currentSatiety >= 30f)
+        {
+            float minutesPerTickHP = (60f * hpRegenTick) / hpRegenPerHour;
+            hpRegenMinuteAccumulator += gameMinutes;
+
+            while (hpRegenMinuteAccumulator >= minutesPerTickHP)
             {
-                currentHealth += 0.1f;
+                hpRegenMinuteAccumulator -= minutesPerTickHP;
+
+                if (currentHealth >= maxHealth)
+                    break;
+
+                currentHealth += hpRegenTick;
                 currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
                 HealthChanged?.Invoke();
             }
         }
+        else
+        {
+            hpRegenMinuteAccumulator = 0f;
+        }
 
+        // ---------------- UI ----------------
         UpdateUI();
     }
+
 
     public void TakeDamage(float incomingDamage)
     {
@@ -236,22 +303,29 @@ public class PlayerStats : MonoBehaviour
     public bool TryUseStamina(float amount)
     {
         float adjustedAmount = amount * GetStaminaCostMultiplier();
-        if (currentStamina >= adjustedAmount)
-        {
-            currentStamina -= adjustedAmount;
-            regenTimer = regenDelay;
-            StaminaChanged?.Invoke();
-            UpdateUI();
-            return true;
-        }
-        return false;
+
+        if (currentStamina < adjustedAmount)
+            return false;
+
+        currentStamina -= adjustedAmount;
+        currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
+
+        staminaRegenDelayTimer = regenDelay;         
+        staminaRegenMinuteAccumulator = 0f;           
+
+        StaminaChanged?.Invoke();
+        UpdateUI();
+        return true;
     }
 
     public void UseStamina(float amount)
     {
         currentStamina -= amount;
         currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
-        regenTimer = regenDelay;
+
+        staminaRegenDelayTimer = regenDelay;       
+        staminaRegenMinuteAccumulator = 0f;
+
         StaminaChanged?.Invoke();
         UpdateUI();
     }
@@ -449,6 +523,8 @@ public class PlayerStats : MonoBehaviour
                 eq.equippedRightItem.item.baseDamage * durabilityMod +
                 strength * 1.5f +
                 agility * 0.5f;
+
+            combat.totalBalanceDamage = eq.equippedRightItem.item.baseBalanceDamage;
         }
 
         if (eq.equippedLeftItem != null && eq.equippedLeftItem.item.categories != ItemCategory.Shield && eq.equippedLeftItem.item.weaponHandType != WeaponHandType.TwoHand && eq.isLeftHandDrawn)
@@ -460,12 +536,28 @@ public class PlayerStats : MonoBehaviour
                 eq.equippedLeftItem.item.baseDamage * durabilityMod +
                 strength * 1.5f +
                 agility * 0.5f;
+
+            combat.totalBalanceDamage = eq.equippedLeftItem.item.baseBalanceDamage;
+        }
+
+        if (eq.equippedLeftItem != null && eq.equippedLeftItem.item.categories == ItemCategory.Shield && eq.isLeftHandDrawn && !eq.isRightHandDrawn)
+        {
+            //durabilityMod = eq.equippedRightItem.currentDurability /
+            //                eq.equippedRightItem.maxDurability;
+
+            combat.totalDamage +=
+                eq.equippedLeftItem.item.baseDamage * durabilityMod +
+                strength * 1.5f +
+                agility * 0.5f;
+
+            combat.totalBalanceDamage = eq.equippedLeftItem.item.baseBalanceDamage;
         }
 
         if ((eq.equippedRightItem == null && eq.equippedLeftItem == null) || (!eq.isLeftHandDrawn && !eq.isRightHandDrawn))
         {
             // Урон кулаками
             combat.totalDamage = strength * 0.5f;
+            combat.totalBalanceDamage = 10f;
         }
 
 
@@ -482,7 +574,7 @@ public class PlayerStats : MonoBehaviour
         eq.equippedLegArmourItem,
         eq.equippedBootsItem,
         eq.equippedGlovesItem,
-        eq.equippedBeltItem
+        eq.equippedBeltItem,
     };
 
         foreach (var inst in armourItems)
@@ -490,7 +582,16 @@ public class PlayerStats : MonoBehaviour
             if (inst == null) continue;
 
             //float itemDurability = item.currentDurability / item.maxDurability;
-            gearArmorSum += inst.item.baseArmor;
+            gearArmorSum += inst.currentArmor;
+        }
+
+        if (eq.equippedLeftItem != null && eq.equippedLeftItem.item.categories == ItemCategory.Shield)
+        {
+            float shieldArmor = eq.equippedLeftItem.item.baseArmor;
+
+            if (!EquipmentManager.Instance.isLeftHandDrawn) shieldArmor *= 0.5f;
+
+            gearArmorSum += shieldArmor;
         }
 
         combat.totalArmor =

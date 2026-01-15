@@ -6,7 +6,9 @@ public enum Surface
     Grass,
     Gravel,
     Stone,
-    Wood
+    Wood,
+    MetalV1,
+    MetalV2
 }
 
 public class SurfaceType : MonoBehaviour
