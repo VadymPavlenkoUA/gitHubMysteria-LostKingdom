@@ -22,8 +22,10 @@ public class StatsUiManager : MonoBehaviour
     public TextMeshProUGUI staminaText;
     public TextMeshProUGUI weightText;
     public TextMeshProUGUI manaText;
+    public TextMeshProUGUI satietyText;
     public TextMeshProUGUI attackText;
     public TextMeshProUGUI defenseText;
+    public TextMeshProUGUI balanceText;
 
     [Header("UI Elements Stats")]
     public TextMeshProUGUI levelStatsText;
@@ -98,6 +100,7 @@ public class StatsUiManager : MonoBehaviour
         staminaText.text = $"Витривалість: {playerStats.maxStamina.ToString("0.0", CultureInfo.InvariantCulture)}";
         weightText.text = $"Вантажність: {playerStats.maxWeight.ToString("0.0", CultureInfo.InvariantCulture)}";
         manaText.text = $"Мана: {playerStats.maxMana.ToString("0.0", CultureInfo.InvariantCulture)}";
+        satietyText.text = $"Ситість: {playerStats.maxSatiety.ToString("0.0", CultureInfo.InvariantCulture)}";
         healthEquipText.text = $"{playerStats.currentHealth.ToString("0.0", CultureInfo.InvariantCulture)} / " +
             $"{playerStats.maxHealth.ToString("0.0", CultureInfo.InvariantCulture)}";
         staminaEquipText.text = $"{playerStats.currentStamina.ToString("0.0", CultureInfo.InvariantCulture)} / " +
@@ -187,6 +190,7 @@ public class StatsUiManager : MonoBehaviour
         defenseText.text = $"Захист: {combat.totalArmor.ToString("0.0", CultureInfo.InvariantCulture)}";
         attackEquipText.text = $"{combat.totalDamage.ToString("0.0", CultureInfo.InvariantCulture)}";
         defenseEquipText.text = $"{combat.totalArmor.ToString("0.0", CultureInfo.InvariantCulture)}";
+        balanceText.text = $"Баланс: {playerStats.maxBalance.ToString("0.0", CultureInfo.InvariantCulture)}";
     }
 
     private void OnLevelUp()

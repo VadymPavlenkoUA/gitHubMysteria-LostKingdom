@@ -3,6 +3,7 @@ using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.UI;
+using static NSubstitute.Arg;
 
 public class CombatStats
 {
@@ -14,6 +15,7 @@ public class CombatStats
 public class PlayerStats : MonoBehaviour
 {
     public PlayerController controller;
+    public PlayerCombat playerCombat;
 
     [Header("LevelUpSettings")]
     public int level = 1;
@@ -82,6 +84,15 @@ public class PlayerStats : MonoBehaviour
     [SerializeField] private float manaRegenTick = 0.2f;
     private float manaRegenMinuteAccumulator = 0f;
     private float manaRegenDelayTimer = 0f;
+
+    [Header("Balance / Poise")]
+    public float baseBalance = 100f;
+    public float maxBalance;
+    public float currentBalance;
+    public float balanceRegenRate = 15f;
+    public float balanceRegenDelay = 2f;
+    public float staggerThreshold = 0f;
+    private float balanceRegenTimer;
 
     [Header("Gold")]
     public int gold = 0;
@@ -246,12 +257,15 @@ public class PlayerStats : MonoBehaviour
             hpRegenMinuteAccumulator = 0f;
         }
 
+        // ---------------- Balance ----------------
+        UpdateBalance(Time.deltaTime);
+
         // ---------------- UI ----------------
         UpdateUI();
     }
 
 
-    public void TakeDamage(float incomingDamage)
+    public void TakeDamage(float incomingDamage, float incomingBalanceDamage)
     {
         if (controller != null && controller.IsInvulnerable)
         {
@@ -266,13 +280,28 @@ public class PlayerStats : MonoBehaviour
         // Блок (щит, парирування і т.п.)
         float blockedDamage = incomingDamage / blockMultiplier;
 
+        if (playerCombat.isBlocking) playerCombat.OnBlockedHit();
+
         // Формула з урахуванням броні
-        float finalDamage = blockedDamage *
-            (blockedDamage / (blockedDamage + armor));
+        float finalDamage = blockedDamage * (blockedDamage / (blockedDamage + armor));
 
         finalDamage = Mathf.Max(finalDamage, 1f); // мінімальний урон
 
         currentHealth -= finalDamage;
+
+        // Баланс
+        float balanceArmorReduction = armor * 0.3f;
+        float finalBalanceDamage =
+            Mathf.Max(1f, incomingBalanceDamage - balanceArmorReduction);
+
+        currentBalance -= finalBalanceDamage;
+        balanceRegenTimer = balanceRegenDelay;
+
+        if (currentBalance <= staggerThreshold)
+        {
+            TriggerStagger();
+            currentBalance = maxBalance * 0.6f;
+        }
 
         if (currentHealth <= 0)
         {
@@ -282,6 +311,28 @@ public class PlayerStats : MonoBehaviour
 
         HealthChanged?.Invoke();
         UpdateUI();
+    }
+
+    private void TriggerStagger()
+    {
+        playerCombat.InterruptAttack(true);
+        controller.animator.SetTrigger("Stagger");
+        Debug.Log($"Trigger Stagger");
+    }
+
+    private void UpdateBalance(float deltaTime)
+    {
+        if (currentBalance >= maxBalance) return;
+
+        if (balanceRegenTimer > 0f)
+        {
+            balanceRegenTimer -= deltaTime;
+        }
+        else
+        {
+            currentBalance += balanceRegenRate * deltaTime;
+            currentBalance = Mathf.Min(currentBalance, maxBalance);
+        }
     }
 
     public void Heal (float amount)
@@ -371,6 +422,19 @@ public class PlayerStats : MonoBehaviour
         Debug.Log($"Level Up! {level}");
         LevelUpEvent?.Invoke();
         StatsChanged?.Invoke();
+    }
+
+    private void CalculateBalance()
+    {
+        CombatStats combat = CalculateCombatStats();
+
+        maxBalance =
+            baseBalance +
+            endurance * 2f +      
+            vitality * 3f +
+            combat.totalArmor * 0.5f;
+
+        maxBalance = Mathf.Clamp(maxBalance, 50f, 500f);
     }
 
     public void AddPendingStat (string statName)
@@ -598,6 +662,14 @@ public class PlayerStats : MonoBehaviour
             gearArmorSum +
             vitality * 0.5f +
             endurance * 0.25f;
+
+        maxBalance =
+            baseBalance +
+            endurance * 1.2f +
+            vitality * 1.5f +
+            combat.totalArmor * 0.5f;
+
+        maxBalance = Mathf.Clamp(maxBalance, 50f, 500f);
 
         return combat;
     }

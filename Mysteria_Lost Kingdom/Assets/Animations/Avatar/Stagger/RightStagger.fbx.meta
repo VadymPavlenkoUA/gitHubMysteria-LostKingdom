@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 0d436645d1a803d4887d4fd41f2e93c7
+guid: 0bd92945b9c2ee54b81953f681972a4e
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -31,11 +31,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: AttackWithRightAxeSecond
+      name: RightStagger
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 72
+      lastFrame: 53
       wrapMode: 0
       orientationOffsetY: 20
       level: 0
@@ -55,29 +55,8 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.25263157
-        functionName: AnimationHit
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.52115947
-        functionName: AnimationDisableHitBox
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
       - time: 1
-        functionName: AnimationAttackEnd
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.79207176
-        functionName: AnimationEnableAttackCancel
+        functionName: AttackEndStagger
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
         floatParameter: 0

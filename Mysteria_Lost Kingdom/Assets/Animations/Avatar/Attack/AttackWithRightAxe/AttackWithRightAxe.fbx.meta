@@ -69,6 +69,13 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
+      - time: 0.66689724
+        functionName: AnimationEnableAttackCancel
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: e39ff59a38c8dd346acccdbcc94c5523, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       - time: 1
         functionName: AnimationAttackEnd
         data: 

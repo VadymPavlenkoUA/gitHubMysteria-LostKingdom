@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static NSubstitute.Arg;
 
 public class PlayerCombat : MonoBehaviour
 {
@@ -32,8 +34,14 @@ public class PlayerCombat : MonoBehaviour
 
     public event Action OnBlockStarted;
     public event Action OnBlockEnded;
+    private bool blockHeld;
+
+    private float attackFailSafeTimer;
+    private const float MAX_ATTACK_TIME = 5f;
 
     public bool IsAttacking { get; private set; }
+    public bool CanCancelAttack { get; private set; } = false;
+    public bool IsInStag { get; private set; } = false;
 
     private void Awake()
     {
@@ -58,6 +66,21 @@ public class PlayerCombat : MonoBehaviour
 
     private void Update()
     {
+        if (IsAttacking)
+        {
+            attackFailSafeTimer -= Time.deltaTime;
+            if (attackFailSafeTimer <= 0f)
+            {
+                Debug.LogWarning("Attack FAILSAFE triggered");
+                AttackEnd(true);
+            }
+        }
+
+        if (blockHeld && !isBlocking)
+        {
+            TryStartBlockBuffered();
+        }
+
         if (isBlocking)
         {
             if (!playerStats.TryUseStamina(GetBlockStaminaCost() * Time.deltaTime))
@@ -76,6 +99,38 @@ public class PlayerCombat : MonoBehaviour
             }
         }
     }
+    IEnumerator StartBlockNextFrame()
+    {
+        yield return null;
+        StartBlock();
+    }
+    void TryStartBlockBuffered()
+    {
+        if ((IsAttacking && !CanCancelAttack) || IsInStag) return;
+
+        if (IsAttacking && CanCancelAttack && !IsInStag)
+        {
+            InterruptAttack();
+            StartCoroutine(StartBlockNextFrame());
+            Debug.Log($"Trigger");
+            return;
+        }
+
+        StartBlock();
+    }
+
+    public void InterruptAttack(bool isStag = false)
+    {
+        if (isStag)
+        {
+            IsInStag = true;
+        }
+        if (!IsAttacking) return;
+        animator.ResetTrigger("Attack");
+        animator.SetTrigger("AttackInterupt");
+
+        AttackEnd(true);
+    }
 
     private void OnRightAttack(InputAction.CallbackContext ctx)
     {
@@ -91,13 +146,25 @@ public class PlayerCombat : MonoBehaviour
 
     private void OnBlockStart(InputAction.CallbackContext ctx)
     {
-        StartBlock();
+        blockHeld = true;
     }
 
     private void OnBlockEnd(InputAction.CallbackContext ctx)
     {
+        blockHeld = false;
         EndBlock();
     }
+
+    public void AnimationEnableAttackCancel()
+    {
+        CanCancelAttack = true;
+    }
+
+    public void AnimationDisableAttackCancel()
+    {
+        CanCancelAttack = false;
+    }
+
 
     public void AnimationEnableLeftHandIK()
     {
@@ -112,13 +179,24 @@ public class PlayerCombat : MonoBehaviour
 
     void TryAttack()
     {
-        if (IsAttacking)
+        if ((IsAttacking && !CanCancelAttack) || IsInStag)
         {
             return;
         }
 
         if (!playerStats.TryUseStamina(GetAttackStaminaCost()))
+        {
+            comboStep = 0;
+            comboBufferActive = false;
             return;
+        }
+
+        //if (IsAttacking && CanCancelAttack)
+        //{
+        //    animator.SetTrigger("AttackInterupt");
+        //    AttackEnd(false);
+        //    Debug.Log($"Trigger");
+        //}
 
         ItemInstance weapon = GetActiveWeaponItem();
 
@@ -131,9 +209,12 @@ public class PlayerCombat : MonoBehaviour
         if (isBlocking) EndBlock();
 
         IsAttacking = true;
+        CanCancelAttack = false;
+        attackFailSafeTimer = MAX_ATTACK_TIME;
 
         SetAttackIndexByWeapon();
 
+        Debug.Log($"{IsAttacking}/{CanCancelAttack}");
         animator.SetFloat("ComboStep", Mathf.Clamp(comboStep, 0, maxCombo - 1));
         animator.SetTrigger("Attack");
     }
@@ -228,13 +309,16 @@ public class PlayerCombat : MonoBehaviour
                  equipment.equippedLeftItem.item.categories != ItemCategory.Shield)
             return equipment.equippedLeftItem.item.baseDefenseMultiplier;
 
-        else if (equipment.equippedLeftItem != null &&
-                 equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
+        else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
             return equipment.equippedRightItem.item.baseDefenseMultiplier;
 
-        else if (equipment.equippedLeftItem != null &&
-                 equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+        else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
             return equipment.equippedLeftItem.item.baseDefenseMultiplier;
+
+        else if (equipment.isRightHandDrawn && equipment.isLeftHandDrawn && equipment.equippedLeftItem.item.categories != ItemCategory.Shield && equipment.equippedLeftItem.item.weaponHandType != WeaponHandType.TwoHand)
+        {
+            return equipment.equippedRightItem.item.baseDefenseMultiplier * equipment.equippedLeftItem.item.baseDefenseMultiplier;
+        }
 
         else
             return 1.1f;
@@ -304,9 +388,51 @@ public class PlayerCombat : MonoBehaviour
         EnableHitbox();
     }
 
+    public void AttackEnd(bool interrupted = false)
+    {
+        IsAttacking = false;
+        CanCancelAttack = false;
+
+        if (interrupted)
+        {
+            comboStep = 0;
+            comboBufferActive = false;
+            return;
+        }
+
+        comboStep++;
+
+        if (comboStep >= maxCombo)
+        {
+            comboStep = 0;
+            comboBufferActive = false;
+            return;
+        }
+
+        comboBufferActive = true;
+        comboBufferTimer = postAttackComboBuffer;
+    }
+
+    public void AttackEndStagger()
+    {
+        animator.SetTrigger("StaggerEnd");
+        IsInStag = false;
+
+        if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
+        {
+            equipment.ForceCombatIdle(3f);
+        }
+
+        comboStep = 0;
+        comboBufferActive = false;
+        return;
+    }
+
     public void AnimationAttackEnd()
     {
         IsAttacking = false;
+        CanCancelAttack = false;
+        animator.SetTrigger("AttackInterupt");
 
         if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
         {
@@ -333,42 +459,42 @@ public class PlayerCombat : MonoBehaviour
 
     void DamageWeaponDurability()
     {
-        if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
-        {
+        if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
+            return;
+
+        else if (equipment.isRightHandDrawn && !equipment.isLeftHandDrawn)
             equipment.DamageDurability(equipment.equippedRightItem, durabilityDamagePerHit);
-        }
-        else if (!equipment.isRightHandDrawn && equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
-        {
+
+        else if (equipment.isLeftHandDrawn && !equipment.isRightHandDrawn && equipment.equippedLeftItem.item.categories != ItemCategory.Shield)
             equipment.DamageDurability(equipment.equippedLeftItem, durabilityDamagePerHit);
-        }
-        else if (equipment.equippedRightItem != null && equipment.equippedRightItem.item.weaponHandType != WeaponHandType.TwoHand && equipment.equippedRightItem.item.categories == ItemCategory.Weapon &&
-            equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Weapon)
-        {
-            equipment.DamageDurability(equipment.equippedRightItem, durabilityDamagePerHit);
-        }
+
         else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
         {
             equipment.DamageDurability(equipment.equippedRightItem, durabilityDamagePerHit);
         }
-        else
+
+        else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield && equipment.isRightHandDrawn)
+            equipment.DamageDurability(equipment.equippedRightItem, durabilityDamagePerHit);
+
+        else if (!equipment.isRightHandDrawn && equipment.isLeftHandDrawn && equipment.equippedLeftItem.item.categories == ItemCategory.Shield)
+            equipment.DamageDurability(equipment.equippedLeftItem, durabilityDamagePerHit);
+
+        else if (equipment.isRightHandDrawn && equipment.isLeftHandDrawn && equipment.equippedLeftItem.item.categories != ItemCategory.Shield && equipment.equippedLeftItem.item.weaponHandType != WeaponHandType.TwoHand)
         {
             equipment.DamageDurability(equipment.equippedRightItem, durabilityDamagePerHit);
+            equipment.DamageDurability(equipment.equippedLeftItem, durabilityDamagePerHit);
         }
+
+        else
+            return;
     }
 
     internal void StartBlock()
     {
-        if (isBlocking)
-            return;
-
-        if (IsAttacking)
-            return;
+        if (isBlocking) return;
 
         if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn) return;
-        //if (equipment.equippedRightItem == null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield) return;
-
-        if (!playerStats.TryUseStamina(1f))
-            return;
+        if (!playerStats.TryUseStamina(1f)) return;
 
         isBlocking = true;
         animator.ResetTrigger("BlockExit");
@@ -376,7 +502,6 @@ public class PlayerCombat : MonoBehaviour
         animator.SetBool("IsBlocking", true);
 
         playerStats.blockMultiplier = GetBlockMultiplier();
-
         OnBlockStarted?.Invoke();
     }
 
@@ -394,9 +519,31 @@ public class PlayerCombat : MonoBehaviour
         OnBlockEnded?.Invoke();
     }
 
-    public void OnBlockedHit(float staminaDamage)
+    public void OnBlockedHit()
     {
-        playerStats.UseStamina(staminaDamage);
+        playerStats.UseStamina(30f);
+
+        if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.categories == ItemCategory.Shield && equipment.isLeftHandDrawn)
+        {
+            equipment.DamageDurability(equipment.equippedLeftItem, durabilityDamagePerHit);
+        }
+        else if (equipment.isLeftHandDrawn && !equipment.isRightHandDrawn && equipment.equippedLeftItem.item.categories != ItemCategory.Shield)
+        {
+            equipment.DamageDurability(equipment.equippedLeftItem, durabilityDamagePerHit);
+        }
+        else if (equipment.isRightHandDrawn && !equipment.isLeftHandDrawn)
+        {
+            equipment.DamageDurability(equipment.equippedRightItem, durabilityDamagePerHit);
+        }
+        else if (equipment.equippedLeftItem != null && equipment.equippedLeftItem.item.weaponHandType == WeaponHandType.TwoHand)
+        {
+            equipment.DamageDurability(equipment.equippedRightItem, durabilityDamagePerHit);
+        }
+        else if (equipment.isRightHandDrawn && equipment.isLeftHandDrawn && equipment.equippedLeftItem.item.categories != ItemCategory.Shield && equipment.equippedLeftItem.item.weaponHandType != WeaponHandType.TwoHand)
+        {
+            equipment.DamageDurability(equipment.equippedRightItem, durabilityDamagePerHit);
+            equipment.DamageDurability(equipment.equippedLeftItem, durabilityDamagePerHit);
+        }
 
         if (playerStats.currentStamina <= 0)
         {

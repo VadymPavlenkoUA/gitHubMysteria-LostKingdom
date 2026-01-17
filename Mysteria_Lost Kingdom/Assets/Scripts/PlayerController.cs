@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
 {
     private PlayerInputActions inputActions;
     private Rigidbody rb;
-    private Animator animator;
+    internal Animator animator;
     public PlayerStats stats;
     public PlayerCombat combat;
     public PlayerAudio audioPlayer;
@@ -50,6 +50,7 @@ public class PlayerController : MonoBehaviour
     private bool isJumping = false;
     private float rollCoolDownTimer = 0f;
     private Vector3 rollDirection = Vector3.zero;
+    private bool wantsToInterruptAttack;
 
     public Transform cameraTransform;
 
@@ -91,7 +92,6 @@ public class PlayerController : MonoBehaviour
     private void OnMove(InputAction.CallbackContext ctx)
     {
         Vector2 input = ctx.ReadValue<Vector2>();
-
         if (combat != null && combat.isBlocking && input.sqrMagnitude > 0.01f)
         {
             combat.EndBlock();
@@ -154,12 +154,18 @@ public class PlayerController : MonoBehaviour
 
         Vector3 moveDir = camForward * moveInput.y + camRight * moveInput.x;
 
-        if (combat != null && combat.IsAttacking)
+        if ((combat != null && combat.IsAttacking && !combat.CanCancelAttack) || combat.IsInStag)
         {
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
-            moveDir = Vector3.zero; // рух не враховуємо
+            moveDir = Vector3.zero;
         }
-
+        else if (wantsToInterruptAttack)
+        {
+            wantsToInterruptAttack = false;
+            combat.InterruptAttack();
+            Debug.Log($"Trigger");
+        }
+        
         float currentSpeed = moveSpeed;
 
         if (isRolling)
@@ -287,21 +293,31 @@ public class PlayerController : MonoBehaviour
     {
         if (MenuController.Instance.IsInputBlocked()) return;
 
+        if (combat.IsAttacking && combat.CanCancelAttack && !combat.IsInStag && moveInput.sqrMagnitude > 0.01f)
+        {
+            wantsToInterruptAttack = true;
+        }
+
         // JUMP
-        if (!combat.IsAttacking && inputActions.Player.Jump.WasPressedThisFrame())
+        if ((!combat.IsAttacking || combat.CanCancelAttack) && !isRolling && !combat.IsInStag && inputActions.Player.Jump.WasPressedThisFrame())
         {
             if (IsGrounded() && !isJumping)
             {
                 if (stats != null && TryUseStaminaSafe(jumpStaminaCost))
                 {
                     if (combat.isBlocking) combat.EndBlock();
+                    if (combat.IsAttacking && combat.CanCancelAttack)
+                    {
+                        combat.InterruptAttack();
+                        Debug.Log($"Trigger");
+                    }
                     StartJump();
                 }
             }
         }
 
         // ROLL
-        if (!combat.IsAttacking && !isRolling)
+        if ((!combat.IsAttacking || combat.CanCancelAttack) && !isRolling && !combat.IsInStag)
         {
             if (inputActions.Player.Roll.WasPressedThisFrame())
             {
@@ -309,6 +325,11 @@ public class PlayerController : MonoBehaviour
                 {
                     if (TryUseStaminaSafe(rollStaminaCost))
                     {
+                        if (combat.IsAttacking && combat.CanCancelAttack)
+                        {
+                            combat.InterruptAttack();
+                            Debug.Log($"Trigger");
+                        }
                         if (combat.isBlocking) combat.EndBlock();
                         StartRoll();
                     }

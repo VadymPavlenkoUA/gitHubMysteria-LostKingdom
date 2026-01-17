@@ -4,6 +4,7 @@ public class WeaponHitBoxEnemy : MonoBehaviour
 {
     private Collider col;
     private float damage;
+    private float balanceDamage;
     private bool isActive;
     private bool hasHit;
 
@@ -15,9 +16,10 @@ public class WeaponHitBoxEnemy : MonoBehaviour
         isActive = false;
     }
 
-    public void EnableHitbox(float dmg)
+    public void EnableHitbox(float dmg, float balanceDmg)
     {
         damage = dmg;
+        balanceDamage = balanceDmg;
         hasHit = false;
         isActive = true;
         col.enabled = true;
@@ -38,6 +40,6 @@ public class WeaponHitBoxEnemy : MonoBehaviour
         var playerStats = other.GetComponent<PlayerStats>();
         if (playerStats == null) return;
 
-        playerStats.TakeDamage(damage);
+        playerStats.TakeDamage(damage, balanceDamage);
     }
 }

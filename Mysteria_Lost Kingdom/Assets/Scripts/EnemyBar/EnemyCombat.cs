@@ -4,6 +4,7 @@ public class EnemyCombat : MonoBehaviour
 {
     public float attackCooldown = 1.5f;
     public float damage = 10f;
+    public float balanceDamage = 50f;
     public WeaponHitBoxEnemy hitbox;
     private float lastAttackTime;
     private Animator animator;
@@ -26,7 +27,7 @@ public class EnemyCombat : MonoBehaviour
     // викликається з Animation Event
     public void EnableHitbox()
     {
-        hitbox.EnableHitbox(damage);
+        hitbox.EnableHitbox(damage, balanceDamage);
     }
 
     public void DisableHitbox()
