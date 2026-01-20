@@ -16,6 +16,8 @@ public class PlayerInteract : MonoBehaviour
     private IInteractable currentTarget;
     private PlayerInputActions inputActions;
 
+    private IHighlightable currentHighlight;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -89,14 +91,31 @@ public class PlayerInteract : MonoBehaviour
 
         if (bestTarget != null)
         {
+            if (currentHighlight != null)
+                currentHighlight.SetHighlight(false);
+
             currentTarget = bestTarget;
-            promptNameText.text = bestTarget.GetInteractionNameText();
-            promptBTNText.text = bestTarget.GetInteractionBTNText();
-            promptUI.SetActive(true);
+            currentHighlight = null;
+
+            if (currentTarget != null)
+            {
+                currentHighlight = (currentTarget as Component)
+                    ?.GetComponent<IHighlightable>();
+
+                if (currentHighlight != null)
+                    currentHighlight.SetHighlight(true);
+
+                promptNameText.text = currentTarget.GetInteractionNameText();
+                promptBTNText.text = currentTarget.GetInteractionBTNText();
+                promptUI.SetActive(true);
+            }
         }
         else
         {
+            if (currentHighlight != null) currentHighlight.SetHighlight(false);
+
             currentTarget = null;
+            currentHighlight = null;
             promptUI.SetActive(false);
         }
     }

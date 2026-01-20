@@ -315,9 +315,11 @@ public class PlayerStats : MonoBehaviour
 
     private void TriggerStagger()
     {
-        playerCombat.InterruptAttack(true);
-        controller.animator.SetTrigger("Stagger");
-        Debug.Log($"Trigger Stagger");
+        //playerCombat.InterruptAttack(true);
+        //Debug.Log($"Trigger Stagger");
+        if (playerCombat.IsInStag) return;
+
+        playerCombat.EnterStagger();
     }
 
     private void UpdateBalance(float deltaTime)

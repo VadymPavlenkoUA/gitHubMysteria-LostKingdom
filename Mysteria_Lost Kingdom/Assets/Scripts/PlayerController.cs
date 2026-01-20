@@ -154,17 +154,18 @@ public class PlayerController : MonoBehaviour
 
         Vector3 moveDir = camForward * moveInput.y + camRight * moveInput.x;
 
-        if ((combat != null && combat.IsAttacking && !combat.CanCancelAttack) || combat.IsInStag)
+        if (!combat.CanMove())
         {
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
             moveDir = Vector3.zero;
+            return;
         }
-        else if (wantsToInterruptAttack)
-        {
-            wantsToInterruptAttack = false;
-            combat.InterruptAttack();
-            Debug.Log($"Trigger");
-        }
+        //else if (wantsToInterruptAttack)
+        //{
+        //    wantsToInterruptAttack = false;
+        //    combat.InterruptAttack();
+        //    Debug.Log($"Trigger");
+        //}
         
         float currentSpeed = moveSpeed;
 
@@ -293,9 +294,9 @@ public class PlayerController : MonoBehaviour
     {
         if (MenuController.Instance.IsInputBlocked()) return;
 
-        if (combat.IsAttacking && combat.CanCancelAttack && !combat.IsInStag && moveInput.sqrMagnitude > 0.01f)
+        if (moveInput.sqrMagnitude > 0.01f)
         {
-            wantsToInterruptAttack = true;
+            combat.TryInterruptByMovement();
         }
 
         // JUMP
@@ -308,7 +309,7 @@ public class PlayerController : MonoBehaviour
                     if (combat.isBlocking) combat.EndBlock();
                     if (combat.IsAttacking && combat.CanCancelAttack)
                     {
-                        combat.InterruptAttack();
+                        combat.TryInterruptForAction();
                         Debug.Log($"Trigger");
                     }
                     StartJump();
@@ -327,7 +328,7 @@ public class PlayerController : MonoBehaviour
                     {
                         if (combat.IsAttacking && combat.CanCancelAttack)
                         {
-                            combat.InterruptAttack();
+                            combat.TryInterruptForAction();
                             Debug.Log($"Trigger");
                         }
                         if (combat.isBlocking) combat.EndBlock();

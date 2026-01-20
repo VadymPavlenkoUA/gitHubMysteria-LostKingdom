@@ -133,71 +133,6 @@ public class DialogueManager : MonoBehaviour
         typingCoroutine = StartCoroutine(TypeText(line.text, messages.Count - 1));
     }
 
-
-    //private void ShowLine()
-    //{
-    //    if (currentDialogue == null || currentLineIndex >= currentDialogue.lines.Count)
-    //    {
-    //        EndDialogue();
-    //        return;
-    //    }
-
-    //    var line = currentDialogue.lines[currentLineIndex];
-
-    //    if (DialogueTracker.Instance.IsLineCompleted(currentDialogue.name, currentLineIndex))
-    //    {
-    //        Debug.Log($"Рядок '{currentDialogue.name}' [{currentLineIndex}] уже був показаний і не повторюється.");
-    //        currentLineIndex++;
-    //        ShowLine();
-    //        return;
-    //    }
-
-    //    if (!line.isRepeatable) DialogueTracker.Instance.MarkLineCompleted(currentDialogue.name, currentLineIndex);
-
-    //    npcNameText.text = line.npcName;
-    //    npcIcon.sprite = currentDialogue.npcIcon;
-
-    //    messages.Add($"<b><< {line.npcName}:</b> ");
-    //    dialogueHistoryManager.AddEntry(line.npcName, line.text, false);
-    //    chatHistoryText.text = string.Join("\n", messages);
-    //    ClearOptions();
-
-    //    if (line.options.Count > 0)
-    //    {
-    //        foreach(var option in line.options)
-    //        {
-    //            var btn = Instantiate(optionButtonPrefab, optionsParent);
-    //            btn.GetComponentInChildren<TMP_Text>().text = option.playerResponse;
-    //            int nextID = option.nextLineID;
-    //            btn.onClick.AddListener(() => OnOptionSelected(option.playerResponse, nextID));
-    //        }
-    //    }
-    //    else
-    //    {
-    //        var btn = Instantiate(optionButtonPrefab, optionsParent);
-    //        btn.GetComponentInChildren<TMP_Text>().text = "Закінчити розмову";
-    //        btn.onClick.AddListener(() => EndDialogue());
-    //    }
-
-    //    typingCoroutine = StartCoroutine(TypeText(line.text, messages.Count - 1));
-    //    HandleQuestActions(line);
-    //}
-
-    //private void HandleQuestActions(DialogueLine line)
-    //{
-    //    if (line.questToStart != null)
-    //    {
-    //        QuestManager.Instance.StartQuest(line.questToStart);
-    //        Debug.Log($"Квест видано: {line.questToStart.questName}");
-    //    }
-
-    //    if (line.questToComplete != null)
-    //    {
-    //        QuestManager.Instance.CompleteStep(line.questToComplete, line.stepIndexToComplete);
-    //        Debug.Log($"Оновлено квест: {line.questToComplete.questName}, крок {line.stepIndexToComplete}");
-    //    }
-    //}
-
     private IEnumerator TypeText(string text, int index)
     {
         if (index < 0 || index >= messages.Count) yield break;
@@ -256,48 +191,6 @@ public class DialogueManager : MonoBehaviour
         }
 
     }
-
-    //private void OnOptionSelected(string playerText, int nextLineID)
-    //{
-    //    FinishCurrentTyping();
-    //    messages.Add($"<b>>>{mainCharacterName}:</b> {playerText}");
-    //    dialogueHistoryManager.AddEntry(mainCharacterName, playerText, true);
-    //    chatHistoryText.text = string.Join("\n", messages);
-
-    //    DialogueLine currentLine = currentDialogue.lines[currentLineIndex];
-    //    DialogueOption selectedOption = currentLine.options.Find(o => o.playerResponse == playerText);
-
-    //    if (selectedOption == null)
-    //    {
-    //        EndDialogue();
-    //        return;
-    //    }
-
-    //    if (selectedOption.endsThisLinePermanently)
-    //    {
-    //        DialogueTracker.Instance.MarkLineCompleted(currentDialogue.name, currentLineIndex);
-    //    }
-
-    //    if (selectedOption.questToStart != null)
-    //    {
-    //        QuestManager.Instance.StartQuest(selectedOption.questToStart);
-    //        Debug.Log($"Видано квест: {selectedOption.questToStart.questName}");
-    //    }
-
-    //    if (selectedOption.hasFinalResponse && !string.IsNullOrEmpty(selectedOption.finalNpcResponse))
-    //    {
-    //        ShowFinalResponse(selectedOption.finalNpcResponse);
-    //        return;
-    //    }
-
-    //    if (nextLineID < 0)
-    //    {
-    //        EndDialogue();
-    //        return;
-    //    }
-    //    currentLineIndex = nextLineID;
-    //    ShowLine();
-    //}
 
     private bool CanShowOption(DialogueOption option)
     {

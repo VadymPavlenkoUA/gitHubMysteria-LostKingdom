@@ -20,6 +20,13 @@ public class PlayerCombat : MonoBehaviour
     [Header("Combo Buffer")]
     public float postAttackComboBuffer = 1f;
 
+    [Header("Interrupt Penalty")]
+    [SerializeField] private float interruptAttackSpeedMultiplier = 0.1f;
+    [SerializeField] private int attacksWithPenaltyAfterInterrupt = 1;
+
+    private int interruptPenaltyAttacksLeft = 0;
+    private bool lastAttackWasInterrupted = false;
+
     [SerializeField] private float ikBlendSpeed = 8f;
     private float leftHandIKWeight;
 
@@ -119,17 +126,60 @@ public class PlayerCombat : MonoBehaviour
         StartBlock();
     }
 
-    public void InterruptAttack(bool isStag = false)
-    {
-        if (isStag)
-        {
-            IsInStag = true;
-        }
-        if (!IsAttacking) return;
-        animator.ResetTrigger("Attack");
-        animator.SetTrigger("AttackInterupt");
+    //public void InterruptAttack(bool isStag = false)
+    //{
+    //    if (isStag)
+    //    {
+    //        IsInStag = true;
+    //    }
+    //    if (!IsAttacking) return;
+    //    animator.ResetTrigger("Attack");
+    //    animator.SetTrigger("AttackInterupt");
 
+    //    AttackEnd(true);
+    //}
+
+    //public void InterruptAttack(bool isStag = false)
+    //{
+    //    if (!IsAttacking)
+    //        return;
+
+    //    IsAttacking = false;
+    //    CanCancelAttack = false;
+
+    //    if (isStag)
+    //    {
+    //        IsInStag = true;
+    //        animator.CrossFade("Stagger", 0.0f);
+    //    }
+    //    else
+    //    {
+    //        animator.CrossFade("Base Layer.Locomotion.Movement", 0.1f);
+    //    }
+
+    //    comboStep = 0;
+    //    comboBufferActive = false;
+    //}
+
+    public void InterruptAttack()
+    {
+        if (!IsAttacking) return;
+
+        lastAttackWasInterrupted = true;
+        interruptPenaltyAttacksLeft = attacksWithPenaltyAfterInterrupt;
+
+        animator.ResetTrigger("Attack");
         AttackEnd(true);
+        animator.CrossFade("Base Layer.Locomotion.Movement", 0.1f);
+    }
+
+    public void StagInterupt()
+    {
+        animator.ResetTrigger("Attack");
+        IsInStag = true;
+        animator.CrossFade("Stagger", 0.0f);
+        IsAttacking = false;
+        CanCancelAttack = false;
     }
 
     private void OnRightAttack(InputAction.CallbackContext ctx)
@@ -204,6 +254,11 @@ public class PlayerCombat : MonoBehaviour
         ? weapon.item.attackSpeedMultiplier
         : 1f;
 
+        if (interruptPenaltyAttacksLeft > 0)
+        {
+            attackSpeed *= interruptAttackSpeedMultiplier;
+        }
+
         animator.SetFloat("AttackSpeed", attackSpeed);
 
         if (isBlocking) EndBlock();
@@ -216,6 +271,17 @@ public class PlayerCombat : MonoBehaviour
 
         Debug.Log($"{IsAttacking}/{CanCancelAttack}");
         animator.SetFloat("ComboStep", Mathf.Clamp(comboStep, 0, maxCombo - 1));
+
+        if (interruptPenaltyAttacksLeft > 0)
+        {
+            interruptPenaltyAttacksLeft--;
+
+            if (interruptPenaltyAttacksLeft <= 0)
+            {
+                lastAttackWasInterrupted = false;
+            }
+        }
+
         animator.SetTrigger("Attack");
     }
 
@@ -415,17 +481,14 @@ public class PlayerCombat : MonoBehaviour
 
     public void AttackEndStagger()
     {
-        animator.SetTrigger("StaggerEnd");
         IsInStag = false;
-
-        if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
-        {
-            equipment.ForceCombatIdle(3f);
-        }
-
+        //if (!equipment.isLeftHandDrawn && !equipment.isRightHandDrawn)
+        //{
+        //    equipment.ForceCombatIdle(3f);
+        //}
         comboStep = 0;
         comboBufferActive = false;
-        return;
+        animator.CrossFade("Base Layer.Locomotion.Movement", 0.1f);
     }
 
     public void AnimationAttackEnd()
@@ -438,6 +501,9 @@ public class PlayerCombat : MonoBehaviour
         {
             equipment.ForceCombatIdle(3f);
         }
+
+        interruptPenaltyAttacksLeft = 0;
+        lastAttackWasInterrupted = false;
 
         comboStep++;
 
@@ -559,6 +625,35 @@ public class PlayerCombat : MonoBehaviour
 
         enemy.TakeDamage(damage, balanceDamage, playerStats);
         DamageWeaponDurability();
+    }
+
+    public bool CanMove()
+    {
+        if (IsInStag) return false;
+        if (IsAttacking && !CanCancelAttack) return false;
+        return true;
+    }
+
+    public void TryInterruptByMovement()
+    {
+        if (!IsAttacking) return;
+        if (!CanCancelAttack) return;
+        InterruptAttack();
+    }
+
+    public bool TryInterruptForAction()
+    {
+        if (!IsAttacking) return true;
+        if (!CanCancelAttack) return false;
+
+        InterruptAttack();
+        return true;
+    }
+
+    public void EnterStagger()
+    {
+        AnimationDisableHitBox();
+        StagInterupt();
     }
 
     public void EnableHitbox()
