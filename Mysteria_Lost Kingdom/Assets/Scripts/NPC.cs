@@ -6,6 +6,8 @@ public class NPC : MonoBehaviour, IInteractable, IClosableInteraction
     public DialogueData dialogueData;
     public Transform InteractionTransform => transform;
 
+    public Inventory traderInventory = null;
+
     public void OnInteractionClosed()
     {
         if (!DialogueManager.Instance.isDialogueOpen) return;
@@ -26,7 +28,7 @@ public class NPC : MonoBehaviour, IInteractable, IClosableInteraction
 
     public void Interact()
     {
-        DialogueManager.Instance.StartDialogue(dialogueData);
+        DialogueManager.Instance.StartDialogue(dialogueData, traderInventory);
         InteractionDistanceWatcher.Instance.StartWatching(this);
     }
 

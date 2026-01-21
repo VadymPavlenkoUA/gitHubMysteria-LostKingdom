@@ -30,6 +30,7 @@ public class DialogueManager : MonoBehaviour
     private DialogueData currentDialogue;
     private int currentLineIndex;
     private List<string> messages = new List<string>();
+    private Inventory traderInventory;
     [HideInInspector]
     internal bool isDialogueOpen;
     [SerializeField] private CinemachineInputAxisController cinemachineInput;
@@ -42,8 +43,9 @@ public class DialogueManager : MonoBehaviour
         dialogueUI.SetActive(false);
     }
 
-    public void StartDialogue(DialogueData dialogue)
+    public void StartDialogue(DialogueData dialogue, Inventory npcInventory = null)
     {
+        if (npcInventory != null) traderInventory = npcInventory;
         if (MenuController.Instance.isGMOpen) MenuController.Instance.OpenGameMenu();
         InteractionBlocker.Block(InteractionBlockReason.Dialogue);
         isDialogueOpen = true;
@@ -153,6 +155,19 @@ public class DialogueManager : MonoBehaviour
     private void OnOptionSelected(DialogueOption option)
     {
         FinishCurrentTyping();
+
+        switch (option.actionType)
+        {
+            case DialogueActionType.OpenTrade:
+                EndDialogue();
+                if (traderInventory == null)
+                {
+                    Debug.LogError("NPC не має інвентарю торгівлі!");
+                    return;
+                }
+                TradeManager.Instance.OpenTrade(traderInventory);
+                return;
+        }
 
         if (option.hideAfterSelect) DialogueTracker.Instance.MarkOptionUsed(option.optionID);
 

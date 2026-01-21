@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class InventoryUIManager : MonoBehaviour
 {
@@ -23,6 +24,30 @@ public class InventoryUIManager : MonoBehaviour
     public GameObject chestSlotPrefab;
     private ChestVisual currentChestVisual;
 
+    [Header("Trade UI")]
+    public GameObject tradePanel;
+    public Transform tradePlayerSlotsParent;
+    public Transform tradeTraderSlotsParent;
+
+    private InventorySlotUI[] tradePlayerSlotUIs;
+    private InventorySlotUI[] tradeTraderSlotUIs;
+
+    [Header("Trade Panels")]
+    public CanvasGroup tradePlayerPanel;
+    public CanvasGroup tradeTraderPanel;
+
+    [Header("Trade Center")]
+    public Transform tradeCenterParent;
+    public GameObject tradeSlotPrefab;
+    private TradeSlotUI[] tradeCenterSlots;
+
+    [Header("Trade Buttons")]
+    public Button buyButton;
+    public Button sellButton;
+    public Color activeColor = Color.white;
+    public Color inactiveColor = new Color(1, 1, 1, 0.5f);
+
+    [Header("Tab UI")]
     public TabSwitcher tabSwitcher;
     public int inventoryTabIndex;
 
@@ -92,8 +117,28 @@ public class InventoryUIManager : MonoBehaviour
         }
 
         RefreshWeightEquipText();
+    }
 
-        //if (ItemDescriptionUI.Instance != null) ItemDescriptionUI.Instance.ClearDescription();
+    public void BuildTradeCenter()
+    {
+        foreach (Transform c in tradeCenterParent)
+            Destroy(c.gameObject);
+
+        tradeCenterSlots = new TradeSlotUI[TradeManager.Instance.tradeSlots.Length];
+
+        for (int i = 0; i < tradeCenterSlots.Length; i++)
+        {
+            var obj = Instantiate(tradeSlotPrefab, tradeCenterParent);
+            var ui = obj.GetComponent<TradeSlotUI>();
+            ui.Init(i);
+            tradeCenterSlots[i] = ui;
+        }
+    }
+
+    public void RefreshTradeCenter()
+    {
+        if (tradeCenterSlots == null) return;
+        foreach (var slot in tradeCenterSlots) slot.Refresh();
     }
 
     public void NotifyInventoryChanged()
@@ -122,6 +167,61 @@ public class InventoryUIManager : MonoBehaviour
         if (!MenuController.Instance.isGMOpen) MenuController.Instance.OpenGameMenu();
         if (tabSwitcher != null) tabSwitcher.OpenTab(inventoryTabIndex);
     }
+
+    public void OpenTradeView(Inventory playerInv, Inventory traderInv)
+    {
+        tradePanel.SetActive(true);
+
+        tradePlayerSlotUIs = BuildInventoryView(
+            playerInv,
+            tradePlayerSlotsParent,
+            InventorySlotUI.SlotType.TradePlayer
+        );
+
+        tradeTraderSlotUIs = BuildInventoryView(
+            traderInv,
+            tradeTraderSlotsParent,
+            InventorySlotUI.SlotType.TradeTrader
+        );
+
+        BuildTradeCenter();
+
+        //if (!MenuController.Instance.isGMOpen) MenuController.Instance.OpenGameMenu();
+    }
+
+    public void CloseTradeView()
+    {
+        tradePanel.SetActive(false);
+        tradePlayerSlotUIs = null;
+        tradeTraderSlotUIs = null;
+    }
+
+    private InventorySlotUI[] BuildInventoryView(
+    Inventory inv,
+    Transform parent,
+    InventorySlotUI.SlotType slotType)
+    {
+        foreach (Transform child in parent)
+            Destroy(child.gameObject);
+
+        var result = new InventorySlotUI[inv.slots.Count];
+
+        for (int i = 0; i < inv.slots.Count; i++)
+        {
+            var obj = Instantiate(slotPrefab, parent);
+            var slotUI = obj.GetComponent<InventorySlotUI>();
+
+            slotUI.ownerInventory = inv;
+            slotUI.slotType = slotType;
+            slotUI.splitStackUI = splitStackUI;
+
+            slotUI.SetSlot(inv.slots[i]);
+            result[i] = slotUI;
+        }
+
+        return result;
+    }
+
 
     private void BuildChestSlots()
     {
@@ -166,5 +266,36 @@ public class InventoryUIManager : MonoBehaviour
     {
         if (chestPanel.activeSelf && chestInventory == chest) return true;
         return false;
+    }
+
+    public void SetTradeMode(TradeMode mode)
+    {
+        switch (mode)
+        {
+            case TradeMode.Buy:
+                SetPanelState(tradeTraderPanel, true);
+                SetPanelState(tradePlayerPanel, false);
+                break;
+
+            case TradeMode.Sell:
+                SetPanelState(tradePlayerPanel, true);
+                SetPanelState(tradeTraderPanel, false);
+                break;
+        }
+    }
+
+    private void SetPanelState(CanvasGroup cg, bool active)
+    {
+        cg.alpha = active ? 1f : 0.2f;
+        cg.interactable = active;
+        cg.blocksRaycasts = active;
+    }
+
+    public void UpdateTradeButtons()
+    {
+        bool isBuy = TradeManager.Instance.CurrentMode == TradeMode.Buy;
+
+        buyButton.image.color = isBuy ? activeColor : inactiveColor;
+        sellButton.image.color = !isBuy ? activeColor : inactiveColor;
     }
 }

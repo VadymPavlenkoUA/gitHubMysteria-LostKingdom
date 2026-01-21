@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
-    public enum SlotType { Inventory, Equipment, Chest };
+    public enum SlotType { Inventory, Equipment, Chest, TradePlayer, TradeTrader, TradeCentre};
     public enum SlotSpecification { RightHand, LeftHand, RangeSlot, ThrowSlot, NecklaceSlot, RingSlot, BeltSlot, HeadSlot, ChestSlot, HandsSlot, LegsSlot, BootsSlot, None };
     [SerializeField] internal SlotType slotType = SlotType.Inventory;
     [SerializeField] internal SlotSpecification slotSpecification = SlotSpecification.None;
@@ -70,6 +70,8 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         //if (UseActionManager.Instance.isUsing) return;
         if (slot == null || slot.IsEmpty) return;
+
+        if (!TradeRules.CanDrag(this)) return;
 
         draggingIcon = new GameObject("DraggingIcon");
         draggingIcon.transform.SetParent(transform.root);

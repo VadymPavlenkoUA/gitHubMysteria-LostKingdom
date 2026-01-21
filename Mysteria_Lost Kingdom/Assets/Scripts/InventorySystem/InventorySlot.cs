@@ -11,11 +11,6 @@ public class InventorySlot
 
     public bool IsUnique => item != null && item.isUnique;
 
-    //public bool CanAddItem(Item newItem)
-    //{
-    //    return !IsEmpty && item == newItem && count < item.maxStack;
-    //}
-
     public bool CanAddItem(Item itemNew)
     {
         if (IsEmpty) return true;
@@ -25,27 +20,6 @@ public class InventorySlot
 
         return item == itemNew && count < item.maxStack;
     }
-
-    //public int AddItem(Item newItem, int amount = 1)
-    //{
-    //    if (IsEmpty)
-    //    {
-    //        int added = Mathf.Min(amount, newItem.maxStack);
-    //        instance = new ItemInstance(newItem, added);
-    //        return amount - added;
-    //    }
-
-    //    if (item == newItem && newItem.maxStack > 1)
-    //    {
-    //        int spaceLeft = newItem.maxStack - instance.count;
-    //        int added = Mathf.Min(spaceLeft, amount);
-    //        instance.count += added;
-    //        return amount - added;
-    //    }
-
-    //    return amount;
-    //}
-
     public int AddItem(Item item, int amount)
     {
         if (item.isUnique)

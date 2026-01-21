@@ -37,6 +37,9 @@ public class DialogueOption
     [Header("Одноразова опція")]
     public bool hideAfterSelect = false;      // якщо true — опція зникає назавжди після вибору
     public string optionID;
+
+    [Header("Спеціальні дії")]
+    public DialogueActionType actionType;
 }
 
 [System.Serializable]
@@ -64,4 +67,10 @@ public class DialogueData : ScriptableObject
     public string npcName;
     public Sprite npcIcon;
     public List<DialogueLine> lines;
+}
+
+public enum DialogueActionType
+{
+    None,
+    OpenTrade
 }
