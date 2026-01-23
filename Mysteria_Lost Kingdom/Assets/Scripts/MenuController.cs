@@ -19,7 +19,7 @@ public class MenuController : MonoBehaviour
     internal bool isGMOpen = false;
     private bool isEduOpen = false;
     public bool inputBlocked = false;
-    [SerializeField] private CinemachineInputAxisController cinemachineInput;
+    [SerializeField] internal CinemachineInputAxisController cinemachineInput;
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -77,7 +77,11 @@ public class MenuController : MonoBehaviour
         {
             return;
         }
-
+        if (TradeManager.Instance.isTradeOpen)
+        {
+            TradeManager.Instance.CloseTrade();
+            return;
+        }
         if (DialogueManager.Instance.isDialogueOpen)
         {
             DialogueManager.Instance.EndDialogue();
@@ -123,6 +127,10 @@ public class MenuController : MonoBehaviour
         isGMOpen = !isGMOpen;
         if (isGMOpen)
         {
+            if (TradeManager.Instance.isTradeOpen)
+            {
+                TradeManager.Instance.CloseTrade();
+            }
             InteractionBlocker.Block(InteractionBlockReason.Menu);
             DialogueManager.Instance.EndDialogue();
             cinemachineInput.enabled = false;

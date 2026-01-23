@@ -294,7 +294,7 @@ public class PlayerController : MonoBehaviour
     {
         if (MenuController.Instance.IsInputBlocked()) return;
 
-        if (moveInput.sqrMagnitude > 0.01f)
+        if (moveInput.sqrMagnitude > 0.1f)
         {
             combat.TryInterruptByMovement();
         }

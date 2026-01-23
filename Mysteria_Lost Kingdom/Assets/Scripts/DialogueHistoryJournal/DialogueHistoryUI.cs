@@ -24,7 +24,7 @@ public class DialogueHistoryUI : MonoBehaviour
             var text = go.GetComponent<TMP_Text>();
 
             if (entry.isPlayer)
-                text.text = $"<color=#2A4B8D><b>Гравець:</b></color> {entry.text}";
+                text.text = $"<color=#2A4B8D><b>Ханк:</b></color> {entry.text}";
             else
                 text.text = $"<color=#FF6C00><b>{entry.speakerName}:</b></color> {entry.text}";
         }

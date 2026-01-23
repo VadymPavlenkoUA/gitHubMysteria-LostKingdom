@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static NSubstitute.Arg;
 
 public class PlayerCombat : MonoBehaviour
 {
@@ -21,11 +20,13 @@ public class PlayerCombat : MonoBehaviour
     public float postAttackComboBuffer = 1f;
 
     [Header("Interrupt Penalty")]
-    [SerializeField] private float interruptAttackSpeedMultiplier = 0.1f;
+    [SerializeField] private float interruptAttackSpeedMultiplier = 0.8f;
     [SerializeField] private int attacksWithPenaltyAfterInterrupt = 1;
+    [SerializeField] private float interruptPenaltyTimeout = 1f;
 
     private int interruptPenaltyAttacksLeft = 0;
-    private bool lastAttackWasInterrupted = false;
+    private float interruptPenaltyTimer = 0f;
+    [SerializeField] private bool lastAttackWasInterrupted = false;
 
     [SerializeField] private float ikBlendSpeed = 8f;
     private float leftHandIKWeight;
@@ -45,6 +46,9 @@ public class PlayerCombat : MonoBehaviour
 
     private float attackFailSafeTimer;
     private const float MAX_ATTACK_TIME = 5f;
+
+    [SerializeField] private float attackCooldown = 0.5f; // пів секунди між атаками
+    private float attackCooldownTimer = 0f;
 
     public bool IsAttacking { get; private set; }
     public bool CanCancelAttack { get; private set; } = false;
@@ -104,6 +108,22 @@ public class PlayerCombat : MonoBehaviour
                 comboBufferActive = false;
                 comboStep = 0;
             }
+        }
+
+        if (interruptPenaltyAttacksLeft > 0)
+        {
+            interruptPenaltyTimer -= Time.deltaTime;
+
+            if (interruptPenaltyTimer <= 0f)
+            {
+                interruptPenaltyAttacksLeft = 0;
+                lastAttackWasInterrupted = false;
+            }
+        }
+
+        if (attackCooldownTimer > 0f)
+        {
+            attackCooldownTimer -= Time.deltaTime;
         }
     }
     IEnumerator StartBlockNextFrame()
@@ -167,6 +187,7 @@ public class PlayerCombat : MonoBehaviour
 
         lastAttackWasInterrupted = true;
         interruptPenaltyAttacksLeft = attacksWithPenaltyAfterInterrupt;
+        interruptPenaltyTimer = interruptPenaltyTimeout;
 
         animator.ResetTrigger("Attack");
         AttackEnd(true);
@@ -229,6 +250,7 @@ public class PlayerCombat : MonoBehaviour
 
     void TryAttack()
     {
+        if (attackCooldownTimer > 0f) return;
         if ((IsAttacking && !CanCancelAttack) || IsInStag)
         {
             return;
@@ -241,12 +263,10 @@ public class PlayerCombat : MonoBehaviour
             return;
         }
 
-        //if (IsAttacking && CanCancelAttack)
-        //{
-        //    animator.SetTrigger("AttackInterupt");
-        //    AttackEnd(false);
-        //    Debug.Log($"Trigger");
-        //}
+        attackCooldownTimer = attackCooldown;
+
+        IsAttacking = true;
+        CanCancelAttack = false;
 
         ItemInstance weapon = GetActiveWeaponItem();
 
@@ -263,8 +283,6 @@ public class PlayerCombat : MonoBehaviour
 
         if (isBlocking) EndBlock();
 
-        IsAttacking = true;
-        CanCancelAttack = false;
         attackFailSafeTimer = MAX_ATTACK_TIME;
 
         SetAttackIndexByWeapon();

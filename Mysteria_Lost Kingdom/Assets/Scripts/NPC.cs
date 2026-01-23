@@ -10,10 +10,17 @@ public class NPC : MonoBehaviour, IInteractable, IClosableInteraction
 
     public void OnInteractionClosed()
     {
-        if (!DialogueManager.Instance.isDialogueOpen) return;
-
-        DialogueManager.Instance.EndDialogue();
-        Debug.Log("Діалог закрито через відстань");
+        if (!DialogueManager.Instance.isDialogueOpen && !TradeManager.Instance.isTradeOpen) return;
+        else if (DialogueManager.Instance.isDialogueOpen)
+        {
+            DialogueManager.Instance.EndDialogue();
+            Debug.Log("Діалог закрито через відстань");
+        }
+        else if (TradeManager.Instance.isTradeOpen)
+        {
+            TradeManager.Instance.CloseTrade();
+            Debug.Log("Торгівлю закрито через відстань");
+        }
     }
 
     public string GetInteractionNameText()

@@ -55,7 +55,7 @@ public class Inventory : MonoBehaviour
         if (!ignoreWeight && CurrentWeight + item.weight * amount > playerStats.maxWeight)
         {
             Debug.Log("Перевищено вагу!");
-            return false;
+            //return false;
         }
 
         int remaining = amount;
@@ -105,7 +105,7 @@ public class Inventory : MonoBehaviour
         if (!ignoreWeight && CurrentWeight + inst.item.weight > playerStats.maxWeight)
         {
             Debug.Log("Перевищено вагу!");
-            return false;
+            //return false;
         }
 
         // шукаємо порожній слот

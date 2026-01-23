@@ -6,7 +6,8 @@ public enum InteractionBlockReason
     Dialogue,
     Education,
     Cutscene,
-    UsingItem
+    UsingItem,
+    Trade
 }
 
 public static class InteractionBlocker

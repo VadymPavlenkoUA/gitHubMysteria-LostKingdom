@@ -121,8 +121,7 @@ public class InventoryUIManager : MonoBehaviour
 
     public void BuildTradeCenter()
     {
-        foreach (Transform c in tradeCenterParent)
-            Destroy(c.gameObject);
+        foreach (Transform c in tradeCenterParent) Destroy(c.gameObject);
 
         tradeCenterSlots = new TradeSlotUI[TradeManager.Instance.tradeSlots.Length];
 
@@ -132,6 +131,10 @@ public class InventoryUIManager : MonoBehaviour
             var ui = obj.GetComponent<TradeSlotUI>();
             ui.Init(i);
             tradeCenterSlots[i] = ui;
+
+            var drop = obj.GetComponent<TradeCenterDrop>();
+            if (drop == null) drop = obj.AddComponent<TradeCenterDrop>();
+            drop.tradeSlotIndex = i;
         }
     }
 
@@ -139,6 +142,33 @@ public class InventoryUIManager : MonoBehaviour
     {
         if (tradeCenterSlots == null) return;
         foreach (var slot in tradeCenterSlots) slot.Refresh();
+    }
+
+    public void RefreshTradePlayerSlots()
+    {
+        if (tradePlayerSlotUIs == null || TradeManager.Instance.playerInventory == null) return;
+
+        for (int i = 0; i < tradePlayerSlotUIs.Length; i++)
+        {
+            tradePlayerSlotUIs[i].SetSlot(TradeManager.Instance.playerInventory.slots[i]);
+        }
+    }
+
+    public void RefreshTradeTraderSlots()
+    {
+        if (tradeTraderSlotUIs == null || TradeManager.Instance.traderInventory == null) return;
+
+        for (int i = 0; i < tradeTraderSlotUIs.Length; i++)
+        {
+            tradeTraderSlotUIs[i].SetSlot(TradeManager.Instance.traderInventory.slots[i]);
+        }
+    }
+
+    public void RefreshTradeUI()
+    {
+        RefreshTradePlayerSlots();
+        RefreshTradeTraderSlots();
+        RefreshTradeCenter();
     }
 
     public void NotifyInventoryChanged()
@@ -185,8 +215,6 @@ public class InventoryUIManager : MonoBehaviour
         );
 
         BuildTradeCenter();
-
-        //if (!MenuController.Instance.isGMOpen) MenuController.Instance.OpenGameMenu();
     }
 
     public void CloseTradeView()

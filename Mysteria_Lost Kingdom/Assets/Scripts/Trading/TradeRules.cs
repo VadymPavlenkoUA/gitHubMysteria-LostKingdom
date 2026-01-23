@@ -2,25 +2,38 @@ public static class TradeRules
 {
     public static bool CanDrag(InventorySlotUI slot)
     {
-        if (TradeManager.Instance == null)
+        var tm = TradeManager.Instance;
+
+        if (!tm.isTradeOpen || tm.CurrentMode == TradeMode.None)
             return true;
 
-        var mode = TradeManager.Instance.CurrentMode;
-        if (mode == TradeMode.None)
+        return tm.CurrentMode switch
+        {
+            TradeMode.Buy => slot.ownerInventory == tm.traderInventory,
+            TradeMode.Sell => slot.ownerInventory == tm.playerInventory,
+            _ => false
+        };
+    }
+
+    public static bool CanDropIntoTrade(InventorySlotUI slot)
+    {
+        var tm = TradeManager.Instance;
+
+        if (!tm.isTradeOpen) return false;
+
+        return tm.CurrentMode switch
+        {
+            TradeMode.Buy => slot.ownerInventory == tm.traderInventory,
+            TradeMode.Sell => slot.ownerInventory == tm.playerInventory,
+            _ => false
+        };
+    }
+
+    public static bool CanDropToWorld()
+    {
+        if (!TradeManager.Instance.isTradeOpen)
             return true;
 
-        bool isPlayerInventory = slot.ownerInventory ==
-            TradeManager.Instance.playerInventory;
-
-        bool isTraderInventory = slot.ownerInventory ==
-            TradeManager.Instance.traderInventory;
-
-        if (mode == TradeMode.Buy)
-            return isTraderInventory;
-
-        if (mode == TradeMode.Sell)
-            return isPlayerInventory;
-
-        return false;
+        return TradeManager.Instance.CurrentMode == TradeMode.None;
     }
 }

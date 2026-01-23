@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
-    public enum SlotType { Inventory, Equipment, Chest, TradePlayer, TradeTrader, TradeCentre};
+    public enum SlotType { Inventory, Equipment, Chest, TradePlayer, TradeTrader};
     public enum SlotSpecification { RightHand, LeftHand, RangeSlot, ThrowSlot, NecklaceSlot, RingSlot, BeltSlot, HeadSlot, ChestSlot, HandsSlot, LegsSlot, BootsSlot, None };
     [SerializeField] internal SlotType slotType = SlotType.Inventory;
     [SerializeField] internal SlotSpecification slotSpecification = SlotSpecification.None;
@@ -98,8 +98,11 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         bool overInventory = eventData.pointerEnter != null && IsPointerInsideAnyContainer(eventData.pointerEnter);
 
+        bool canDropToWorld = TradeRules.CanDropToWorld();
+
         Image img = draggingIcon.GetComponent<Image>();
-        img.color = overInventory ? new Color(1f, 1f, 1f, 0.7f) : new Color(1f, 0.3f, 0.3f, 0.8f); 
+        bool invalidDrop = !overInventory && canDropToWorld;
+        img.color = !invalidDrop ? new Color(1f, 1f, 1f, 0.7f) : new Color(1f, 0.3f, 0.3f, 0.8f); 
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -107,6 +110,11 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         CleanupDrag();
 
         if (slot == null || slot.IsEmpty) return;
+
+        if (TradeManager.Instance != null && TradeManager.Instance.isTradeOpen)
+        {
+            return;
+        }
 
         if (!IsPointerInsideAnyContainer(eventData.pointerEnter))
         {
@@ -916,69 +924,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         HotbarUI.Instance.RefreshHotbar();
         EquipmentManager.Instance.UpdateWeaponIdle();
     }
-
-    //internal void DropItem()
-    //{
-    //    if (UseActionManager.Instance.isUsing)
-    //    {
-    //        UseActionManager.Instance.CancelUse();
-    //    }
-    //    if (slot == null || slot.IsEmpty) return;
-    //    if (slot.item.itemPrefab == null)
-    //    {
-    //        Debug.Log("Prefab missing!");
-    //        return;
-    //    }
-
-    //    GameObject player = GameObject.FindGameObjectWithTag("Player");
-    //    if (player == null) return;
-
-    //    int amountToDrop = slot.count;
-
-    //    for (int i = 0; i < amountToDrop; i++)
-    //    {
-    //        Vector3 dropPos = player.transform.position + transform.forward * 1f;
-    //        dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 1f, Random.Range(-0.2f, 0.2f));
-    //        Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
-    //    }
-
-    //    if (slotType == SlotType.Equipment)
-    //    {
-    //        var eq = EquipmentManager.Instance;
-
-    //        if (slot.item.weaponHandType == WeaponHandType.TwoHand)
-    //        {
-    //            foreach (var eqSlotUI in InventoryUIManager.Instance.equipmentSlots)
-    //            {
-    //                if (eqSlotUI.slotSpecification == SlotSpecification.RightHand ||
-    //                    eqSlotUI.slotSpecification == SlotSpecification.LeftHand)
-    //                {
-    //                    eq?.Unequip(eqSlotUI.slotSpecification);
-    //                    eqSlotUI.slot.Clear();
-    //                    eqSlotUI.SetSlot(eqSlotUI.slot);
-    //                }
-    //            }
-    //        }
-    //        else
-    //        {
-    //            eq?.Unequip(slotSpecification);
-    //            slot.Clear();
-    //            SetSlot(slot);
-    //        }
-
-    //        InventoryUIManager.Instance.RefreshUI();
-    //        return;
-    //    }
-
-    //    Inventory inventory = InventoryUIManager.Instance.inventory;
-    //    if (inventory != null)
-    //    {
-    //        inventory.RemoveItem(slot.item, amountToDrop);
-    //    }
-
-    //    SetSlot(slot);
-    //    InventoryUIManager.Instance.RefreshUI();
-    //}
 
     internal void DropItem(int amount)
     {
