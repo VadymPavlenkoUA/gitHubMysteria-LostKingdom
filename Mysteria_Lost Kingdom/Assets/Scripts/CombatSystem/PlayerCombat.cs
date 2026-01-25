@@ -83,6 +83,7 @@ public class PlayerCombat : MonoBehaviour
             if (attackFailSafeTimer <= 0f)
             {
                 Debug.LogWarning("Attack FAILSAFE triggered");
+                AnimationDisableLeftHandIK();
                 AttackEnd(true);
             }
         }
@@ -146,41 +147,6 @@ public class PlayerCombat : MonoBehaviour
         StartBlock();
     }
 
-    //public void InterruptAttack(bool isStag = false)
-    //{
-    //    if (isStag)
-    //    {
-    //        IsInStag = true;
-    //    }
-    //    if (!IsAttacking) return;
-    //    animator.ResetTrigger("Attack");
-    //    animator.SetTrigger("AttackInterupt");
-
-    //    AttackEnd(true);
-    //}
-
-    //public void InterruptAttack(bool isStag = false)
-    //{
-    //    if (!IsAttacking)
-    //        return;
-
-    //    IsAttacking = false;
-    //    CanCancelAttack = false;
-
-    //    if (isStag)
-    //    {
-    //        IsInStag = true;
-    //        animator.CrossFade("Stagger", 0.0f);
-    //    }
-    //    else
-    //    {
-    //        animator.CrossFade("Base Layer.Locomotion.Movement", 0.1f);
-    //    }
-
-    //    comboStep = 0;
-    //    comboBufferActive = false;
-    //}
-
     public void InterruptAttack()
     {
         if (!IsAttacking) return;
@@ -190,6 +156,7 @@ public class PlayerCombat : MonoBehaviour
         interruptPenaltyTimer = interruptPenaltyTimeout;
 
         animator.ResetTrigger("Attack");
+        AnimationDisableLeftHandIK();
         AttackEnd(true);
         animator.CrossFade("Base Layer.Locomotion.Movement", 0.1f);
     }

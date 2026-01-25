@@ -19,6 +19,21 @@ public class Inventory : MonoBehaviour
         for (int i = 0; i < 12; i++) equipSlots.Add(new InventorySlot());
     }
 
+    public void InitTrade(int slotsCount, bool ignoreWeight = true)
+    {
+        slotCount = slotsCount;
+        this.ignoreWeight = ignoreWeight;
+
+        slots.Clear();
+        equipSlots.Clear();
+
+        for (int i = 0; i < slotCount; i++)
+            slots.Add(new InventorySlot());
+
+        for (int i = 0; i < 12; i++)
+            equipSlots.Add(new InventorySlot());
+    }
+
     public void NotifyInventoryChanged()
     {
         OnInventoryChanged?.Invoke();
@@ -213,20 +228,5 @@ public class Inventory : MonoBehaviour
         }
 
         return lockpicks[lockpicks.Count - 1];
-    }
-
-
-
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

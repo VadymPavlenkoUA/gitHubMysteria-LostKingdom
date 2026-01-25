@@ -41,6 +41,29 @@ public class TradeSlot
         return toAdd;
     }
 
+    public int GetTotalPrice(TraderData trader, TradeMode mode)
+    {
+        if (IsEmpty) return 0;
+
+        float multiplier = mode == TradeMode.Buy
+            ? trader.sellPriceMultiplier
+            : trader.buyPriceMultiplier;
+
+        int unitPrice = item.basePrice;
+        int total = Mathf.RoundToInt(unitPrice * multiplier) * amount;
+
+        return total;
+    }
+
+    public static int GetUnitPrice(Item item, TraderData trader, TradeMode mode)
+    {
+        float multiplier = mode == TradeMode.Buy
+            ? trader.sellPriceMultiplier
+            : trader.buyPriceMultiplier;
+
+        return Mathf.RoundToInt(item.basePrice * multiplier);
+    }
+
     public void Clear()
     {
         item = null;

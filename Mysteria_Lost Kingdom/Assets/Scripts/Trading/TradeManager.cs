@@ -19,6 +19,9 @@ public class TradeManager : MonoBehaviour
     public Inventory traderInventory;
     public SplitStackUI splitStackUI;
 
+    public GameObject arrowSell;
+    public GameObject arrowBuy;
+
     public GameObject tradeUI;
 
     [Header("Trade Slots")]
@@ -26,6 +29,8 @@ public class TradeManager : MonoBehaviour
     public TradeSlot[] tradeSlots;
     internal bool isTradeOpen;
     private PlayerInputActions inputActions;
+
+    public NPC currentTrader;
 
     private void Awake()
     {
@@ -37,11 +42,13 @@ public class TradeManager : MonoBehaviour
         SetBuyMode();
     }
 
-    public void OpenTrade(Inventory traderInv)
+    public void OpenTrade(NPC npcData)
     {
         isTradeOpen = true;
-        traderInventory = traderInv;
-        CurrentMode = TradeMode.Sell;
+        currentTrader = npcData;
+        traderInventory = npcData.traderInventory;
+
+        SetBuyMode();
 
         InteractionBlocker.Block(InteractionBlockReason.Trade);
         inputActions.Combat.Disable();
@@ -61,6 +68,8 @@ public class TradeManager : MonoBehaviour
         ClearTradeSlots();
         InventoryUIManager.Instance.SetTradeMode(CurrentMode);
         InventoryUIManager.Instance.UpdateTradeButtons();
+        arrowBuy.SetActive(true);
+        arrowSell.SetActive(false);
     }
 
     public void SetSellMode()
@@ -70,6 +79,8 @@ public class TradeManager : MonoBehaviour
         ClearTradeSlots();
         InventoryUIManager.Instance.SetTradeMode(CurrentMode);
         InventoryUIManager.Instance.UpdateTradeButtons();
+        arrowSell.SetActive(true);
+        arrowBuy.SetActive(false);
     }
 
     public void CloseTrade()
@@ -78,7 +89,9 @@ public class TradeManager : MonoBehaviour
         isTradeOpen = false;
         CurrentMode = TradeMode.None;
         InventoryUIManager.Instance.CloseTradeView();
+        ItemDescriptionUI.Instance.ClearDescription(true);
         traderInventory = null;
+        currentTrader = null;
 
         InteractionBlocker.Unblock(InteractionBlockReason.Trade);
         inputActions.Player.Enable();
@@ -121,7 +134,7 @@ public class TradeManager : MonoBehaviour
             invSlot.Clear();
             from.SetSlot(invSlot);
 
-            InventoryUIManager.Instance.RefreshTradeCenter();
+            InventoryUIManager.Instance.RefreshTradeUI();
             return;
         }
 
@@ -195,28 +208,27 @@ public class TradeManager : MonoBehaviour
         InventoryUIManager.Instance.RefreshUI();
     }
 
-
     public void CancelTrade()
     {
+        Inventory targetInventory = CurrentMode == TradeMode.Buy ? traderInventory : playerInventory;
+
         foreach (var slot in tradeSlots)
         {
-            if (slot.IsEmpty)
-                continue;
+            if (slot.IsEmpty) continue;
 
             // ===== UNIQUE =====
             if (slot.IsUnique && slot.itemInstance != null)
             {
-                bool added = playerInventory.AddInstance(slot.itemInstance);
+                bool added = targetInventory.AddInstance(slot.itemInstance);
                 if (!added)
                 {
                     Debug.LogWarning($"Не вдалося повернути {slot.itemInstance.item.name} у інвентар!");
                 }
             }
-
             // ===== STACKABLE =====
             else if (!slot.IsEmpty && slot.item != null)
             {
-                bool added = playerInventory.AddItem(slot.item, slot.amount);
+                bool added = targetInventory.AddItem(slot.item, slot.amount);
                 if (!added)
                 {
                     Debug.LogWarning($"Не вдалося повернути {slot.amount}x {slot.item.name} у інвентар!");
@@ -228,6 +240,97 @@ public class TradeManager : MonoBehaviour
 
         InventoryUIManager.Instance.RefreshTradeUI();
     }
+
+    public int GetItemTradePrice(Item item)
+    {
+        if (currentTrader == null) return item.basePrice;
+
+        return TradeSlot.GetUnitPrice(item, currentTrader.traderData, CurrentMode);
+    }
+
+    public int CalculateTradeTotalPrice()
+    {
+        if (currentTrader == null) return 0;
+
+        int total = 0;
+        foreach (var slot in tradeSlots)
+        {
+            if (slot.IsEmpty) continue;
+            total += slot.GetTotalPrice(currentTrader.traderData, CurrentMode);
+        }
+        return total;
+    }
+
+    public void ConfirmTrade()
+    {
+        int totalPrice = CalculateTradeTotalPrice();
+
+        if (CurrentMode == TradeMode.Buy)
+        {
+            TryBuy(totalPrice);
+        }
+        else if (CurrentMode == TradeMode.Sell)
+        {
+            TrySell(totalPrice);
+        }
+        InventoryUIManager.Instance.RefreshUI();
+    }
+
+    private void TryBuy(int totalPrice)
+    {
+        if (!playerInventory.playerStats.TrySpendGold(totalPrice))
+        {
+            Debug.Log("Недостатньо золота");
+            return;
+        }
+
+        if (!currentTrader.TrySpendGold(-totalPrice))
+        {
+            Debug.Log("У торговця щось пішло не так");
+            playerInventory.playerStats.AddGold(totalPrice);
+            return;
+        }
+
+        foreach (var slot in tradeSlots)
+        {
+            if (slot.IsEmpty) continue;
+
+            if (slot.IsUnique)
+                playerInventory.AddInstance(slot.itemInstance);
+            else
+                playerInventory.AddItem(slot.item, slot.amount);
+
+            slot.Clear();
+        }
+
+        InventoryUIManager.Instance.RefreshTradeUI();
+    }
+
+    private void TrySell(int totalPrice)
+    {
+        if (!currentTrader.TrySpendGold(totalPrice))
+        {
+            Debug.Log("У торговця недостатньо золота");
+            return;
+        }
+
+        playerInventory.playerStats.AddGold(totalPrice);
+
+        foreach (var slot in tradeSlots)
+        {
+            if (slot.IsEmpty) continue;
+
+            if (slot.IsUnique)
+                traderInventory.AddInstance(slot.itemInstance);
+            else
+                traderInventory.AddItem(slot.item, slot.amount);
+
+            slot.Clear();
+        }
+
+        InventoryUIManager.Instance.RefreshTradeUI();
+    }
+
 
 
 

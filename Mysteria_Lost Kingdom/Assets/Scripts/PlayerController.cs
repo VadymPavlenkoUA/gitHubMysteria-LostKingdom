@@ -160,12 +160,6 @@ public class PlayerController : MonoBehaviour
             moveDir = Vector3.zero;
             return;
         }
-        //else if (wantsToInterruptAttack)
-        //{
-        //    wantsToInterruptAttack = false;
-        //    combat.InterruptAttack();
-        //    Debug.Log($"Trigger");
-        //}
         
         float currentSpeed = moveSpeed;
 
@@ -195,7 +189,10 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-
+        if (combat != null && combat.equipment != null)
+        {
+            currentSpeed *= combat.equipment.MovementSpeedMultiplier;
+        }
 
         if (isSprinting)
         {

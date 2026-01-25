@@ -90,6 +90,9 @@ public class Item : ScriptableObject
     [Header("Attack Animation")]
     public float attackSpeedMultiplier = 1f;
 
+    [Header("Economy")]
+    public int basePrice = 10;
+
     [TextArea(2, 5)]
     public string description;
 }

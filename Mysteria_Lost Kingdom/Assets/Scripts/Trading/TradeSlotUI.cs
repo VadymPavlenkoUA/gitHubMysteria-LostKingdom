@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class TradeSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class TradeSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
     public Image icon;
     public TMP_Text amountText;
@@ -52,25 +52,45 @@ public class TradeSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         rt.sizeDelta = GetComponent<RectTransform>().sizeDelta;
     }
 
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        var slot = TradeManager.Instance.tradeSlots[index];
+
+        if (slot.IsEmpty)
+        {
+            ItemDescriptionUI.Instance.ClearDescription(true);
+            return;
+        }
+
+        ItemInstance instance;
+
+        if (slot.IsUnique)
+        {
+            instance = slot.itemInstance;
+        }
+        else
+        {
+            instance = new ItemInstance(slot.item)
+            {
+                count = slot.amount
+            };
+        }
+
+        ItemDescriptionUI.Instance.ShowDescription(instance.item.description, instance, isTrade: true);
+    }
+
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (draggingIcon != null)
-            draggingIcon.transform.position = eventData.position;
+        if (draggingIcon != null) draggingIcon.transform.position = eventData.position;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (draggingIcon != null)
-            Destroy(draggingIcon);
+        if (draggingIcon != null) Destroy(draggingIcon);
 
-        var targetSlot =
-            eventData.pointerEnter?
-            .GetComponentInParent<InventorySlotUI>();
+        var targetSlot = eventData.pointerEnter?.GetComponentInParent<InventorySlotUI>();
 
-        if (targetSlot == null)
-            return;
-
-        TradeManager.Instance.TryReturnFromTrade(index, targetSlot);
+        if (targetSlot != null) TradeManager.Instance.TryReturnFromTrade(index, targetSlot);
     }
 }

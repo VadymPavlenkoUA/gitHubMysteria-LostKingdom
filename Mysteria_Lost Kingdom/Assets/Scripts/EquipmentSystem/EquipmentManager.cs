@@ -57,6 +57,10 @@ public class EquipmentManager : MonoBehaviour
 
     private PlayerInputActions inputActions;
 
+    public bool IsWeaponDrawn => isRightHandDrawn || isLeftHandDrawn;
+
+    public float MovementSpeedMultiplier => IsWeaponDrawn ? 1f : 1.1f;
+
     private void Awake()
     {
         if (!isRTCharacter)

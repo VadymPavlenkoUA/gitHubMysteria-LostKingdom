@@ -51,6 +51,14 @@ public class InventoryUIManager : MonoBehaviour
     public TabSwitcher tabSwitcher;
     public int inventoryTabIndex;
 
+    [Header("Trade Info UI")]
+    public TextMeshProUGUI tradeGoldText;
+    public TextMeshProUGUI tradeWeightText;
+    public TextMeshProUGUI tradeNPCGoldText;
+    public TextMeshProUGUI tradeNPCWeightText;
+    public TextMeshProUGUI tradeAllItemsCost;
+
+
     private Inventory chestInventory;
     private InventorySlotUI[] chestSlotUIs;
 
@@ -92,6 +100,7 @@ public class InventoryUIManager : MonoBehaviour
 
         inventory.playerStats.CalculateDerivedStats();
         inventory.playerStats.StatsChanged += RefreshWeightEquipText;
+        inventory.playerStats.StatsChanged += RefreshTradeInfo;
         RefreshUI();
     }
 
@@ -169,6 +178,9 @@ public class InventoryUIManager : MonoBehaviour
         RefreshTradePlayerSlots();
         RefreshTradeTraderSlots();
         RefreshTradeCenter();
+        RefreshTradeInfo();
+        RefreshTradeNPCInfo();
+        RefreshAllItemsCost();
     }
 
     public void NotifyInventoryChanged()
@@ -215,6 +227,9 @@ public class InventoryUIManager : MonoBehaviour
         );
 
         BuildTradeCenter();
+        RefreshTradeInfo();
+        RefreshTradeNPCInfo();
+        RefreshAllItemsCost();
     }
 
     public void CloseTradeView()
@@ -325,5 +340,33 @@ public class InventoryUIManager : MonoBehaviour
 
         buyButton.image.color = isBuy ? activeColor : inactiveColor;
         sellButton.image.color = !isBuy ? activeColor : inactiveColor;
+    }
+
+    public void RefreshTradeInfo()
+    {
+        if (inventory == null) return;
+
+        // GOLD
+        tradeGoldText.text = $"{inventory.playerStats.gold}";
+
+        // WEIGHT
+        tradeWeightText.text = $"{inventory.CurrentWeight.ToString("0.0", CultureInfo.InvariantCulture)} / " + $"{inventory.playerStats.maxWeight.ToString("0.0", CultureInfo.InvariantCulture)}";
+    }
+
+    public void RefreshTradeNPCInfo()
+    {
+        if (TradeManager.Instance.currentTrader == null || TradeManager.Instance.traderInventory == null) return;
+
+        // GOLD
+        tradeNPCGoldText.text = $"{TradeManager.Instance.currentTrader.Gold}";
+
+        // WEIGHT
+        tradeNPCWeightText.text = $"{TradeManager.Instance.traderInventory.CurrentWeight.ToString("0.0", CultureInfo.InvariantCulture)} / - - -";
+    }
+
+    public void RefreshAllItemsCost()
+    {
+        int tradePrice = TradeManager.Instance.CalculateTradeTotalPrice();
+        tradeAllItemsCost.text = $"{tradePrice}";
     }
 }

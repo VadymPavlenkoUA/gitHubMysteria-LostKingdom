@@ -6,7 +6,11 @@ public class NPC : MonoBehaviour, IInteractable, IClosableInteraction
     public DialogueData dialogueData;
     public Transform InteractionTransform => transform;
 
-    public Inventory traderInventory = null;
+    public TraderData traderData;
+    internal Inventory traderInventory = null;
+
+    private int currentGold;
+    public int Gold => currentGold;
 
     public void OnInteractionClosed()
     {
@@ -33,21 +37,55 @@ public class NPC : MonoBehaviour, IInteractable, IClosableInteraction
         return $"Натисніть \"E\"";
     }
 
+    public void InitTraderInventory()
+    {
+        if (traderInventory != null) return;
+
+        traderInventory = gameObject.AddComponent<Inventory>();
+        traderInventory.InitTrade(traderData.inventorySlots, ignoreWeight: true);
+
+        currentGold = traderData.startGold;
+
+        foreach (var tradeItem in traderData.items)
+        {
+            if (tradeItem.item == null) continue;
+
+            // Визначаємо випадкову кількість між min та max
+            int amount = Random.Range(tradeItem.minAmount, tradeItem.maxAmount + 1);
+
+            if (tradeItem.item.isUnique)
+            {
+                for (int i = 0; i < amount; i++)
+                {
+                    traderInventory.AddInstance(new ItemInstance(tradeItem.item));
+                }
+            }
+            else
+            {
+                traderInventory.AddItem(tradeItem.item, amount);
+            }
+        }
+    }
+
+    public bool TrySpendGold(int amount)
+    {
+        if (traderData.startGold >= amount)
+        {
+            currentGold -= amount;
+            return true;
+        }
+        return false;
+    }
+
+    public void AddGold(int amount)
+    {
+        currentGold += amount;
+    }
+
     public void Interact()
     {
-        DialogueManager.Instance.StartDialogue(dialogueData, traderInventory);
+        InitTraderInventory();
+        DialogueManager.Instance.StartDialogue(dialogueData, this);
         InteractionDistanceWatcher.Instance.StartWatching(this);
-    }
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

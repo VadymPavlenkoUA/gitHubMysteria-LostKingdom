@@ -404,6 +404,24 @@ public class PlayerStats : MonoBehaviour
         StatsChanged?.Invoke();
     }
 
+    public bool HasGold(int amount)
+    {
+        return gold >= amount;
+    }
+
+    public bool TrySpendGold(int amount)
+    {
+        if (amount <= 0)
+            return true;
+
+        if (gold < amount)
+            return false;
+
+        gold -= amount;
+        StatsChanged?.Invoke();
+        return true;
+    }
+
     public void CheckLevelProgress()
     {
         while (currentExp >= expToNextLevel)

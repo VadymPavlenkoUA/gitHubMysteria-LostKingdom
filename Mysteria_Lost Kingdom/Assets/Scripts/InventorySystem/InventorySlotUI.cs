@@ -51,18 +51,19 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        bool isTradeSlot = slotType == SlotType.TradePlayer || slotType == SlotType.TradeTrader;
+
         if (slot != null && !slot.IsEmpty)
         {
-            ItemDescriptionUI.Instance.ShowDescription(slot.item.description, slot.instance);
-            if (eventData.button == PointerEventData.InputButton.Right)
+            ItemDescriptionUI.Instance.ShowDescription(slot.item.description, slot.instance, isTrade: isTradeSlot);
+            if (!isTradeSlot && eventData.button == PointerEventData.InputButton.Right)
             {
                 ContextMenuUI.Instance.Show(this, transform.position + (Vector3)offset);
             }
         }
         else
         {
-            ItemDescriptionUI.Instance.ClearDescription();
-            ContextMenuUI.Instance.Hide();
+            ItemDescriptionUI.Instance.ClearDescription(isTrade: isTradeSlot);
         }
     }
 
@@ -141,7 +142,8 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             otherSlotUI = eventData.pointerEnter.GetComponentInParent<InventorySlotUI>();
             if (otherSlotUI != null && otherSlotUI != this)
             {
-                ItemDescriptionUI.Instance.ShowDescription(slot.item.description, slot.instance);
+                bool isTradeSlot = slotType == SlotType.TradePlayer || slotType == SlotType.TradeTrader;
+                ItemDescriptionUI.Instance.ShowDescription(slot.item.description, slot.instance, isTrade: isTradeSlot);
                 if (otherSlotUI.slotType == SlotType.Equipment)
                 {
                     if ((slot.item.categories & otherSlotUI.allowedCategory) == 0)
