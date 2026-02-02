@@ -12,10 +12,12 @@ public class CombatStats
     public float totalArmor;
 }
 
-public class PlayerStats : MonoBehaviour
+public class PlayerStats : MonoBehaviour, ISaveable
 {
     public PlayerController controller;
     public PlayerCombat playerCombat;
+    public EquipmentManager equipmentManager;
+    public Inventory inventory;
 
     [Header("LevelUpSettings")]
     public int level = 1;
@@ -107,6 +109,8 @@ public class PlayerStats : MonoBehaviour
 
     [HideInInspector] public float blockMultiplier = 1f;
 
+    private bool loadedFromSave = false;
+
     public delegate void OnLevelUp();
     public event OnLevelUp LevelUpEvent;
 
@@ -133,10 +137,13 @@ public class PlayerStats : MonoBehaviour
         CheckLevelProgress();
         CalculateDerivedStats();
 
-        currentHealth = maxHealth;
-        currentStamina = maxStamina;
-        currentMana = maxMana;
-        currentSatiety = maxSatiety;
+        if (!loadedFromSave)
+        {
+            currentHealth = maxHealth;
+            currentStamina = maxStamina;
+            currentMana = maxMana;
+            currentSatiety = maxSatiety;
+        }
 
         healthBar.maxValue = maxHealth;
         staminaBar.maxValue = maxStamina;
@@ -146,6 +153,113 @@ public class PlayerStats : MonoBehaviour
 
         UpdateUI();
     }
+
+    public string GetSaveID()
+    {
+        return "PLAYER_STATS";
+    }
+
+    public object CaptureState()
+    {
+        return new PlayerStatsSaveData
+        {
+            level = level,
+            availableStatPoints = availableStatPoints,
+
+            vitality = vitality,
+            strength = strength,
+            endurance = endurance,
+            agility = agility,
+            intellect = intellect,
+            faith = faith,
+
+            pendingVitality = pendingVitality,
+            pendingStrength = pendingStrength,
+            pendingEndurance = pendingEndurance,
+            pendingAgility = pendingAgility,
+            pendingIntellect = pendingIntellect,
+            pendingFaith = pendingFaith,
+
+            currentExp = currentExp,
+            totalExp = totalExp,
+            expToNextLevel = expToNextLevel,
+
+            currentHealth = currentHealth,
+            currentStamina = currentStamina,
+            currentMana = currentMana,
+            currentSatiety = currentSatiety,
+
+            gold = gold,
+
+            position = transform.position,
+            rotation = transform.rotation,
+
+            inventory = (InventorySaveData)inventory.CaptureState(),
+
+            rightHandDrawn = equipmentManager.isRightHandDrawn,
+            leftHandDrawn = equipmentManager.isLeftHandDrawn,
+            twoHandEquipped = equipmentManager.twoHandEquipped
+        };
+    }
+
+    public void RestoreState(object state)
+    {
+        var data = (PlayerStatsSaveData)state;
+
+        loadedFromSave = true;
+
+        inventory.RestoreState(data.inventory);
+
+        equipmentManager.RestoreFromInventory(
+            inventory.equipSlots,
+            data.rightHandDrawn,
+            data.leftHandDrawn,
+            data.twoHandEquipped
+        );
+
+        level = data.level;
+        availableStatPoints = data.availableStatPoints;
+
+        vitality = data.vitality;
+        strength = data.strength;
+        endurance = data.endurance;
+        agility = data.agility;
+        intellect = data.intellect;
+        faith = data.faith;
+
+        pendingVitality = data.pendingVitality;
+        pendingStrength = data.pendingStrength;
+        pendingEndurance = data.pendingEndurance;
+        pendingAgility = data.pendingAgility;
+        pendingIntellect = data.pendingIntellect;
+        pendingFaith = data.pendingFaith;
+
+        currentExp = data.currentExp;
+        totalExp = data.totalExp;
+        expToNextLevel = data.expToNextLevel;
+
+        currentHealth = data.currentHealth;
+        currentStamina = data.currentStamina;
+        currentMana = data.currentMana;
+        currentSatiety = data.currentSatiety;
+
+        gold = data.gold;
+
+        transform.position = data.position;
+        transform.rotation = data.rotation;
+
+        CalculateDerivedStats();
+        CheckLevelProgress();
+
+        StatsChanged?.Invoke();
+        HealthChanged?.Invoke();
+        StaminaChanged?.Invoke();
+        ManaChanged?.Invoke();
+        SatietyChanged?.Invoke();
+
+        UpdateUI();
+    }
+
 
     // Update is called once per frame
     void Update()

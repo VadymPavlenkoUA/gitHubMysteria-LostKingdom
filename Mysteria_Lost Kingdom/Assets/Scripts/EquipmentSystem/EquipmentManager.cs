@@ -1,3 +1,4 @@
+Ôªøusing System.Collections.Generic;
 using Unity.VisualScripting;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
@@ -22,7 +23,7 @@ public class EquipmentManager : MonoBehaviour
     public PlayerStats playerStats;
     public PlayerCombat combat;
 
-    [Header("—ÎÓÚË ‰Îˇ ÂÍ≥Ô≥˛‚‡ÌÌˇ")]
+    [Header("–°–ª–æ—Ç–∏ –¥–ª—è –µ–∫—ñ–ø—ñ—é–≤–∞–Ω–Ω—è")]
     public Transform rightHand;
     public Transform leftHand;
     public Transform backSocket;
@@ -87,12 +88,20 @@ public class EquipmentManager : MonoBehaviour
             if (inputActions.HotBar.RightHand.WasPressedThisFrame())
             {
                 if (equippedRightItem == null) return;
-                UseActionManager.Instance.StartUse(0.5f, () => ConfirmEquipRighHand(), () => Debug.Log("Ã‡Ì≥ÔÛÎˇˆ≥ø Á ıÓÚ·‡ÓÏ Ô‡‚‡ ÛÍ‡!"));
+                UseActionManager.Instance.StartUse(0.5f, () => ConfirmEquipRighHand(), () => Debug.Log("–ú–∞–Ω—ñ–ø—É–ª—è—Ü—ñ—ó –∑ —Ö–æ—Ç–±–∞—Ä–æ–º –ø—Ä–∞–≤–∞ —Ä—É–∫–∞!"));
+                if (combat != null)
+                {
+                    combat.ResetCombo();
+                }
             }
             if (inputActions.HotBar.LeftHand.WasPressedThisFrame())
             {
                 if (equippedLeftItem == null) return;
-                UseActionManager.Instance.StartUse(0.5f, () => ConfirmEquipLeftHand(), () => Debug.Log("Ã‡Ì≥ÔÛÎˇˆ≥ø Á ıÓÚ·‡ÓÏ Î≥‚‡ ÛÍ‡!"));
+                UseActionManager.Instance.StartUse(0.5f, () => ConfirmEquipLeftHand(), () => Debug.Log("–ú–∞–Ω—ñ–ø—É–ª—è—Ü—ñ—ó –∑ —Ö–æ—Ç–±–∞—Ä–æ–º –ª—ñ–≤–∞ —Ä—É–∫–∞!"));
+                if (combat != null)
+                {
+                    combat.ResetCombo();
+                }
             }
             if (inputActions.HotBar.RangeWeapon.WasPressedThisFrame()) return;
             if (inputActions.HotBar.ThrowableWeapon.WasPressedThisFrame()) return;
@@ -308,10 +317,13 @@ public class EquipmentManager : MonoBehaviour
         }
     }
 
-    internal void HideRightHand()
+    internal void HideRightHand(bool isSaveLoad = false)
     {
-        if (!isRightHandDrawn) return;
-        isRightHandDrawn = false;
+        if (!isSaveLoad)
+        {
+            if (!isRightHandDrawn) return;
+            isRightHandDrawn = false;
+        }
         UpdateWeaponIdle();
         SyncHotbar();
         if (currentRightHandItem != null) Destroy(currentRightHandItem);
@@ -328,10 +340,13 @@ public class EquipmentManager : MonoBehaviour
         }
     }
 
-    internal void HideLeftHand()
+    internal void HideLeftHand(bool isSaveLoad = false)
     {
-        if (!isLeftHandDrawn) return;
-        isLeftHandDrawn = false;
+        if (!isSaveLoad)
+        {
+            if (!isLeftHandDrawn) return;
+            isLeftHandDrawn = false;
+        }
         UpdateWeaponIdle();
         SyncHotbar();
         if (currentLeftHandItem != null) Destroy(currentLeftHandItem);
@@ -348,11 +363,14 @@ public class EquipmentManager : MonoBehaviour
         }
     }
 
-    internal void HideTwoHanded()
+    internal void HideTwoHanded(bool isSaveLoad = false)
     {
-        if (!isRightHandDrawn && !isLeftHandDrawn) return;
-        isRightHandDrawn = false;
-        isLeftHandDrawn = false;
+        if (!isSaveLoad)
+        {
+            if (!isRightHandDrawn && !isLeftHandDrawn) return;
+            isRightHandDrawn = false;
+            isLeftHandDrawn = false;
+        }
         UpdateWeaponIdle();
         SyncHotbar();
         if (currentRightHandItem != null) Destroy(currentRightHandItem);
@@ -514,7 +532,7 @@ public class EquipmentManager : MonoBehaviour
         if (inst.currentDurability <= 0)
         {
             inst.currentDurability = 0;
-            Debug.Log($"{inst.item.itemName} ÁÎ‡Ï‡Î‡Ò¸");
+            Debug.Log($"{inst.item.itemName} –∑–ª–∞–º–∞–ª–∞—Å—å");
         }
     }
 
@@ -582,6 +600,7 @@ public class EquipmentManager : MonoBehaviour
     internal void UpdateWeaponIdle()
     {
         if (animator == null) return;
+        if (combat.IsAttacking || combat.IsInStag || combat.CanCancelAttack) return;
         if (combat.isBlocking) combat.EndBlock();
         if (forceCombatIdle)
         {
@@ -641,4 +660,116 @@ public class EquipmentManager : MonoBehaviour
         forceCombatIdleTimer = 0f;
         UpdateWeaponIdle();
     }
+
+    public void RestoreFromInventory(List<InventorySlot> equipSlots, bool rightHandDrawn, bool leftHandDrawn, bool twoHandEquipped)
+    {
+        UnequipTwoHand();
+        SetArmour(armourMeshes.headArmourMeshes, -1);
+        SetArmour(armourMeshes.chestArmourMeshes, -1);
+        SetArmour(armourMeshes.legsArmourMeshes, -1);
+        SetArmour(armourMeshes.bootsArmourMeshes, -1);
+        SetArmour(armourMeshes.glovesArmourMeshes, -1);
+        SetArmour(armourMeshes.beltArmourMeshes, -1);
+        equippedHeadArmourItem = null;
+        equippedChestArmourItem = null;
+        equippedLegArmourItem = null;
+        equippedBootsItem = null;
+        equippedGlovesItem = null;
+        equippedBeltItem = null;
+
+        foreach (var slot in equipSlots)
+        {
+            if (slot == null || slot.IsEmpty) continue;
+            var inst = slot.instance ?? new ItemInstance(slot.item, slot.count);
+            EquipItem(inst, slot.slotSpec);
+        }
+
+        this.twoHandEquipped = twoHandEquipped;
+        this.isRightHandDrawn = rightHandDrawn && equippedRightItem != null;
+        this.isLeftHandDrawn = leftHandDrawn && equippedLeftItem != null;
+
+        if (!isRTCharacter)
+        {
+            ApplyDrawState(); 
+        }
+        //else
+        //{
+        //    if (twoHandEquipped && equippedRightItem != null && equippedLeftItem != null)
+        //    {
+        //        DrawTwoHand();
+        //    }
+        //    else
+        //    {
+        //        if (isRightHandDrawn) DrawRightHand();
+        //        else HideRightHand(true);
+
+        //        if (isLeftHandDrawn) DrawLeftHand();
+        //        else HideLeftHand(true);
+        //    }
+        //}
+
+        SyncHotbar();
+        UpdateWeaponIdle();
+        HotbarUI.Instance?.RefreshHotbar();
+        InventoryUIManager.Instance?.RefreshUI();
+
+        if (!isRTCharacter)
+        {
+            playerStats.InvokeCombatChanged();
+            RTCharacterManager.Instance?.SyncFromMain();
+        }
+    }
+
+
+    private void ApplyDrawState()
+    {
+        if (twoHandEquipped && isRightHandDrawn && isLeftHandDrawn)
+        {
+            DrawTwoHand();
+            return;
+        }
+        else if (twoHandEquipped && !isRightHandDrawn && !isLeftHandDrawn)
+        {
+            HideTwoHanded(true);
+            return;
+        }
+
+        if (isRightHandDrawn) DrawRightHand();
+        else HideRightHand(true);
+
+        if (isLeftHandDrawn)  DrawLeftHand();
+        else HideLeftHand(true);
+    }
+
+    public void RestoreVisualsDirectly()
+    {
+        if (twoHandEquipped)
+        {
+            if (currentRightHandItem != null) Destroy(currentRightHandItem);
+            if (currentLeftHandItem != null) Destroy(currentLeftHandItem);
+            currentRightHandItem = EquipWeaponInHand(equippedRightItem, rightHand, equippedRightItem.item.rightHandPosition, equippedRightItem.item.rightHandRotation);
+            currentLeftHandItem = currentRightHandItem;
+            isRightHandDrawn = true;
+            isLeftHandDrawn = true;
+        }
+        else
+        {
+            if (isRightHandDrawn && equippedRightItem != null) currentRightHandItem = EquipWeaponInHand(equippedRightItem, rightHand, equippedRightItem.item.rightHandPosition, equippedRightItem.item.rightHandRotation);
+            else if (!isRightHandDrawn && currentRightHandItem != null)
+            {
+                Destroy(currentRightHandItem);
+                currentRightHandItem = null;
+            }
+
+            if (isLeftHandDrawn && equippedLeftItem != null) currentLeftHandItem = EquipWeaponInHand(equippedLeftItem, leftHand, equippedLeftItem.item.leftHandPosition, equippedLeftItem.item.leftHandRotation);
+            else if (!isLeftHandDrawn && currentLeftHandItem != null)
+            {
+                Destroy(currentLeftHandItem);
+                currentLeftHandItem = null;
+            }
+        }
+    }
+
+
+
 }

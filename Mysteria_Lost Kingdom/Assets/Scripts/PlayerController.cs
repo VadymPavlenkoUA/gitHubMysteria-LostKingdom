@@ -46,8 +46,8 @@ public class PlayerController : MonoBehaviour
     public bool useRootMotionForRoll = false; // для root motion
 
     private bool isSprinting = false;
-    private bool isRolling = false;
-    private bool isJumping = false;
+    internal bool isRolling = false;
+    internal bool isJumping = false;
     private float rollCoolDownTimer = 0f;
     private Vector3 rollDirection = Vector3.zero;
     private bool wantsToInterruptAttack;

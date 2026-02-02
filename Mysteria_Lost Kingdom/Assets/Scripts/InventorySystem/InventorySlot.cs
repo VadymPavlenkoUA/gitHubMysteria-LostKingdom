@@ -5,6 +5,8 @@ public class InventorySlot
 {
     public ItemInstance instance;
 
+    public InventorySlotUI.SlotSpecification slotSpec;
+
     public bool IsEmpty => instance == null;
     public Item item => instance?.item;
     public int count => instance?.count ?? 0;

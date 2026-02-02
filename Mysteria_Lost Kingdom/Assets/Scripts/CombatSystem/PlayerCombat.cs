@@ -7,6 +7,7 @@ public class PlayerCombat : MonoBehaviour
 {
     public PlayerStats playerStats;
     public EquipmentManager equipment;
+    public PlayerController playerController;
     public Animator animator;
 
     [Header("Durability")]
@@ -49,6 +50,9 @@ public class PlayerCombat : MonoBehaviour
 
     [SerializeField] private float attackCooldown = 0.5f; // пів секунди між атаками
     private float attackCooldownTimer = 0f;
+
+    [SerializeField] private float attackStateGraceTime = 0.15f;
+    private float attackStateCheckTimer = 0f;
 
     public bool IsAttacking { get; private set; }
     public bool CanCancelAttack { get; private set; } = false;
@@ -126,7 +130,31 @@ public class PlayerCombat : MonoBehaviour
         {
             attackCooldownTimer -= Time.deltaTime;
         }
+
+        CheckAttackAnimatorState();
     }
+
+    void CheckAttackAnimatorState()
+    {
+        if (!IsAttacking)
+            return;
+
+        if (attackStateCheckTimer > 0f)
+        {
+            attackStateCheckTimer -= Time.deltaTime;
+            return;
+        }
+
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+
+        if (!stateInfo.IsTag("Attack"))
+        {
+            Debug.LogWarning("Attack desynced - InterruptAttack()");
+            InterruptAttack();
+        }
+    }
+
+
     IEnumerator StartBlockNextFrame()
     {
         yield return null;
@@ -218,7 +246,12 @@ public class PlayerCombat : MonoBehaviour
     void TryAttack()
     {
         if (attackCooldownTimer > 0f) return;
-        if ((IsAttacking && !CanCancelAttack) || IsInStag)
+        //if ((IsAttacking && !CanCancelAttack) || IsInStag)
+        //{
+        //    return;
+        //}
+
+        if (IsAttacking || IsInStag || playerController.isRolling || playerController.isJumping)
         {
             return;
         }
@@ -233,6 +266,7 @@ public class PlayerCombat : MonoBehaviour
         attackCooldownTimer = attackCooldown;
 
         IsAttacking = true;
+        attackStateCheckTimer = attackStateGraceTime;
         CanCancelAttack = false;
 
         ItemInstance weapon = GetActiveWeaponItem();
@@ -256,6 +290,7 @@ public class PlayerCombat : MonoBehaviour
 
         Debug.Log($"{IsAttacking}/{CanCancelAttack}");
         animator.SetFloat("ComboStep", Mathf.Clamp(comboStep, 0, maxCombo - 1));
+        animator.Update(0f);
 
         if (interruptPenaltyAttacksLeft > 0)
         {
@@ -267,7 +302,8 @@ public class PlayerCombat : MonoBehaviour
             }
         }
 
-        animator.SetTrigger("Attack");
+        //animator.SetTrigger("Attack");
+        animator.CrossFadeInFixedTime("Base Layer.AttackState", 0.1f, 0, 0f);
     }
 
     void SetAttackIndexByWeapon()
@@ -649,5 +685,11 @@ public class PlayerCombat : MonoBehaviour
     public void DisableHitbox()
     {
         equipment.DisableWeaponHitboxes();
+    }
+
+    public void ResetCombo()
+    {
+        comboStep = 0;
+        comboBufferActive = false;
     }
 }

@@ -12,23 +12,36 @@ public class MenuController : MonoBehaviour
     public GameObject mainMenu;
     public GameObject gameMenu;
     public GameObject educationMenu;
+    public GameObject saveMenu;
     public AudioMixer mixer;
     public static PlayerInputActions Controls;
     internal PlayerInputActions inputActions;
     private bool isMMopen = false;
     internal bool isGMOpen = false;
     private bool isEduOpen = false;
+    private bool isSavePanelOpen = false;
     public bool inputBlocked = false;
     [SerializeField] internal CinemachineInputAxisController cinemachineInput;
+    //private void Awake()
+    //{
+    //    if (Instance == null) Instance = this;
+    //    else Destroy(gameObject);
+
+    //    //inputActions = new PlayerInputActions();
+    //    if (Controls == null) Controls = new PlayerInputActions();
+    //    inputActions = Controls;
+    //}
+
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        Instance = this;
 
-        //inputActions = new PlayerInputActions();
-        if (Controls == null) Controls = new PlayerInputActions();
+        if (Controls == null)
+            Controls = new PlayerInputActions();
+
         inputActions = Controls;
     }
+
     private void OnEnable()
     {
         inputActions.Controls.Enable();
@@ -41,8 +54,15 @@ public class MenuController : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        inputBlocked = false;
+        isMMopen = false;
+        isGMOpen = false;
+        isEduOpen = false;
+        isSavePanelOpen = false;
+
+        Time.timeScale = 1f;
     }
+
 
     // Update is called once per frame
     void Update()
@@ -85,6 +105,14 @@ public class MenuController : MonoBehaviour
         if (DialogueManager.Instance.isDialogueOpen)
         {
             DialogueManager.Instance.EndDialogue();
+            return;
+        }
+
+        if (isSavePanelOpen)
+        {
+            isSavePanelOpen = false;
+            saveMenu.SetActive(false);
+            mainMenu.SetActive(true);
             return;
         }
 
@@ -200,5 +228,13 @@ public class MenuController : MonoBehaviour
     public void ResumeBTN()
     {
         if (isMMopen) ToggleMainMenu(!isMMopen);
+    }
+
+    public void SaveBTN()
+    {
+        isSavePanelOpen = true;
+        mainMenu.SetActive(false);
+        saveMenu.SetActive(true);
+
     }
 }

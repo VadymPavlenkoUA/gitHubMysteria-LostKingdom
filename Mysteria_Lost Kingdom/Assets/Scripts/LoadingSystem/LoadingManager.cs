@@ -77,10 +77,4 @@ public class LoadingManager : MonoBehaviour
 
         fadeCanvas.alpha = 1f;
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

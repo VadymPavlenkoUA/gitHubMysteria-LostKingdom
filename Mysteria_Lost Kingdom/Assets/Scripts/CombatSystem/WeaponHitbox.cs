@@ -22,12 +22,12 @@ public class WeaponHitbox : MonoBehaviour
     public void EnableHitbox()
     {
         hitEnemies.Clear();
-        hitboxCollider.enabled = true;
+        if (hitboxCollider != null) hitboxCollider.enabled = true;
     }
 
     public void DisableHitbox()
     {
-        hitboxCollider.enabled = false;
+        if (hitboxCollider != null) hitboxCollider.enabled = false;
         hitEnemies.Clear();
     }
 

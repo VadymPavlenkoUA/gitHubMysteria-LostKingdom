@@ -34,6 +34,9 @@ public enum WeaponHandType
 [CreateAssetMenu(menuName = "RPG/Item")]
 public class Item : ScriptableObject
 {
+    [Header("Save ID")]
+    public string itemID;
+
     public string itemName;
     public Sprite icon;
     public int maxStack = 1;
