@@ -8,8 +8,7 @@ public static class LootDropper
 
         foreach (var loot in table.lootItems)
         {
-            if (Random.value > loot.dropChance)
-                continue;
+            if (Random.value > loot.dropChance) continue;
 
             int amount = Random.Range(loot.minAmount, loot.maxAmount + 1);
 
@@ -35,6 +34,17 @@ public static class LootDropper
                         ),
                         ForceMode.Impulse
                     );
+                }
+
+                var saveable = go.GetComponent<SaveableEntity>();
+                if (saveable != null) saveable.GenerateID();
+
+                var pickup = go.GetComponent<ItemPickup>();
+                if (pickup != null)
+                {
+                    pickup.Init(loot.item, 1);
+                    pickup.isDropped = true;
+                    DroppedItemRegistry.Instance?.Register(pickup);
                 }
             }
         }

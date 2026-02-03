@@ -21,9 +21,6 @@ public class Inventory : MonoBehaviour, ISaveable
 
     public void Awake()
     {
-        //for (int i = 0; i < slotCount; i++) slots.Add(new InventorySlot());
-        //for (int i = 0; i < 12; i++) equipSlots.Add(new InventorySlot());
-
         slots.Clear();
         for (int i = 0; i < slotCount; i++) slots.Add(new InventorySlot());
 
@@ -43,9 +40,10 @@ public class Inventory : MonoBehaviour, ISaveable
         equipSlots.Add(new InventorySlot { slotSpec = InventorySlotUI.SlotSpecification.BootsSlot });
     }
 
-    public void InitTrade(int slotsCount, bool ignoreWeight = true)
+    public void InitTrade(int slotsCount, string saveIDInevntory, bool ignoreWeight = true)
     {
         slotCount = slotsCount;
+        saveID = $"TraderInventory_{saveIDInevntory}";
         this.ignoreWeight = ignoreWeight;
 
         slots.Clear();
@@ -228,6 +226,47 @@ public class Inventory : MonoBehaviour, ISaveable
         return removedAny;
     }
 
+    public bool RemoveItemFromSlot(InventorySlot slot, int amount = 1, bool notify = true)
+    {
+        if (slot == null || slot.IsEmpty || amount <= 0)
+            return false;
+
+        if (!slot.item.isUnique)
+        {
+            int toRemove = Mathf.Min(amount, slot.count);
+            slot.instance.count -= toRemove;
+
+            if (slot.count <= 0)
+                slot.Clear();
+
+            if (notify)
+            {
+                InventoryUIManager.Instance.RefreshUI();
+                NotifyInventoryChanged();
+            }
+
+            return true;
+        }
+        else
+        {
+            if (amount > 0)
+            {
+                slot.Clear();
+
+                if (notify)
+                {
+                    InventoryUIManager.Instance.RefreshUI();
+                    NotifyInventoryChanged();
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
     public Item GetLockpickForLevel(int requiredLevel)
     {
         List<Item> lockpicks = new List<Item>();
@@ -294,68 +333,15 @@ public class Inventory : MonoBehaviour, ISaveable
         }
     }
 
-    //public void RestoreState(object state)
-    //{
-    //    var data = (InventorySaveData)state;
-
-    //    slots.Clear();
-    //    equipSlots.Clear();
-
-    //    for (int i = 0; i < data.slots.Count; i++) slots.Add(LoadSlot(data.slots[i]));
-
-    //    for (int i = 0; i < data.equipSlots.Count; i++) equipSlots.Add(LoadSlot(data.equipSlots[i]));
-
-    //    NotifyInventoryChanged();
-    //    InventoryUIManager.Instance?.RefreshUI();
-
-    //    if (eq != null) eq.RestoreFromInventory(equipSlots);
-    //}
-
-    //public void RestoreState(object state)
-    //{
-    //    var data = (InventorySaveData)state;
-
-    //    slots.Clear();
-    //    //equipSlots.Clear();
-
-    //    for (int i = 0; i < data.slots.Count; i++) slots.Add(LoadSlot(data.slots[i]));
-
-    //    foreach (var slot in equipSlots) slot.Clear();
-
-    //    foreach (var slotData in data.equipSlots)
-    //    {
-    //        if (slotData == null) continue;
-    //        var slot = LoadSlot(slotData);
-
-    //        var targetSlot = equipSlots.FirstOrDefault(s => s.slotSpec == slot.slotSpec);
-    //        if (targetSlot != null)
-    //        {
-    //            if (slot.instance != null)
-    //            {
-    //                targetSlot.SetItem(slot.instance);
-    //            }
-    //            else if (slot.item != null)
-    //            {
-    //                targetSlot.SetItem(slot.item, slot.count);
-    //            }
-    //        }
-    //        else
-    //        {
-    //            equipSlots.Add(slot);
-    //        }
-    //    }
-
-    //    //for (int i = 0; i < data.equipSlots.Count; i++) equipSlots.Add(LoadSlot(data.equipSlots[i]));
-
-    //    NotifyInventoryChanged();
-    //    InventoryUIManager.Instance?.RefreshUI();
-
-    //    if (eq != null) eq.RestoreFromInventory(equipSlots);
-    //}
-
     public void RestoreState(object state)
     {
-        var data = (InventorySaveData)state;
+        if (state is not InventorySaveData data)
+        {
+            Debug.LogError(
+                $"[Inventory] Wrong save data. Expected InventorySaveData, got {state?.GetType()}"
+            );
+            return;
+        }
 
         slots.Clear();
         for (int i = 0; i < data.slots.Count; i++) slots.Add(LoadSlot(data.slots[i]));
@@ -428,33 +414,5 @@ public class Inventory : MonoBehaviour, ISaveable
         slot.slotSpec = data.slotSpec;
         return slot;
     }
-
-
-    //private InventorySlot LoadSlot(ItemInstanceSaveData data)
-    //{
-    //    InventorySlot slot = new InventorySlot();
-
-    //    if (data == null)
-    //        return slot;
-
-    //    Item item = ItemDatabaseHolder.Instance.GetItem(data.itemID);
-    //    if (item == null)
-    //    {
-    //        Debug.LogWarning($"[Inventory] Missing item ID in database: {data.itemID}");
-    //        return slot;
-    //    }
-
-    //    ItemInstance inst = new ItemInstance(item, data.count)
-    //    {
-    //        currentDurability = data.durability,
-    //        currentDamage = data.damage,
-    //        currentBalanceDamage = data.balanceDamage,
-    //        currentDefenseMultiplier = data.defenseMultiplier,
-    //        currentArmor = data.armor
-    //    };
-
-    //    slot.SetItem(inst);
-    //    return slot;
-    //}
 
 }

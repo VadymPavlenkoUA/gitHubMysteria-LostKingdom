@@ -27,7 +27,10 @@ public class PlayerCombat : MonoBehaviour
 
     private int interruptPenaltyAttacksLeft = 0;
     private float interruptPenaltyTimer = 0f;
+
+#pragma warning disable CS0414
     [SerializeField] private bool lastAttackWasInterrupted = false;
+#pragma warning restore CS0414
 
     [SerializeField] private float ikBlendSpeed = 8f;
     private float leftHandIKWeight;

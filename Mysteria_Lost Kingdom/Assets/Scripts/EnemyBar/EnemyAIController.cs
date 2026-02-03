@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class EnemyAIController : MonoBehaviour
+public class EnemyAIController : MonoBehaviour, ISaveable
 {
     public enum State
     {
@@ -43,6 +43,8 @@ public class EnemyAIController : MonoBehaviour
 
     private Vector3 spawnPosition;
 
+    private SaveableEntity saveableEntity;
+
     void Awake()
     {
         spawnPosition = transform.position;
@@ -51,7 +53,15 @@ public class EnemyAIController : MonoBehaviour
         combat = GetComponent<EnemyCombat>();
         stats = GetComponent<EnemyStats>();
         animator = stats.animator;
+
+        saveableEntity = GetComponent<SaveableEntity>();
+        if (saveableEntity == null)
+        {
+            Debug.LogError($"[EnemyAI] Missing SaveableEntity on {gameObject.name}");
+        }
     }
+
+    public string GetSaveID() => saveableEntity.ID;
 
     void Update()
     {
@@ -294,6 +304,58 @@ public class EnemyAIController : MonoBehaviour
         {
             ChangeState(State.Idle);
         }
+    }
+
+    public object CaptureState()
+    {
+        return new EnemySaveData
+        {
+            uniqueID = GetComponent<SaveableEntity>().ID,
+            position = transform.position,
+            rotation = transform.rotation,
+            currentState = currentState,
+            patrolTarget = patrolTarget,
+            isPatrolling = isPatrolling,
+            patrolTimer = patrolTimer,
+            isAttacking = isAttacking,
+            isHit = isHit,
+            currentHealth = stats.currentHealth
+        };
+    }
+
+    public void RestoreState(object state)
+    {
+        if (state is not EnemySaveData data) return;
+
+        gameObject.SetActive(true);
+        enabled = true;
+
+        transform.position = data.position;
+        transform.rotation = data.rotation;
+
+        patrolTarget = data.patrolTarget;
+        isPatrolling = data.isPatrolling;
+        patrolTimer = data.patrolTimer;
+
+        isAttacking = data.isAttacking;
+        isHit = data.isHit;
+
+        stats.ShowHealth();
+        stats.SetHealth(data.currentHealth);
+
+        if (data.currentHealth <= 0f)
+        {
+            currentState = State.Dead;
+            //gameObject.SetActive(false);
+            return;
+        }
+
+        currentState = State.Idle;
+        animator.enabled = true;
+        animator.Rebind();
+        animator.Update(0f);
+
+        animator.Play("Idle", 0, 0f);
     }
 
 }

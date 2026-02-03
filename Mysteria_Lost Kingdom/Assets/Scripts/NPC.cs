@@ -1,7 +1,7 @@
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class NPC : MonoBehaviour, IInteractable, IClosableInteraction
+public class NPC : MonoBehaviour, IInteractable, IClosableInteraction, ISaveable
 {
     public DialogueData dialogueData;
     public Transform InteractionTransform => transform;
@@ -11,6 +11,17 @@ public class NPC : MonoBehaviour, IInteractable, IClosableInteraction
 
     private int currentGold;
     public int Gold => currentGold;
+
+    public string GetSaveID()
+    {
+        return $"NPC_{dialogueData.npcName}";
+    }
+
+
+    private void Awake()
+    {
+        InitTraderInventory();
+    }
 
     public void OnInteractionClosed()
     {
@@ -42,7 +53,7 @@ public class NPC : MonoBehaviour, IInteractable, IClosableInteraction
         if (traderInventory != null) return;
 
         traderInventory = gameObject.AddComponent<Inventory>();
-        traderInventory.InitTrade(traderData.inventorySlots, ignoreWeight: true);
+        traderInventory.InitTrade(traderData.inventorySlots, dialogueData.npcName, ignoreWeight: true);
 
         currentGold = traderData.startGold;
 
@@ -69,7 +80,7 @@ public class NPC : MonoBehaviour, IInteractable, IClosableInteraction
 
     public bool TrySpendGold(int amount)
     {
-        if (traderData.startGold >= amount)
+        if (currentGold >= amount)
         {
             currentGold -= amount;
             return true;
@@ -88,4 +99,30 @@ public class NPC : MonoBehaviour, IInteractable, IClosableInteraction
         DialogueManager.Instance.StartDialogue(dialogueData, this);
         InteractionDistanceWatcher.Instance.StartWatching(this);
     }
+
+    public object CaptureState()
+    {
+        TraderSaveData data = new TraderSaveData();
+
+        data.gold = currentGold;
+
+        return data;
+    }
+
+    public void RestoreState(object state)
+    {
+        if (state is not TraderSaveData data)
+        {
+            Debug.LogError(
+                $"[NPC] Wrong save data. Expected TraderSaveData, got {state?.GetType()}"
+            );
+            return;
+        }
+
+        InitTraderInventory();
+
+        currentGold = data.gold;
+    }
+
+
 }

@@ -856,8 +856,16 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         {
             GameObject go = Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
 
+            var saveable = go.GetComponent<SaveableEntity>();
+            if (saveable != null) saveable.GenerateID();
+
             var worldItem = go.GetComponent<ItemPickup>();
-            if (worldItem != null) worldItem.Init(slot.instance);
+            if (worldItem != null)
+            {
+                worldItem.Init(slot.instance);
+                worldItem.isDropped = true;
+                DroppedItemRegistry.Instance?.Register(worldItem);
+            }
 
             // екіпіровка
             if (slotType == SlotType.Equipment)
@@ -890,15 +898,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         }
 
         // ===== STACKABLE =====
-        //int amountToDrop = slot.count;
-
-        //GameObject stackGo = Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
-        //var stackWorldItem = stackGo.GetComponent<ItemPickup>();
-
-        //if (stackWorldItem != null)
-        //    stackWorldItem.Init(slot.item, amountToDrop);
-
-        // ===== STACKABLE =====
         int amountToDrop = slot.count;
 
         for (int i = 0; i < amountToDrop; i++)
@@ -911,14 +910,22 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             );
 
             GameObject go = Instantiate(slot.item.itemPrefab, pos, Quaternion.identity);
-            var pickup = go.GetComponent<ItemPickup>();
 
+            var saveable = go.GetComponent<SaveableEntity>();
+            if (saveable != null) saveable.GenerateID();
+
+            var pickup = go.GetComponent<ItemPickup>();
             if (pickup != null)
+            {
                 pickup.Init(slot.item, 1);
+                pickup.isDropped = true;
+                DroppedItemRegistry.Instance?.Register(pickup);
+            }
         }
 
 
-        ownerInventory?.RemoveItem(slot.item, amountToDrop);
+        //ownerInventory?.RemoveItem(slot.item, amountToDrop);
+        ownerInventory?.RemoveItemFromSlot(slot, amountToDrop);
 
         SetSlot(slot);
         InventoryUIManager.Instance.RefreshUI();
@@ -947,9 +954,22 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         for (int i = 0; i < toDrop; i++)
         {
-            Vector3 dropPos = player.transform.position + transform.forward * 1f;
+            //Vector3 dropPos = player.transform.position + transform.forward * 1f;
+            Vector3 dropPos = player.transform.position + player.transform.forward * 1f;
             dropPos += new Vector3(Random.Range(-0.2f, 0.2f), 0.5f, Random.Range(-0.2f, 0.2f));
-            Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
+            GameObject go = Instantiate(slot.item.itemPrefab, dropPos, Quaternion.identity);
+
+            var saveable = go.GetComponent<SaveableEntity>();
+            if (saveable != null) saveable.GenerateID();
+
+            var pickup = go.GetComponent<ItemPickup>();
+            if (pickup != null)
+            {
+                pickup.Init(slot.item, 1);
+                pickup.isDropped = true;
+                DroppedItemRegistry.Instance?.Register(pickup);
+            }
+
         }
 
         if (slotType == SlotType.Equipment)

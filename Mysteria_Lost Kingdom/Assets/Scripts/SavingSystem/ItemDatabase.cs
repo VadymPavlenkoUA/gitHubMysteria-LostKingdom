@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -46,4 +47,37 @@ public class InventorySaveData
 {
     public List<ItemInstanceSaveData> slots = new();
     public List<ItemInstanceSaveData> equipSlots = new();
+}
+
+[System.Serializable]
+public class TraderSaveData
+{
+    public int gold;
+}
+
+[System.Serializable]
+public class ItemPickupSaveData
+{
+    public bool pickedUp;
+
+    public string itemID;
+    public int amount;
+
+    public ItemInstanceSaveData instanceData;
+
+    public Vector3 position;
+    public Quaternion rotation;
+}
+
+[Serializable]
+public class DroppedItemSaveData
+{
+    public string uniqueID;
+
+    public string itemID;
+    public int amount;
+    public ItemInstanceSaveData instanceData;
+
+    public Vector3 position;
+    public Quaternion rotation;
 }

@@ -11,7 +11,7 @@ public class EnemyStats : MonoBehaviour
     [Header("Health")]
     public float maxHealth = 100f;
     public float armor = 5f;
-    private float currentHealth;
+    internal float currentHealth;
 
     [Header("Experience")]
     public float expBase = 50f;
@@ -34,7 +34,7 @@ public class EnemyStats : MonoBehaviour
     public GameObject healthBarPrefab;
     public GameObject barPosition;
     public string enemyName;
-    private EnemyHealthBar healthBar;
+    internal EnemyHealthBar healthBar;
 
     public float CurrentHealthNormalized => currentHealth / maxHealth;
 
@@ -125,5 +125,16 @@ public class EnemyStats : MonoBehaviour
         if (healthBar != null) healthBar.OnDeath();
 
         Debug.Log("Манекен знищений");
+    }
+
+    public void SetHealth(float value)
+    {
+        currentHealth = Mathf.Clamp(value, 0, maxHealth);
+        healthBar?.UpdateHealth(CurrentHealthNormalized);
+    }
+
+    public void ShowHealth()
+    {
+        healthBar?.ShowBar();
     }
 }

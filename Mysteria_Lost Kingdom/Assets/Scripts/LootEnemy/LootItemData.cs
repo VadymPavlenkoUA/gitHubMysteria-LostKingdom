@@ -3,7 +3,7 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Loot/Loot Item")]
 public class LootItemData : ScriptableObject
 {
-    [Header("Chest Random Loot")]
+    [Header("Chest Random Loot/Enemy Drop Item")]
     public Item item;
 
     [Header("Enemy Drop")]

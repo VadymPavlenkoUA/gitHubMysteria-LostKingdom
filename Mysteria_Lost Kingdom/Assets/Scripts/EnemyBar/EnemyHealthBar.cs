@@ -42,8 +42,14 @@ public class EnemyHealthBar : MonoBehaviour
         fillSlider.value = normalizedValue;
     }
 
+    public void ShowBar()
+    {
+        gameObject.SetActive(true);
+    }
+
     public void OnDeath()
     {
-        Destroy(gameObject);
+        //Destroy(gameObject);
+        gameObject.SetActive(false);
     }
 }

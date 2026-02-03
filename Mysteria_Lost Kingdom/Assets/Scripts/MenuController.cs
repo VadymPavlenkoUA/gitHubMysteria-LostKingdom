@@ -36,8 +36,7 @@ public class MenuController : MonoBehaviour
     {
         Instance = this;
 
-        if (Controls == null)
-            Controls = new PlayerInputActions();
+        if (Controls == null) Controls = new PlayerInputActions();
 
         inputActions = Controls;
     }
@@ -134,6 +133,7 @@ public class MenuController : MonoBehaviour
             Cursor.lockState = CursorLockMode.Confined;
             Cursor.visible = true;
             Time.timeScale = 0f;
+            inputActions.HotBar.Disable();
             inputActions.Combat.Disable();
             mixer.FindSnapshot("Paused").TransitionTo(0.2f);
         }
@@ -143,6 +143,7 @@ public class MenuController : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             Time.timeScale = 1f;
+            inputActions.HotBar.Enable();
             inputActions.Combat.Enable();
             mixer.FindSnapshot("Gameplay").TransitionTo(0.2f);
         }

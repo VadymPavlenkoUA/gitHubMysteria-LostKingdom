@@ -10,6 +10,8 @@ public class SaveManager : MonoBehaviour
 
     private string savePath;
 
+    private Dictionary<string, ISaveable> saveables = new();
+
     private void Awake()
     {
         if (Instance != null)
@@ -23,6 +25,18 @@ public class SaveManager : MonoBehaviour
 
         savePath = Path.Combine(Application.persistentDataPath, "Saves");
         if (!Directory.Exists(savePath)) Directory.CreateDirectory(savePath);
+    }
+
+    public void Register(SaveableEntity entity, ISaveable saveable)
+    {
+        if (entity == null || saveable == null) return;
+        saveables[entity.ID] = saveable;
+    }
+
+    public void Unregister(SaveableEntity entity)
+    {
+        if (entity == null) return;
+        saveables.Remove(entity.ID);
     }
 
     public void SaveGame(int slot)
@@ -48,6 +62,12 @@ public class SaveManager : MonoBehaviour
             });
         }
 
+        if (DroppedItemRegistry.Instance != null)
+        {
+            wrapper.droppedItems = DroppedItemRegistry.Instance.Capture();
+            Debug.Log($"[SAVE] Dropped items count: {wrapper.droppedItems?.Count}");
+        }
+
         string path = GetSaveFilePath(slot);
         File.WriteAllText(path, JsonUtility.ToJson(wrapper, true));
 
@@ -66,6 +86,11 @@ public class SaveManager : MonoBehaviour
         string json = File.ReadAllText(path);
         var wrapper = JsonUtility.FromJson<SaveGameWrapper>(json);
 
+        foreach (var pickup in FindObjectsByType<ItemPickup>(FindObjectsSortMode.None))
+        {
+            pickup.ForceHide();
+        }
+
         var saveables = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<ISaveable>();
 
         foreach (var entry in wrapper.objects)
@@ -77,6 +102,12 @@ public class SaveManager : MonoBehaviour
             object data = JsonUtility.FromJson(entry.json, type);
 
             saveable.RestoreState(data);
+        }
+
+        if (DroppedItemRegistry.Instance != null && wrapper.droppedItems != null)
+        {
+            DroppedItemRegistry.Instance.Restore(wrapper.droppedItems);
+            DroppedItemRegistry.Instance.RestoreAll();
         }
 
         Debug.Log($"[LOAD] Slot {slot} loaded");

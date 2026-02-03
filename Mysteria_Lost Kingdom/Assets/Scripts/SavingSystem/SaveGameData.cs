@@ -15,6 +15,7 @@ public class SaveGameWrapper
     public int saveVersion;
     public string saveTime;
     public List<SaveObjectEntry> objects = new();
+    public List<DroppedItemSaveData> droppedItems = new();
 }
 
 [Serializable]
