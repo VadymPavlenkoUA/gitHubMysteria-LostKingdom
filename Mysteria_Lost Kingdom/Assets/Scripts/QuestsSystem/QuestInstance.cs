@@ -49,6 +49,7 @@ public class QuestInstance
         }
     }
 
+
     public bool IsStepCompleted(int index)
     {
         if (index < 0 || index >= steps.Count) return false;
@@ -73,20 +74,6 @@ public class QuestInstance
         foreach (var step in steps) if (!step.isComplete) return step;
         return null;
     }
-
-    //public void OnEnemyKilled(string enemyId)
-    //{
-    //    foreach (var step in steps)
-    //    {
-    //        if (step.stepType != QuestStepType.KillEnemy) continue;
-    //        if (step.isComplete) continue;
-    //        if (step.targetEnemy != enemyId) continue;
-
-    //        step.requiredAmount--;
-    //        if (step.requiredAmount <= 0)
-    //            step.isComplete = true;
-    //    }
-    //}
 
 
     public void UpdateStepStatus(
@@ -174,4 +161,50 @@ public class QuestInstance
             }
         }
     }
+
+    public QuestSaveData ToSaveData()
+    {
+        QuestSaveData dataSave = new QuestSaveData();
+        dataSave.questID = data.uniqueQuestID;
+        dataSave.status = status;
+        dataSave.completedSteps = new List<bool>();
+        foreach (var step in steps) dataSave.completedSteps.Add(step.isComplete);
+
+        return dataSave;
+    }
+
+    public void LoadFromSaveData(QuestSaveData saveData, QuestData questDataRef)
+    {
+        if (saveData == null) throw new ArgumentNullException(nameof(saveData));
+
+        status = saveData.status;
+        steps = new List<QuestStep>();
+
+        for (int i = 0; i < questDataRef.steps.Count; i++)
+        {
+            var originalStep = questDataRef.steps[i];
+            QuestStep runtimeStep = new QuestStep
+            {
+                description = originalStep.description,
+                stepType = originalStep.stepType,
+                requiredItems = originalStep.requiredItems != null ? new List<RequiredItem>(originalStep.requiredItems) : new(),
+                removeItemsOnComplete = originalStep.removeItemsOnComplete,
+                targetNPC = originalStep.targetNPC,
+                locationName = originalStep.locationName,
+                targetEnemy = originalStep.targetEnemy,
+                requiredAmount = originalStep.requiredAmount,
+                targetName = originalStep.targetName,
+                targetTag = originalStep.targetTag,
+                linkedStepIndices = originalStep.linkedStepIndices != null ? new List<int>(originalStep.linkedStepIndices) : new(),
+                killCountMode = originalStep.killCountMode,
+                isComplete = i < saveData.completedSteps.Count ? saveData.completedSteps[i] : false
+            };
+
+            steps.Add(runtimeStep);
+
+            Debug.Log($"[LoadFromSaveData]  вест {questDataRef.questName}, крок {i} ({runtimeStep.description}): isComplete={runtimeStep.isComplete}");
+        }
+    }
+
+
 }

@@ -2,21 +2,41 @@ using NUnit.Framework.Interfaces;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class QuestManager : MonoBehaviour
+public class QuestManager : MonoBehaviour, ISaveable
 {
     public static QuestManager Instance;
 
-    private void Awake() => Instance = this;
+    public QuestDatabase questDatabase;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        saveableEntity = GetComponent<SaveableEntity>();
+        if (saveableEntity == null)
+            Debug.LogError("[QuestManager] Missing SaveableEntity!");
+
+        DontDestroyOnLoad(gameObject);
+    }
+
+    public string GetSaveID() => saveableEntity.ID;
 
     public List<QuestInstance> activeQuests = new();
     public List<QuestInstance> completedQuests = new();
     public List<QuestInstance> finishedQuests = new();
 
     public Inventory playerInventory;
-    
+
     public PlayerStats playerStats;
 
     public QuestInstance trackedQuest;
+
+    private SaveableEntity saveableEntity;
 
     private void Start()
     {
@@ -238,4 +258,148 @@ public class QuestManager : MonoBehaviour
     {
         trackedQuest = null;
     }
+
+    public object CaptureState()
+    {
+        QuestSaveDataList wrapper = new QuestSaveDataList();
+        wrapper.quests = new List<QuestSaveData>();
+
+        // Active quests
+        foreach (var quest in activeQuests)
+        {
+            var data = quest.ToSaveData();
+            wrapper.quests.Add(data);
+            Debug.Log($"[CaptureState] Active Quest: {data.questID}, status: {data.status}, steps: {data.completedSteps.Count}");
+        }
+
+        // Completed quests
+        foreach (var quest in completedQuests)
+        {
+            var data = quest.ToSaveData();
+            wrapper.quests.Add(data);
+            Debug.Log($"[CaptureState] Completed Quest: {data.questID}, status: {data.status}, steps: {data.completedSteps.Count}");
+        }
+
+        // Finished quests
+        foreach (var quest in finishedQuests)
+        {
+            var data = quest.ToSaveData();
+            wrapper.quests.Add(data);
+            Debug.Log($"[CaptureState] Finished Quest: {data.questID}, status: {data.status}, steps: {data.completedSteps.Count}");
+        }
+
+        return wrapper;
+    }
+
+    public void RestoreState(object state)
+    {
+        var wrapper = state as QuestSaveDataList;
+        if (wrapper == null || wrapper.quests == null)
+        {
+            Debug.LogWarning("Не вдалось завантажити квести: дані пусті!");
+            return;
+        }
+
+        var allQuestRefs = questDatabase.allQuests;
+        activeQuests.Clear();
+        completedQuests.Clear();
+        finishedQuests.Clear();
+
+        foreach (var data in wrapper.quests)
+        {
+            var questRef = System.Array.Find(allQuestRefs, q => q.uniqueQuestID == data.questID);
+            if (questRef == null)
+            {
+                Debug.LogWarning($"Не знайдено QuestData для ID: {data.questID}");
+                continue;
+            }
+
+            QuestInstance instance = new QuestInstance(questRef);
+
+            instance.LoadFromSaveData(data, questRef);
+            Debug.Log($"[RestoreState] Квест {instance.data.questName} завантажено з статусом {instance.status}");
+
+            switch (instance.status)
+            {
+                case QuestStatus.Active: activeQuests.Add(instance); break;
+                case QuestStatus.Completed: completedQuests.Add(instance); break;
+                case QuestStatus.Finished: finishedQuests.Add(instance); break;
+            }
+        }
+
+        foreach (var quest in activeQuests)
+        {
+            quest.UpdateStepStatus(playerInventory);
+        }
+    }
+
+
+    //public object CaptureState()
+    //{
+    //    List<QuestSaveData> saved = new List<QuestSaveData>();
+
+    //    foreach (var quest in activeQuests)
+    //    {
+    //        var data = quest.ToSaveData();
+    //        saved.Add(data);
+    //        Debug.Log($"[CaptureState] Active Quest: {data.questID}, status: {data.status}, steps: {data.completedSteps.Count}");
+    //    }
+
+    //    foreach (var quest in completedQuests)
+    //    {
+    //        var data = quest.ToSaveData();
+    //        saved.Add(data);
+    //        Debug.Log($"[CaptureState] Completed Quest: {data.questID}, status: {data.status}, steps: {data.completedSteps.Count}");
+    //    }
+
+    //    foreach (var quest in finishedQuests)
+    //    {
+    //        var data = quest.ToSaveData();
+    //        saved.Add(data);
+    //        Debug.Log($"[CaptureState] Finished Quest: {data.questID}, status: {data.status}, steps: {data.completedSteps.Count}");
+    //    }
+
+    //    return saved;
+    //}
+
+    //public void RestoreState(object state)
+    //{
+    //    var savedData = state as List<QuestSaveData>;
+    //    if (savedData == null)
+    //    {
+    //        Debug.Log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    //        return;
+    //    }
+
+    //    var allQuestRefs = questDatabase.allQuests;
+    //    activeQuests.Clear();
+    //    completedQuests.Clear();
+    //    finishedQuests.Clear();
+
+    //    foreach (var data in savedData)
+    //    {
+    //        var questRef = System.Array.Find(allQuestRefs, q => q.uniqueQuestID == data.questID);
+    //        if (questRef == null)
+    //        {
+    //            Debug.LogWarning($"Не знайдено QuestData для ID: {data.questID}");
+    //            continue;
+    //        }
+    //        else
+    //        {
+    //            Debug.Log($"[RestoreState] Знайдено QuestData: {questRef.questName} для ID: {data.questID}");
+    //        }
+
+    //        QuestInstance instance = new QuestInstance(questRef);
+    //        instance.LoadFromSaveData(data, questRef);
+    //        Debug.Log($"[RestoreState] Квест {instance.data.questName} завантажено з статусом {instance.status}");
+    //        switch (instance.status)
+    //        {
+    //            case QuestStatus.Active: activeQuests.Add(instance); break;
+    //            case QuestStatus.Completed: completedQuests.Add(instance); break;
+    //            case QuestStatus.Finished: finishedQuests.Add(instance); break;
+    //        }
+    //    }
+
+    //    foreach (var quest in activeQuests) quest.UpdateStepStatus(playerInventory);
+    //}
 }

@@ -65,11 +65,17 @@ public class EnemyAIController : MonoBehaviour, ISaveable
 
     void Update()
     {
-        if (stats.CurrentHealthNormalized <= 0)
-        {
-            ChangeState(State.Dead);
-            enabled = false;
+        //if (stats.CurrentHealthNormalized <= 0)
+        //{
+        //    ChangeState(State.Dead);
+        //    enabled = false;
 
+        //    return;
+        //}
+
+        if (stats.IsDead)
+        {
+            HandleDeadState();
             return;
         }
 
@@ -317,8 +323,8 @@ public class EnemyAIController : MonoBehaviour, ISaveable
             patrolTarget = patrolTarget,
             isPatrolling = isPatrolling,
             patrolTimer = patrolTimer,
-            isAttacking = isAttacking,
-            isHit = isHit,
+            //isAttacking = isAttacking,
+            //isHit = isHit,
             currentHealth = stats.currentHealth
         };
     }
@@ -328,7 +334,10 @@ public class EnemyAIController : MonoBehaviour, ISaveable
         if (state is not EnemySaveData data) return;
 
         gameObject.SetActive(true);
-        enabled = true;
+
+        animator.enabled = true;
+        animator.Rebind();
+        animator.Update(0f);
 
         transform.position = data.position;
         transform.rotation = data.rotation;
@@ -337,25 +346,53 @@ public class EnemyAIController : MonoBehaviour, ISaveable
         isPatrolling = data.isPatrolling;
         patrolTimer = data.patrolTimer;
 
-        isAttacking = data.isAttacking;
-        isHit = data.isHit;
+        isAttacking = false;
+        isHit = false;
+
+        animator.enabled = true;
+        animator.Rebind();
+        animator.Update(0f);
 
         stats.ShowHealth();
         stats.SetHealth(data.currentHealth);
 
         if (data.currentHealth <= 0f)
         {
-            currentState = State.Dead;
-            //gameObject.SetActive(false);
+            stats.HideHealth();
+            HandleDeadState();
             return;
         }
 
-        currentState = State.Idle;
-        animator.enabled = true;
-        animator.Rebind();
-        animator.Update(0f);
+        State restoredState = data.currentState;
+
+        if (restoredState == State.Attack || restoredState == State.Chase)
+        {
+            restoredState = State.Idle;
+        }
+
+        currentState = restoredState;
 
         animator.Play("Idle", 0, 0f);
+
+        enabled = true;
     }
+
+    void HandleDeadState()
+    {
+        if (currentState == State.Dead) return;
+
+        currentState = State.Dead;
+
+        movement.Stop();
+        combat.DisableHitbox();
+
+        animator.Rebind();
+        animator.Update(0f);
+        animator.Play("Die", 0, 1f);
+        animator.Update(0f);
+
+        enabled = false;
+    }
+
 
 }

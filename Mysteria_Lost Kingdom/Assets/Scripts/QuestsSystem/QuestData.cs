@@ -21,7 +21,7 @@ public class QuestReward
     public List<ProfessionExp> professions;
 }
 
-[System.Serializable]
+[Serializable]
 public struct ProfessionExp
 {
     public CraftingProfession profession;
@@ -29,7 +29,7 @@ public struct ProfessionExp
     public float exp;
 }
 
-[System.Serializable]
+[Serializable]
 public struct ItemReward
 {
     public Item item;
@@ -88,6 +88,7 @@ public class RequiredItem
 public class QuestData : ScriptableObject
 {
     public string questName;
+    public string uniqueQuestID;
     [TextArea] public string description;
     public List<QuestStep> steps;
     public QuestReward reward;

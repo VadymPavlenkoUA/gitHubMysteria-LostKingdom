@@ -3,9 +3,11 @@ using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class ChestInventory : MonoBehaviour, IInteractable, IClosableInteraction
+public class ChestInventory : MonoBehaviour, IInteractable, IClosableInteraction, ISaveable
 {
     public TaskDatabase taskDB;
+
+    private SaveableEntity saveableEntity;
     public enum ChestType
     {
         Звичайна,
@@ -28,6 +30,14 @@ public class ChestInventory : MonoBehaviour, IInteractable, IClosableInteraction
     [Header("Loot")]
     public LootTable defaultChestLoot;
     public Transform InteractionTransform => transform;
+
+    void Awake()
+    {
+        saveableEntity = GetComponent<SaveableEntity>();
+        if (saveableEntity == null) Debug.LogError($"[Chest] Missing SaveableEntity on {name}");
+    }
+
+    public string GetSaveID() => saveableEntity.ID;
 
     public void OnInteractionClosed()
     {
@@ -222,5 +232,23 @@ public class ChestInventory : MonoBehaviour, IInteractable, IClosableInteraction
             case ChestType.Легендарна: return 4;
             default: return 0;
         }
+    }
+
+    public object CaptureState()
+    {
+        return new ChestSaveData
+        {
+            uniqueID = saveableEntity.ID,
+            isLocked = isLocked,
+            hasLootSpawned = hasLootSpawned
+        };
+    }
+
+    public void RestoreState(object state)
+    {
+        if (state is not ChestSaveData data) return;
+
+        isLocked = data.isLocked;
+        hasLootSpawned = data.hasLootSpawned;
     }
 }

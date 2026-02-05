@@ -36,6 +36,8 @@ public class EnemyStats : MonoBehaviour
     public string enemyName;
     internal EnemyHealthBar healthBar;
 
+    public bool IsDead => isDead;
+
     public float CurrentHealthNormalized => currentHealth / maxHealth;
 
     private void Awake()
@@ -106,6 +108,8 @@ public class EnemyStats : MonoBehaviour
         isDead = true;
         currentHealth = 0;
 
+        GetComponent<EnemyAIController>().enabled = false;
+
         if (killer != null)
         {
             PlayerStats playerStats = killer.GetComponent<PlayerStats>();
@@ -130,11 +134,17 @@ public class EnemyStats : MonoBehaviour
     public void SetHealth(float value)
     {
         currentHealth = Mathf.Clamp(value, 0, maxHealth);
+        isDead = currentHealth <= 0f;
         healthBar?.UpdateHealth(CurrentHealthNormalized);
     }
 
     public void ShowHealth()
     {
         healthBar?.ShowBar();
+    }
+
+    public void HideHealth()
+    {
+        healthBar?.OnDeath();
     }
 }

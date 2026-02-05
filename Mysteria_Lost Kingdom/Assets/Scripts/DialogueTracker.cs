@@ -1,16 +1,33 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class DialogueTracker : MonoBehaviour
+public class DialogueTracker : MonoBehaviour, ISaveable
 {
     public static DialogueTracker Instance;
     private HashSet<string> completedLines = new HashSet<string>();
     private HashSet<string> usedOptions = new HashSet<string>();
 
+    private SaveableEntity saveableEntity;
+
     private void Awake()
     {
+        if (Instance != null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
+        saveableEntity = GetComponent<SaveableEntity>();
+        if (saveableEntity == null)
+        {
+            Debug.LogError("[DialogueTracker] Missing SaveableEntity!");
+        }
+        DontDestroyOnLoad(gameObject);
     }
+
+    public string GetSaveID() => saveableEntity.ID;
 
     public bool IsOptionUsed(string optionID)
     {
@@ -34,15 +51,19 @@ public class DialogueTracker : MonoBehaviour
         completedLines.Add($"{dialogueName}_{lineIndex}");
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public object CaptureState()
     {
-        
+        return new DialogueSaveData
+        {
+            completedLines = completedLines.ToList(),
+            usedOptions = usedOptions.ToList()
+        };
     }
-
-    // Update is called once per frame
-    void Update()
+    public void RestoreState(object state)
     {
-        
+        var data = (DialogueSaveData)state;
+
+        completedLines = new HashSet<string>(data.completedLines);
+        usedOptions = new HashSet<string>(data.usedOptions);
     }
 }
