@@ -22,18 +22,15 @@ public class MenuController : MonoBehaviour
     private bool isSavePanelOpen = false;
     public bool inputBlocked = false;
     [SerializeField] internal CinemachineInputAxisController cinemachineInput;
-    //private void Awake()
-    //{
-    //    if (Instance == null) Instance = this;
-    //    else Destroy(gameObject);
-
-    //    //inputActions = new PlayerInputActions();
-    //    if (Controls == null) Controls = new PlayerInputActions();
-    //    inputActions = Controls;
-    //}
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
 
         if (Controls == null) Controls = new PlayerInputActions();
@@ -43,11 +40,13 @@ public class MenuController : MonoBehaviour
 
     private void OnEnable()
     {
+        SceneManager.sceneLoaded += OnSceneLoaded;
         inputActions.Controls.Enable();
     }
 
     private void OnDisable()
     {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
         inputActions?.Controls.Disable();
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -62,10 +61,22 @@ public class MenuController : MonoBehaviour
         Time.timeScale = 1f;
     }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        cinemachineInput = FindFirstObjectByType<CinemachineInputAxisController>();
+    }
+
+    bool IsGameplayScene()
+    {
+        return SceneManager.GetActiveScene().name == "MainScene";
+    }
+
 
     // Update is called once per frame
     void Update()
     {
+        if (!IsGameplayScene()) return;
+
         if (inputActions.Controls.Escape.WasPressedThisFrame())
         {
             HandleEscape();
@@ -129,7 +140,7 @@ public class MenuController : MonoBehaviour
 
         if (state)
         {
-            cinemachineInput.enabled = false;
+            if (cinemachineInput != null) cinemachineInput.enabled = false;
             Cursor.lockState = CursorLockMode.Confined;
             Cursor.visible = true;
             Time.timeScale = 0f;
@@ -139,7 +150,7 @@ public class MenuController : MonoBehaviour
         }
         else
         {
-            cinemachineInput.enabled = true;
+            if (cinemachineInput != null) cinemachineInput.enabled = true;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             Time.timeScale = 1f;
@@ -162,14 +173,14 @@ public class MenuController : MonoBehaviour
             }
             InteractionBlocker.Block(InteractionBlockReason.Menu);
             DialogueManager.Instance.EndDialogue();
-            cinemachineInput.enabled = false;
+            if (cinemachineInput != null) cinemachineInput.enabled = false;
             Cursor.lockState = CursorLockMode.Confined;
             inputActions.Combat.Disable();
         }
         else
         {
             InteractionBlocker.Unblock(InteractionBlockReason.Menu);
-            cinemachineInput.enabled = true;
+            if (cinemachineInput != null) cinemachineInput.enabled = true;
             Cursor.lockState = CursorLockMode.Locked;
             if (CraftingUIManager.Instance != null)
             {

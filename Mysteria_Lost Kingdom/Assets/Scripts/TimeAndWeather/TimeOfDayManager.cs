@@ -1,7 +1,7 @@
 using UnityEngine;
 using System;
 
-public class TimeOfDayManager : MonoBehaviour
+public class TimeOfDayManager : MonoBehaviour, ISaveable
 {
     public static TimeOfDayManager Instance;
 
@@ -22,12 +22,22 @@ public class TimeOfDayManager : MonoBehaviour
     private int lastHour;
     private bool lastNightState;
 
+    private SaveableEntity saveableEntity;
+
     private void Awake()
     {
         Instance = this;
         lastHour = Mathf.FloorToInt(timeOfDay);
         lastNightState = IsNight;
+
+        saveableEntity = GetComponent<SaveableEntity>();
+        if (saveableEntity == null)
+        {
+            Debug.LogError("[TimeOfDay] Missing SaveableEntity!");
+        }
     }
+
+    public string GetSaveID() => saveableEntity.ID;
 
     private void Update()
     {
@@ -55,6 +65,25 @@ public class TimeOfDayManager : MonoBehaviour
             lastNightState = IsNight;
             if (IsNight) OnNightStarted?.Invoke();
             else OnDayStarted?.Invoke();
+        }
+    }
+
+    public object CaptureState()
+    {
+        return new TimeOfDaySaveData
+        {
+            time = this.timeOfDay
+        };
+    }
+
+    public void RestoreState(object state)
+    {
+        if (state is TimeOfDaySaveData data)
+        {
+            this.timeOfDay = data.time;
+
+            lastHour = Mathf.FloorToInt(timeOfDay);
+            lastNightState = IsNight;
         }
     }
 }

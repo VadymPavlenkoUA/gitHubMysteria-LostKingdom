@@ -24,7 +24,7 @@ public class DialogueTracker : MonoBehaviour, ISaveable
         {
             Debug.LogError("[DialogueTracker] Missing SaveableEntity!");
         }
-        DontDestroyOnLoad(gameObject);
+        //DontDestroyOnLoad(gameObject);
     }
 
     public string GetSaveID() => saveableEntity.ID;

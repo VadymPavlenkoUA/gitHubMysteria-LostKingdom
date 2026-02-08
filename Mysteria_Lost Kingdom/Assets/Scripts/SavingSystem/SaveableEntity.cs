@@ -41,6 +41,11 @@ public class SaveableEntity : MonoBehaviour
         uniqueID = System.Guid.NewGuid().ToString();
     }
 
+    public void SetID(string id)
+    {
+        uniqueID = id;
+    }
+
 #if UNITY_EDITOR
     private void OnValidate()
     {

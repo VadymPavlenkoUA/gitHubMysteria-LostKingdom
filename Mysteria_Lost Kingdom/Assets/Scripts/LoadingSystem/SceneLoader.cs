@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,15 +10,19 @@ public class SceneLoader
     public static void LoadScene(string sceneName)
     {
         loadFromSave = false;
+        saveSlot = -1;
         nextSceneName = sceneName;
         SceneManager.LoadScene("Loading");
     }
 
-    //public static void LoadFromSave(string sceneName, int slot)
-    //{
-    //    loadFromSave = true;
-    //    saveSlot = slot;
-    //    nextSceneName = sceneName;
-    //    SceneManager.LoadScene("Loading");
-    //}
+    public static void LoadGameFromSave(string sceneName, int slot)
+    {
+        nextSceneName = sceneName;
+        saveSlot = slot;
+        loadFromSave = true;
+
+        Time.timeScale = 1f;
+        //ScreenFader.Instance.FadeAndLoad();
+        SceneManager.LoadScene("Loading");
+    }
 }

@@ -20,6 +20,8 @@ public class EnemyStats : MonoBehaviour
     [Header("Loot")]
     public LootTable lootTable;
 
+    private bool lootAlreadyDropped = false;
+
     [Header("Balance / Poise")]
     public float maxBalance = 100f;
     public float balanceRegenRate = 15f;
@@ -122,13 +124,16 @@ public class EnemyStats : MonoBehaviour
 
         QuestManager.Instance.OnEnemyKilled(enemyId);
         PlayerKillStats.Instance.RegisterKill(enemyId);
-
-        LootDropper.Drop(lootTable, transform.position);
+        if (!lootAlreadyDropped && lootTable != null)
+        {
+            LootDropper.Drop(lootTable, transform.position);
+            lootAlreadyDropped = true; 
+        }
 
         animator.SetTrigger("Die");
         if (healthBar != null) healthBar.OnDeath();
 
-        Debug.Log("Манекен знищений");
+        Debug.Log($"Ворог знищений {enemyName}_{enemyId}");
     }
 
     public void SetHealth(float value)
@@ -146,5 +151,15 @@ public class EnemyStats : MonoBehaviour
     public void HideHealth()
     {
         healthBar?.OnDeath();
+    }
+
+    public bool CaptureLootState()
+    {
+        return lootAlreadyDropped;
+    }
+
+    public void RestoreLootState(object state)
+    {
+        if (state is bool dropped) lootAlreadyDropped = dropped;
     }
 }

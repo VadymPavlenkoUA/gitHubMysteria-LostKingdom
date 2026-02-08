@@ -323,9 +323,8 @@ public class EnemyAIController : MonoBehaviour, ISaveable
             patrolTarget = patrolTarget,
             isPatrolling = isPatrolling,
             patrolTimer = patrolTimer,
-            //isAttacking = isAttacking,
-            //isHit = isHit,
-            currentHealth = stats.currentHealth
+            currentHealth = stats.currentHealth,
+            lootDropped = stats.CaptureLootState()
         };
     }
 
@@ -352,6 +351,8 @@ public class EnemyAIController : MonoBehaviour, ISaveable
         animator.enabled = true;
         animator.Rebind();
         animator.Update(0f);
+
+        stats.RestoreLootState(data.lootDropped);
 
         stats.ShowHealth();
         stats.SetHealth(data.currentHealth);

@@ -24,6 +24,23 @@ public class MainMenu : MonoBehaviour
     {
         StartCoroutine(StartGameSequence());
     }
+    void OnEnable()
+    {
+        ResetGlobalState();
+    }
+
+    void ResetGlobalState()
+    {
+        Time.timeScale = 1f;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        if (MenuController.Instance != null)
+        {
+            MenuController.Instance.inputBlocked = false;
+        }
+    }
     private IEnumerator StartGameSequence()
     {
         mainMenu.SetActive(false);

@@ -19,4 +19,6 @@ public class EnemySaveData
     public bool isHit;
 
     public float currentHealth;
+
+    public bool lootDropped;
 }

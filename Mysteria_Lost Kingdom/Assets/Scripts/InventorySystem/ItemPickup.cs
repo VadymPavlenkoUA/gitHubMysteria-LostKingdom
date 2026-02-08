@@ -64,6 +64,12 @@ public class ItemPickup : MonoBehaviour, IInteractable, ISaveable
         }
         playerAudio.PlayItemSound(item.categories, ItemAction.Pickup);
         NotificationSystem.Instance.ShowNotification(item.icon, $"Підібрано {item.itemName} x{amount}");
+
+        if (isDropped && DroppedItemRegistry.Instance != null)
+        {
+            DroppedItemRegistry.Instance.Unregister(GetSaveID());
+        }
+
         pickedUp = true;
         HidePickup();
     }

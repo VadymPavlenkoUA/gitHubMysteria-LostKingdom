@@ -8,7 +8,6 @@ using Unity.VisualScripting;
 public class LoadingManager : MonoBehaviour
 {
     [Header("UI Elements")]
-    public CanvasGroup fadeCanvas;
     public Slider progressBar;
     public TMP_Text progressText;
 
@@ -16,16 +15,37 @@ public class LoadingManager : MonoBehaviour
     public float fadeSpeed = 1.5f;
     public float minLoadingTime = 1.5f;
 
+    [Header("Background")]
+    public Image backgroundImage;     
+    public Sprite[] loadingBackgrounds;
+
+    private bool isLoading = false;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        if (loadingBackgrounds != null && loadingBackgrounds.Length > 0 && backgroundImage != null)
+        {
+            int index = Random.Range(0, loadingBackgrounds.Length);
+            backgroundImage.sprite = loadingBackgrounds[index];
+        }
+
+        Debug.Log($"[LOADING] LoadingManager started in scene: {SceneManager.GetActiveScene().name}");
+        if (isLoading) return;
+
+        isLoading = true;
+        if (ScreenFader.Instance != null)
+        {
+            ScreenFader.Instance.BringToFront();
+            ScreenFader.Instance.FadeInInstant();
+        }
         string sceneToLoad = SceneLoader.nextSceneName;
         StartCoroutine(LoadSceneAsync(sceneToLoad));
     }
 
     private IEnumerator LoadSceneAsync(string sceneName)
     {
-        yield return StartCoroutine(FadeIn());
+        ScreenFader.Instance.FadeOut();
 
         AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
         operation.allowSceneActivation = false;
@@ -42,39 +62,10 @@ public class LoadingManager : MonoBehaviour
 
             if (operation.progress >= 0.9f && timer >= minLoadingTime)
             {
-                yield return StartCoroutine(FadeOut());
+                yield return ScreenFader.Instance.FadeTo(1f);
                 operation.allowSceneActivation = true;
             }
-
             yield return null;
         }
-    }
-
-    private IEnumerator FadeIn()
-    {
-        fadeCanvas.alpha = 1f;
-        fadeCanvas.gameObject.SetActive(true);
-
-        while (fadeCanvas.alpha > 0f)
-        {
-            fadeCanvas.alpha -= Time.deltaTime * fadeSpeed;
-            yield return null;
-        }
-
-        fadeCanvas.alpha = 0f;
-    }
-
-    private IEnumerator FadeOut()
-    {
-        fadeCanvas.gameObject.SetActive(true);
-        fadeCanvas.alpha = 0f;
-
-        while (fadeCanvas.alpha < 1f)
-        {
-            fadeCanvas.alpha += Time.deltaTime * fadeSpeed;
-            yield return null;
-        }
-
-        fadeCanvas.alpha = 1f;
     }
 }

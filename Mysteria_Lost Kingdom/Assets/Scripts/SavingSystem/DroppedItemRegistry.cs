@@ -23,6 +23,7 @@ public class DroppedItemRegistry : MonoBehaviour
     public void Register(ItemPickup pickup)
     {
         var data = (ItemPickupSaveData)pickup.CaptureState();
+        if (data.pickedUp) return;
 
         droppedItems.Add(new DroppedItemSaveData
         {
@@ -33,6 +34,11 @@ public class DroppedItemRegistry : MonoBehaviour
             position = pickup.transform.position,
             rotation = pickup.transform.rotation
         });
+    }
+
+    public void Unregister(string uniqueID)
+    {
+        droppedItems.RemoveAll(d => d.uniqueID == uniqueID);
     }
 
     public void Restore(List<DroppedItemSaveData> data)
@@ -65,7 +71,8 @@ public class DroppedItemRegistry : MonoBehaviour
             var pickup = go.GetComponent<ItemPickup>();
             var saveable = go.GetComponent<SaveableEntity>();
 
-            saveable.GenerateID();
+            //saveable.GenerateID();
+            saveable.SetID(data.uniqueID);
 
             if (item.isUnique && data.instanceData != null)
             {

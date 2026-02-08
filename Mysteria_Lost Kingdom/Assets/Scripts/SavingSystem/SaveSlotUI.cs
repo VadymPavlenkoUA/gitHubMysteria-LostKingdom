@@ -29,6 +29,6 @@ public class SaveSlotUI : MonoBehaviour
 
         saveButton.onClick.AddListener(() => SaveManager.Instance.SaveGame(slot));
 
-        loadButton.onClick.AddListener(() => SaveManager.Instance.LoadGame(slot));
+        loadButton.onClick.AddListener(() => SceneLoader.LoadGameFromSave("MainScene", slot));
     }
 }
