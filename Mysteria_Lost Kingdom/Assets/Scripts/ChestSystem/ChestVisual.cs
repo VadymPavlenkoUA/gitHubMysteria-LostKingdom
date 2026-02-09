@@ -12,16 +12,14 @@ public class ChestVisual : MonoBehaviour
     {
         Debug.Log(animator.gameObject.name);
         animator.SetBool("IsOpen", true);
-        if (audioSource && openSound)
-            audioSource.PlayOneShot(openSound);
+        if (audioSource && openSound) audioSource.PlayOneShot(openSound);
     }
 
     public void Close()
     {
         Debug.Log(animator.gameObject.name);
         animator.SetBool("IsOpen", false);
-        if (audioSource && closeSound)
-            audioSource.PlayOneShot(closeSound);
+        if (audioSource && closeSound) audioSource.PlayOneShot(closeSound);
     }
 
     public void LockSound()

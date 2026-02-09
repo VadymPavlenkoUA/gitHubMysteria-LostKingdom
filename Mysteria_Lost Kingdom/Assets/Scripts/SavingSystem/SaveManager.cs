@@ -1,8 +1,9 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using System;
-using System.Collections.Generic;
 
 public class SaveManager : MonoBehaviour
 {
@@ -11,6 +12,8 @@ public class SaveManager : MonoBehaviour
     private string savePath;
 
     private Dictionary<string, ISaveable> saveables = new();
+
+    public event Action<int> OnSaveCompleted;
 
     private void Awake()
     {
@@ -41,6 +44,13 @@ public class SaveManager : MonoBehaviour
 
     public void SaveGame(int slot)
     {
+        StartCoroutine(SaveGameRoutine(slot));
+    }
+
+    private IEnumerator SaveGameRoutine(int slot)
+    {
+        yield return CaptureScreenshot(slot);
+
         var saveables = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<ISaveable>();
 
         SaveGameWrapper wrapper = new()
@@ -71,6 +81,7 @@ public class SaveManager : MonoBehaviour
         string path = GetSaveFilePath(slot);
         File.WriteAllText(path, JsonUtility.ToJson(wrapper, true));
 
+        OnSaveCompleted?.Invoke(slot);
         Debug.Log($"[SAVE] Slot {slot} saved");
     }
 
@@ -143,5 +154,48 @@ public class SaveManager : MonoBehaviour
     private string GetSaveFilePath(int slot)
     {
         return Path.Combine(savePath, $"save_{slot}.json");
+    }
+
+    private IEnumerator CaptureScreenshot(int slot)
+    {
+        yield return new WaitForEndOfFrame();
+
+        Camera cam = Camera.main;
+        if (cam == null)
+        {
+            Debug.LogWarning("No camera for screenshot");
+            yield break;
+        }
+
+        int width = 512;
+        int height = 288;
+
+        RenderTexture rt = new RenderTexture(width, height, 24);
+        cam.targetTexture = rt;
+
+        Texture2D screenshot = new Texture2D(width, height, TextureFormat.RGB24, false);
+
+        cam.Render();
+        RenderTexture.active = rt;
+        screenshot.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        screenshot.Apply();
+
+        cam.targetTexture = null;
+        RenderTexture.active = null;
+        Destroy(rt);
+
+        byte[] bytes = screenshot.EncodeToPNG();
+        Destroy(screenshot);
+
+        string path = GetScreenshotPath(slot);
+        File.WriteAllBytes(path, bytes);
+
+        Debug.Log($"[SAVE] Screenshot saved: {path}");
+    }
+
+
+    private string GetScreenshotPath(int slot)
+    {
+        return Path.Combine(savePath, $"save_{slot}.png");
     }
 }
