@@ -10,12 +10,19 @@ public class SaveLoadMenu : MonoBehaviour
     private void OnEnable()
     {
         SaveManager.Instance.OnSaveCompleted += OnSaveCompleted;
+
+        infoPanel.OnSaveClicked += SaveCurrentSlot;
+        infoPanel.OnLoadClicked += LoadCurrentSlot;
+
         Refresh();
     }
 
     private void OnDisable()
     {
         if (SaveManager.Instance != null) SaveManager.Instance.OnSaveCompleted -= OnSaveCompleted;
+
+        infoPanel.OnSaveClicked -= SaveCurrentSlot;
+        infoPanel.OnLoadClicked -= LoadCurrentSlot;
     }
 
     public void Refresh()
@@ -40,7 +47,9 @@ public class SaveLoadMenu : MonoBehaviour
             infoPanel.Show(
                 "<color=#ad4402><b>Пустий слот</b></color>",
                 "<color=#e80909>У цьому слоті ще немає збереження</color>",
-                null
+                null,
+                info?.slot ?? -1,
+                false
             );
             return;
         }
@@ -50,7 +59,9 @@ public class SaveLoadMenu : MonoBehaviour
         infoPanel.Show(
             $"<color=#ad4402><b>Збереження {info.slot + 1}</b></color>",
             $"<color=#876207>Дата:</color> {info.saveTime}",
-            preview
+            preview,
+            info.slot,
+            info.exists
         );
     }
 
@@ -75,5 +86,15 @@ public class SaveLoadMenu : MonoBehaviour
         if (info != null) ShowSlotInfo(info);
 
         Refresh();
+    }
+
+    private void SaveCurrentSlot(int slot)
+    {
+        SaveManager.Instance.SaveGame(slot);
+    }
+
+    private void LoadCurrentSlot(int slot)
+    {
+        SceneLoader.LoadGameFromSave("MainScene", slot);
     }
 }

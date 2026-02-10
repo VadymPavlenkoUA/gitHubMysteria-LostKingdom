@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System;
 
 public class SaveInfoPanel : MonoBehaviour
 {
@@ -14,13 +15,35 @@ public class SaveInfoPanel : MonoBehaviour
     [SerializeField] private Image previewImage;
     [SerializeField] private Sprite emptyPreview;
 
+    [Header("Buttons")]
+    [SerializeField] private Button saveButton;
+    [SerializeField] private Button loadButton;
+
+    private int currentSlot = -1;
+
+    public event Action<int> OnSaveClicked;
+    public event Action<int> OnLoadClicked;
+
+
     private void Awake()
     {
         Hide();
+
+        saveButton.onClick.AddListener(() =>
+        {
+            if (currentSlot >= 0) OnSaveClicked?.Invoke(currentSlot);
+        });
+
+        loadButton.onClick.AddListener(() =>
+        {
+            if (currentSlot >= 0) OnLoadClicked?.Invoke(currentSlot);
+        });
     }
 
-    public void Show(string title, string body, Sprite preview)
+    public void Show(string title, string body, Sprite preview, int slot, bool slotExists)
     {
+        currentSlot = slot;
+
         titleText.text = title;
         bodyText.text = body;
 
@@ -35,6 +58,8 @@ public class SaveInfoPanel : MonoBehaviour
             previewImage.gameObject.SetActive(emptyPreview != null);
         }
 
+        loadButton.interactable = slotExists;
+
         panelRoot.SetActive(true);
     }
 
@@ -48,5 +73,6 @@ public class SaveInfoPanel : MonoBehaviour
         titleText.text = "";
         bodyText.text = "";
         previewImage.sprite = emptyPreview;
+        currentSlot = -1;
     }
 }
