@@ -290,6 +290,15 @@ public class QuestManager : MonoBehaviour, ISaveable
             Debug.Log($"[CaptureState] Finished Quest: {data.questID}, status: {data.status}, steps: {data.completedSteps.Count}");
         }
 
+        if (trackedQuest != null && trackedQuest.data != null)
+        {
+            wrapper.trackedQuestID = trackedQuest.data.uniqueQuestID;
+        }
+        else
+        {
+            wrapper.trackedQuestID = null;
+        }
+
         return wrapper;
     }
 
@@ -306,6 +315,7 @@ public class QuestManager : MonoBehaviour, ISaveable
         activeQuests.Clear();
         completedQuests.Clear();
         finishedQuests.Clear();
+        trackedQuest = null;
 
         foreach (var data in wrapper.quests)
         {
@@ -327,11 +337,16 @@ public class QuestManager : MonoBehaviour, ISaveable
                 case QuestStatus.Completed: completedQuests.Add(instance); break;
                 case QuestStatus.Finished: finishedQuests.Add(instance); break;
             }
+
+            if (!string.IsNullOrEmpty(wrapper.trackedQuestID) && questRef.uniqueQuestID == wrapper.trackedQuestID)
+            {
+                trackedQuest = instance;
+            }
         }
 
-        //foreach (var quest in activeQuests)
-        //{
-        //    quest.UpdateStepStatus(playerInventory);
-        //}
+        if (string.IsNullOrEmpty(wrapper.trackedQuestID))
+        {
+            trackedQuest = null;
+        }
     }
 }

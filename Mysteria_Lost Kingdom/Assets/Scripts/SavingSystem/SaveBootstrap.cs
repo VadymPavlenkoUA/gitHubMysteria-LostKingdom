@@ -1,7 +1,8 @@
+using System.Collections;
+using System.Linq;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections;
-using Unity.Cinemachine;
 
 public class SaveBootstrap : MonoBehaviour
 {
@@ -34,6 +35,12 @@ public class SaveBootstrap : MonoBehaviour
     {
 
         if (scene.name != SceneLoader.nextSceneName) return;
+
+        if (SceneLoader.isNewGame && !SceneLoader.loadFromSave)
+        {
+            StartCoroutine(SetupNewGame());
+            return;
+        }
 
         if (!SceneLoader.loadFromSave)
         {
@@ -70,9 +77,38 @@ public class SaveBootstrap : MonoBehaviour
 
         yield return null;
 
+        var mainPlayers = FindObjectsByType<CharacterCustomizer>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(p => !p.isRTCharacter);
+
+        foreach (var player in mainPlayers)
+        {
+            RTCharacterManager.Instance?.ApplyCustomizationFromMain(player);
+        }
+
+        MenuController.Instance?.ForceResumeGameState();
+
         ScreenFader.Instance.FadeOut();
 
         SceneLoader.loadFromSave = false;
         SceneLoader.saveSlot = -1;
+    }
+
+    private IEnumerator SetupNewGame()
+    {
+        yield return null;
+        yield return new WaitForEndOfFrame();
+
+        var allPlayers = FindObjectsByType<CharacterCustomizer>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+        foreach (var player in allPlayers)
+        {
+            if (SceneLoader.newGameCustomization != null)
+            {
+                player.ApplyCustomization(SceneLoader.newGameCustomization);
+            }
+        }
+
+        ScreenFader.Instance?.FadeOut();
+
+        SceneLoader.isNewGame = false;
     }
 }

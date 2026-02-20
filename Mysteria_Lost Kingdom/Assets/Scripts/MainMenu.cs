@@ -50,7 +50,10 @@ public class MainMenu : MonoBehaviour
         yield return new WaitForSeconds(1f);
         yield return StartCoroutine(FadeToBlack());
 
-        SceneLoader.LoadScene("MainScene");
+        //SceneLoader.LoadScene("MainScene");
+        SceneLoader.isNewGame = true;
+        SceneLoader.newGameCustomization = null;
+        SceneLoader.LoadScene("CharacterCreation");
     }
     private IEnumerator FadeToBlack()
     {
@@ -122,16 +125,5 @@ public class MainMenu : MonoBehaviour
     public void QuitGame()
     {
         Application.Quit();
-    }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

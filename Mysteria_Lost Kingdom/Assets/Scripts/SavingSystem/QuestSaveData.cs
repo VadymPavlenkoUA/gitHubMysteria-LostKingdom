@@ -13,4 +13,5 @@ public class QuestSaveData
 public class QuestSaveDataList
 {
     public List<QuestSaveData> quests;
+    public string trackedQuestID;
 }

@@ -234,7 +234,7 @@ public class MenuController : MonoBehaviour
 
     public void ExitBTN()
     {
-        SceneManager.LoadScene("MainMenu");
+        SceneLoader.LoadScene("MainMenu");
     }
 
     public void ResumeBTN()
@@ -249,4 +249,30 @@ public class MenuController : MonoBehaviour
         saveMenu.SetActive(true);
 
     }
+
+    public void ForceResumeGameState()
+    {
+        isMMopen = false;
+        isGMOpen = false;
+        isEduOpen = false;
+        isSavePanelOpen = false;
+
+        mainMenu.SetActive(false);
+        gameMenu.SetActive(false);
+        saveMenu.SetActive(false);
+        educationMenu.SetActive(false);
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
+
+        inputActions.Player.Enable();
+        inputActions.HotBar.Enable();
+        inputActions.Combat.Enable();
+
+        mixer.FindSnapshot("Gameplay").TransitionTo(0.2f);
+    }
+
 }

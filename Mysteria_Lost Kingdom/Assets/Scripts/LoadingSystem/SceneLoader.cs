@@ -7,6 +7,10 @@ public class SceneLoader
     public static string nextSceneName;
     public static int saveSlot = -1;
     public static bool loadFromSave = false;
+    public static bool returnToMenu = false;
+
+    public static bool isNewGame = false;
+    public static CharacterCustomizationData newGameCustomization;
     public static void LoadScene(string sceneName)
     {
         loadFromSave = false;

@@ -164,4 +164,17 @@ public class RTCharacterManager : MonoBehaviour
             }
         }
     }
+
+    public void ApplyCustomizationFromMain(CharacterCustomizer mainCustomizer)
+    {
+        if (clone == null || mainCustomizer == null) return;
+
+        CharacterCustomizationData data = mainCustomizer.GetCustomizationData();
+
+        var rtCustomizer = clone.GetComponent<CharacterCustomizer>();
+        if (rtCustomizer != null)
+        {
+            rtCustomizer.ApplyCustomization(data);
+        }
+    }
 }
