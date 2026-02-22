@@ -1,10 +1,11 @@
-using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
-using UnityEngine.Networking;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.Networking;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class AIResponse
@@ -24,6 +25,11 @@ public class AIRequest
 
 public class AssistantAI : MonoBehaviour
 {
+    public static AssistantAI Instance;
+
+    [Header("Main Character NickName")]
+    public string mainCharacterName;
+
     [Header("References")]
     public PlayerStats playerStats;
     public Inventory inventory;
@@ -44,12 +50,23 @@ public class AssistantAI : MonoBehaviour
         sendButton.onClick.AddListener(OnSendMessage);
     }
 
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    public void SetPlayerName(string nickname)
+    {
+        if (string.IsNullOrWhiteSpace(nickname)) mainCharacterName = "ֳנאגוצü";
+        else mainCharacterName = nickname;
+    }
+
     private void OnSendMessage()
     {
         string userMessage = inputField.text.Trim();
         if (string.IsNullOrEmpty(userMessage)) return;
 
-        AddMessage(">> ֳנאגוצü", userMessage);
+        AddMessage($">> {mainCharacterName}", userMessage);
         inputField.text = "";
 
         StartCoroutine(SendAIRequest(userMessage));

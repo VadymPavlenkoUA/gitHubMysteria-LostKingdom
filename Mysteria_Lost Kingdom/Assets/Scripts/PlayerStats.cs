@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 using UnityEngine.Analytics;
@@ -18,6 +19,9 @@ public class PlayerStats : MonoBehaviour, ISaveable
     public PlayerCombat playerCombat;
     public EquipmentManager equipmentManager;
     public Inventory inventory;
+
+    [Header("NickName")]
+    public string nickname;
 
     [Header("LevelUpSettings")]
     public int level = 1;
@@ -131,6 +135,9 @@ public class PlayerStats : MonoBehaviour, ISaveable
 
     public delegate void OnCombarChanged();
     public event OnCombarChanged CombatChanged;
+
+    public delegate void OnNickNameChanged();
+    public event OnNickNameChanged NickNameChanged;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -154,6 +161,20 @@ public class PlayerStats : MonoBehaviour, ISaveable
         UpdateUI();
     }
 
+    public void ChangeNickName(string newNickName)
+    {
+        nickname = newNickName;
+        NickNameChanged.Invoke();
+        if (DialogueManager.Instance != null)
+        {
+            DialogueManager.Instance.SetPlayerName(nickname);
+        }
+        if (AssistantAI.Instance != null)
+        {
+            AssistantAI.Instance.SetPlayerName(nickname);
+        }
+    }
+
     public string GetSaveID()
     {
         return "PLAYER_STATS";
@@ -163,6 +184,8 @@ public class PlayerStats : MonoBehaviour, ISaveable
     {
         return new PlayerStatsSaveData
         {
+            nickName = nickname,
+
             level = level,
             availableStatPoints = availableStatPoints,
 
@@ -191,6 +214,14 @@ public class PlayerStats : MonoBehaviour, ISaveable
 
             gold = gold,
 
+            professions = professions.Select(p => new ProfessionSaveData
+            {
+                profession = p.profession,
+                level = p.level,
+                exp = p.exp,
+                expToNext = p.expToNext
+            }).ToList(),
+
             position = transform.position,
             rotation = transform.rotation,
 
@@ -216,6 +247,8 @@ public class PlayerStats : MonoBehaviour, ISaveable
             data.leftHandDrawn,
             data.twoHandEquipped
         );
+
+        ChangeNickName(data.nickName);
 
         level = data.level;
         availableStatPoints = data.availableStatPoints;
@@ -244,6 +277,20 @@ public class PlayerStats : MonoBehaviour, ISaveable
         currentSatiety = data.currentSatiety;
 
         gold = data.gold;
+
+        if (data.professions != null)
+        {
+            foreach (var savedProf in data.professions)
+            {
+                var existing = professions.Find(p => p.profession == savedProf.profession);
+                if (existing != null)
+                {
+                    existing.level = savedProf.level;
+                    existing.exp = savedProf.exp;
+                    existing.expToNext = savedProf.expToNext;
+                }
+            }
+        }
 
         transform.position = data.position;
         transform.rotation = data.rotation;

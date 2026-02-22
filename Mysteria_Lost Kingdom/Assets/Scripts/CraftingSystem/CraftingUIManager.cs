@@ -64,6 +64,7 @@ public class CraftingUIManager : MonoBehaviour
         craftButton.onClick.AddListener(Craft);
         foreach (var btn in professionButtons) btn.Setup(this);
         SelectProfession(0);
+        UpdateCraftButtonState();
 
         inventory.OnInventoryChanged += OnInventoryChanged;
         quantitySelector.onQuantityChanged += UpdateIngredientsForQuantity;
@@ -74,7 +75,8 @@ public class CraftingUIManager : MonoBehaviour
     private void OnInventoryChanged()
     {
         PopulateIngredients();
-        PopulateRecipes();
+        //PopulateRecipes();
+        UpdateCraftButtonState();
     }
 
     public void OpenFromStation(CraftingStationType station)
@@ -83,6 +85,7 @@ public class CraftingUIManager : MonoBehaviour
         MenuController.Instance.OpenGameMenu();
         PopulateRecipes();
         UpdateRecipeUI(selectedRecipe);
+        UpdateCraftButtonState();
         if (tabSwitcher != null) tabSwitcher.OpenTab(craftingTabIndex);
     }
 
@@ -90,6 +93,7 @@ public class CraftingUIManager : MonoBehaviour
     {
         activeStation = CraftingStationType.None;
         UpdateRecipeUI(selectedRecipe);
+        UpdateCraftButtonState();
     }
 
     void RefreshProfessionButtons()
@@ -111,6 +115,8 @@ public class CraftingUIManager : MonoBehaviour
                 ingUI.SetMultiplier(quant);
             }
         }
+
+        UpdateCraftButtonState();
     }
 
     public void UpdateRecipeUI(CraftingRecipe recipe)
@@ -182,6 +188,7 @@ public class CraftingUIManager : MonoBehaviour
         selectedRecipe = r;
         quantitySelector.SetQuantity(1);
         PopulateIngredients();
+        UpdateCraftButtonState();
     }
 
     void PopulateIngredients()
@@ -200,41 +207,49 @@ public class CraftingUIManager : MonoBehaviour
             var obj = Instantiate(ingredientPrefab, ingredientListParent);
             obj.GetComponent<IngredientUI>().Setup(ing, inventory, quant);
         }
+        UpdateCraftButtonState();
     }
 
-    //void Craft()
-    //{
-    //    if (selectedRecipe == null) return;
-    //    if (selectedRecipe.requiredStation != CraftingStationType.None && selectedRecipe.requiredStation != activeStation) return;
-    //    int craftAmount = quantitySelector.quantity;
+    private bool CanCraft()
+    {
+        if (selectedRecipe == null)
+            return false;
 
-    //    foreach (var ing in selectedRecipe.ingredients)
-    //    {
-    //        if (!inventory.HasItem(ing.item, ing.amount * craftAmount))
-    //        {
-    //            Debug.Log("Не вистачає інгредієнтів");
-    //            return;
-    //        }
-    //    }
+        var profession = playerStats.GetProfession(currentProfession);
 
-    //    foreach (var ing in selectedRecipe.ingredients) inventory.RemoveItem(ing.item, ing.amount * craftAmount);
+        if (profession.level < selectedRecipe.requiredLevel)
+            return false;
 
-    //    inventory.AddItem(selectedRecipe.resultItem, selectedRecipe.resultAmount * craftAmount);
+        if (selectedRecipe.requiredStation != CraftingStationType.None &&
+            selectedRecipe.requiredStation != activeStation)
+            return false;
 
-    //    playerStats.AddProfessionExp(currentProfession, selectedRecipe.expGained * craftAmount);
+        int craftAmount = quantitySelector.quantity;
 
-    //    UpdateProfessionPanel();
-    //    PopulateIngredients();
-    //    PopulateRecipes();
-    //    RefreshProfessionButtons();
-    //    inventory.NotifyInventoryChanged();
-    //    InventoryUIManager.Instance.RefreshUI();
-    //}
+        foreach (var ing in selectedRecipe.ingredients)
+        {
+            if (!inventory.HasItem(ing.item, ing.amount * craftAmount))
+                return false;
+        }
+
+        return true;
+    }
+
+    private void UpdateCraftButtonState()
+    {
+        bool canCraft = CanCraft();
+        craftButton.interactable = canCraft;
+        quantitySelector.inputField.interactable = canCraft;
+        quantitySelector.plusBtn.interactable = canCraft;
+        quantitySelector.minusBtn.interactable = canCraft;
+
+    }
 
     void Craft()
     {
-        if (selectedRecipe == null) return;
-        if (selectedRecipe.requiredStation != CraftingStationType.None && selectedRecipe.requiredStation != activeStation) return;
+        //if (selectedRecipe == null) return;
+        //if (selectedRecipe.requiredStation != CraftingStationType.None && selectedRecipe.requiredStation != activeStation) return;
+        if (!CanCraft()) return;
         int craftAmount = quantitySelector.quantity;
         foreach (var ing in selectedRecipe.ingredients)
         {
@@ -298,7 +313,7 @@ public class CraftingUIManager : MonoBehaviour
 
         //UpdateProfessionPanel();
         PopulateIngredients();
-        PopulateRecipes();
+        //PopulateRecipes();
         //RefreshProfessionButtons();
         inventory.NotifyInventoryChanged();
         InventoryUIManager.Instance.RefreshUI();

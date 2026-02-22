@@ -107,8 +107,15 @@ public class SaveBootstrap : MonoBehaviour
             }
         }
 
+        var stats = FindAnyObjectByType<PlayerStats>();
+        if (stats != null && !string.IsNullOrEmpty(SceneLoader.newGameNickName))
+        {
+            stats.ChangeNickName(SceneLoader.newGameNickName);
+        }
+
         ScreenFader.Instance?.FadeOut();
 
+        SceneLoader.newGameNickName = null;
         SceneLoader.isNewGame = false;
     }
 }

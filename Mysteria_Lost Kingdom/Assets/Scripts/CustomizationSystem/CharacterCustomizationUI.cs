@@ -1,4 +1,7 @@
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class CharacterCustomizationUI : MonoBehaviour
 {
@@ -7,6 +10,12 @@ public class CharacterCustomizationUI : MonoBehaviour
     public CharacterCustomizationData defaultData;
 
     private CharacterCustomizationData data;
+
+    [Header("Nickname Panel")]
+    public GameObject nicknamePanel;
+    public TMP_InputField nicknameInput;
+    public Button startGameButton;
+    public Button backButton;
 
     void Start()
     {
@@ -185,9 +194,41 @@ public class CharacterCustomizationUI : MonoBehaviour
 
     public void Confirm()
     {
+        //SceneLoader.isNewGame = true;
+        //SceneLoader.newGameCustomization = CloneData(data);
+        //SceneLoader.LoadScene("MainScene");
+
+        nicknamePanel.SetActive(true);
+        startGameButton.interactable = false;
+
+        nicknameInput.onValueChanged.RemoveAllListeners();
+        nicknameInput.onValueChanged.AddListener(OnNicknameChanged);
+    }
+        private void OnNicknameChanged(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            startGameButton.interactable = false;
+        else
+            startGameButton.interactable = true;
+    }
+
+    public void StartGameWithNickname()
+    {
+        string finalNick = nicknameInput.text.Trim();
+
+        if (string.IsNullOrEmpty(finalNick)) return;
+
         SceneLoader.isNewGame = true;
         SceneLoader.newGameCustomization = CloneData(data);
+
+        SceneLoader.newGameNickName = finalNick;
+
         SceneLoader.LoadScene("MainScene");
+    }
+
+    public void BackToCustomization()
+    {
+        nicknamePanel.SetActive(false);
     }
 
     public void ResetCustomization()

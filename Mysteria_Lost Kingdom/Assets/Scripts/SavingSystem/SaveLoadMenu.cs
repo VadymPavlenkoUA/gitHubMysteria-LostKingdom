@@ -1,3 +1,4 @@
+using System.Collections;
 using System.IO;
 using UnityEngine;
 
@@ -13,6 +14,13 @@ public class SaveLoadMenu : MonoBehaviour
 
         infoPanel.OnSaveClicked += SaveCurrentSlot;
         infoPanel.OnLoadClicked += LoadCurrentSlot;
+
+        StartCoroutine(DelayedRefresh());
+    }
+
+    private IEnumerator DelayedRefresh()
+    {
+        yield return null;
 
         Refresh();
     }
@@ -31,13 +39,19 @@ public class SaveLoadMenu : MonoBehaviour
 
         var saves = SaveManager.Instance.GetAllSaves();
 
+        SaveSlotInfo firstSlotInfo = null;
+
         foreach (var save in saves)
         {
             var slot = Instantiate(slotPrefab, contentParent);
             slot.Setup(save);
 
             slot.OnSlotClicked += ShowSlotInfo;
+
+            if (firstSlotInfo == null) firstSlotInfo = save;
         }
+
+        if (firstSlotInfo != null) ShowSlotInfo(firstSlotInfo);
     }
 
     private void ShowSlotInfo(SaveSlotInfo info)

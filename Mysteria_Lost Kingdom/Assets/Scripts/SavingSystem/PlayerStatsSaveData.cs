@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -5,6 +6,8 @@ using UnityEngine;
 [System.Serializable]
 public class PlayerStatsSaveData
 {
+    public string nickName;
+
     public int level;
     public int availableStatPoints;
 
@@ -38,6 +41,9 @@ public class PlayerStatsSaveData
     // Gold
     public int gold;
 
+    // Proffesions
+    public List<ProfessionSaveData> professions;
+
     // Position
     public Vector3 position;
     public Quaternion rotation;
@@ -47,4 +53,13 @@ public class PlayerStatsSaveData
     public bool rightHandDrawn;
     public bool leftHandDrawn;
     public bool twoHandEquipped;
+}
+
+[System.Serializable]
+public class ProfessionSaveData
+{
+    public CraftingProfession profession;
+    public int level;
+    public float exp;
+    public float expToNext;
 }

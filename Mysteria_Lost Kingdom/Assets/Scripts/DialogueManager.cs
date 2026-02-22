@@ -43,6 +43,12 @@ public class DialogueManager : MonoBehaviour
         dialogueUI.SetActive(false);
     }
 
+    public void SetPlayerName(string nickname)
+    {
+        if (string.IsNullOrWhiteSpace(nickname)) mainCharacterName = "ֳנאגוצü";
+        else mainCharacterName = nickname;
+    }
+
     public void StartDialogue(DialogueData dialogue, NPC npc)
     {
         if (npcData == null) npcData = npc;

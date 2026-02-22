@@ -8,6 +8,9 @@ public class StatsUiManager : MonoBehaviour
     [Header("References")]
     public PlayerStats playerStats;
 
+    [Header("NickName")]
+    public TextMeshProUGUI nickNameText;
+
     [Header("UI Elements")]
     public TextMeshProUGUI levelText;
     public TextMeshProUGUI levelCircleText;
@@ -67,6 +70,8 @@ public class StatsUiManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        UpdateNickName();
+        playerStats.NickNameChanged += UpdateNickName;
         playerStats.StatsChanged += UpdateStatsDisplay;
         playerStats.HealthChanged += UpdatesHealthOnly;
         playerStats.StaminaChanged += UpdateStaminaOnly;
@@ -81,6 +86,11 @@ public class StatsUiManager : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void UpdateNickName()
+    {
+        nickNameText.text = playerStats.nickname;
     }
 
     public void UpdateStatsDisplay()

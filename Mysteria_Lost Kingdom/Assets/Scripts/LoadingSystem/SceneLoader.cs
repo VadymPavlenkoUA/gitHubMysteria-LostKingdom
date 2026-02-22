@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 public class SceneLoader
 {
     public static string nextSceneName;
+    public static string newGameNickName;
     public static int saveSlot = -1;
     public static bool loadFromSave = false;
     public static bool returnToMenu = false;
