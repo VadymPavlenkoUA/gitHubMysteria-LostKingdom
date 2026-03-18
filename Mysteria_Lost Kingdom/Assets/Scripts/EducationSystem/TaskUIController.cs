@@ -76,6 +76,9 @@ public class TaskUIController : MonoBehaviour
     {
         MenuController.Instance.ShowEducationMenu();
         currentTask = task;
+
+        AssistantAI.Instance.SetEducationTask(task);
+
         if (task.subject == SubjectType.Math)
         {
             subjectTitle.text = "Математика";

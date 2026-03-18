@@ -29,10 +29,13 @@ public class AIRequest
 {
     public string prompt;
     public GhostStats ghostStats;
-    public AIRequest(string prompt, GhostStats stats)
+    public string context;
+
+    public AIRequest(string prompt, GhostStats stats, string context)
     {
         this.prompt = prompt;
         this.ghostStats = stats;
+        this.context = context;
     }
 }
 
@@ -53,6 +56,12 @@ public class GhostStats
     }
 }
 
+public enum AIRequestType
+{
+    RPG,
+    Education
+}
+
 public class AssistantAI : MonoBehaviour, ISaveable
 {
     public static AssistantAI Instance;
@@ -70,11 +79,18 @@ public class AssistantAI : MonoBehaviour, ISaveable
     public Button sendButton;
     public TextMeshProUGUI chatHistoryText;
     public ChatScroll chatScroll;
+    public TMP_InputField inputEduField;
+    public Button sendEduButton;
+    public TextMeshProUGUI chatEduHistoryText;
+    public ChatScroll chatEduScroll;
 
     [Header("Ghost Stats UI")]
     public Slider trustSlider;
     public Slider mysterySlider;
     public TextMeshProUGUI ghostMoodText;
+    public Slider trustEduSlider;
+    public Slider mysteryEduSlider;
+    public TextMeshProUGUI ghostMoodEduText;
 
     [Header("Typing Settings")]
     public float typingSpeed = 0.02f;
@@ -82,7 +98,10 @@ public class AssistantAI : MonoBehaviour, ISaveable
     [Header("Ghost State")]
     public GhostStats ghostStats = new GhostStats();
 
-    private List<string> messages = new List<string>();
+    private List<string> messagesRPG = new List<string>();
+    private List<string> messagesEdu = new List<string>();
+
+    private TaskRequirement currentEduTask;
 
     private bool isWaitingResponse = false;
     float inactivityTimer = 0f;
@@ -92,8 +111,14 @@ public class AssistantAI : MonoBehaviour, ISaveable
     void Start()
     {
         sendButton.onClick.AddListener(OnSendMessage);
+        sendEduButton.onClick.AddListener(OnSendEduMessage);
         ShowIntroMessage();
         UpdateGhostUI();
+    }
+
+    public void SetEducationTask(TaskRequirement task)
+    {
+        currentEduTask = task;
     }
 
     private void Awake()
@@ -144,9 +169,12 @@ public class AssistantAI : MonoBehaviour, ISaveable
 
     private void ShowIntroMessage()
     {
-        messages.Add($"<i> ...Ви чуєте відлуння... Дух готовий слухати вас...</i>");
-        chatHistoryText.text = string.Join("\n", messages);
+        messagesRPG.Add($"<i> ...Ви чуєте відлуння... Дух готовий слухати вас...</i>");
+        chatHistoryText.text = string.Join("\n", messagesRPG);
         chatScroll.ScrollToBottom();
+        messagesEdu.Add($"<i> ...Чим я можу тобі допомогти...</i>");
+        chatEduHistoryText.text = string.Join("\n", messagesEdu);
+        chatEduScroll.ScrollToBottom();
     }
 
     public void SetPlayerName(string nickname)
@@ -162,10 +190,24 @@ public class AssistantAI : MonoBehaviour, ISaveable
         string userMessage = inputField.text.Trim();
         if (string.IsNullOrEmpty(userMessage)) return;
 
-        AddMessage($">> {mainCharacterName}", userMessage);
+        AddMessage(messagesRPG, chatHistoryText, chatScroll, $">> {mainCharacterName}", userMessage);
         inputField.text = "";
 
-        StartCoroutine(SendAIRequest(userMessage));
+        StartCoroutine(SendAIRequest(userMessage, AIRequestType.RPG, null));
+    }
+
+    private void OnSendEduMessage()
+    {
+        if (isWaitingResponse) return;
+        inactivityTimer = 0f;
+
+        string userMessage = inputEduField.text.Trim();
+        if (string.IsNullOrEmpty(userMessage)) return;
+
+        AddMessage(messagesEdu, chatEduHistoryText, chatEduScroll, $">> {mainCharacterName}", userMessage);
+        inputEduField.text = "";
+
+        StartCoroutine(SendAIRequest(userMessage, AIRequestType.Education, currentEduTask));
     }
 
     IEnumerator ResetAIConversation()
@@ -178,27 +220,95 @@ public class AssistantAI : MonoBehaviour, ISaveable
             yield return www.SendWebRequest();
         }
 
-        messages.Clear();
+        messagesRPG.Clear();
+        messagesEdu.Clear();
 
-        messages.Add($"<i> ...Тиша огортає вас... Дух не пам'ятатиме вашу розмову...</i>");
+        string resetText = "<i> ...Тиша огортає вас... Дух не пам'ятатиме вашу розмову...</i>";
 
-        chatHistoryText.text = string.Join("\n", messages);
+        messagesRPG.Add(resetText);
+        messagesEdu.Add(resetText);
+
+        chatHistoryText.text = string.Join("\n", messagesRPG);
         chatScroll.ScrollToBottom();
+
+        chatEduHistoryText.text = string.Join("\n", messagesEdu);
+        chatEduScroll.ScrollToBottom();
 
         UpdateGhostUI();
     }
 
-    private IEnumerator SendAIRequest(string prompt)
+    private string BuildRPGPrompt(string prompt)
+    {
+        return $"[Question]\n{prompt}\n\n[Player Stats]\n{GetStatsSummary()}\n\n[Quests]\n{GetQuestSummary()}";
+    }
+
+    private string BuildEducationPrompt(string prompt, TaskRequirement task)
+    {
+        var learning = PlayerLearningManager.Instance;
+
+        if (learning == null || task == null) return $"[Question]\n{prompt}\n\nNo learning data.";
+
+        var state = learning.State;
+
+        SubjectStats subjectStats;
+
+        if (!state.subjectStats.TryGetValue(task.subject, out subjectStats))
+        {
+            subjectStats = new SubjectStats();
+        }
+
+        int total = state.correctAnswers + state.wrongAnswers;
+        float accuracy = total > 0 ? (float)state.correctAnswers / total : 0f;
+
+        return
+            $"[Question]\n{prompt}\n\n" +
+
+            $"[Task]\n" +
+            $"Subject: {task.subject}\n" +
+            $"Difficulty: {task.difficulty}\n" +
+            $"Question: {task.questionText}\n\n" +
+
+            $"[Player Learning Stats]\n" +
+            $"Correct: {subjectStats.correct}\n" +
+            $"Wrong: {subjectStats.wrong}\n" +
+            $"Streak Correct: {subjectStats.streakSubjectCorrect}\n" +
+            $"Streak Wrong: {subjectStats.streakSubjectWrong}\n" +
+            $"Hints Used: {subjectStats.hintsSubjectUsed}\n\n" +
+
+            $"[Global Learning]\n" +
+            $"Accuracy: {accuracy}\n" +
+            $"Total Correct: {state.correctAnswers}\n" +
+            $"Total Wrong: {state.wrongAnswers}\n" +
+            $"Global Streak Correct: {state.streakCorrect}\n" +
+            $"Global Streak Wrong: {state.streakWrong}";
+    }
+
+    private IEnumerator SendAIRequest(string prompt, AIRequestType type, TaskRequirement task)
     {
         isWaitingResponse = true;
-        sendButton.interactable = false;
-        inputField.interactable = false;
+
+        if (type == AIRequestType.Education && task == null)
+        {
+            Debug.LogWarning("No task provided for Education AI");
+            isWaitingResponse = false;
+            yield break;
+        }
+
+        TMP_InputField activeInput = type == AIRequestType.RPG ? inputField : inputEduField;
+        Button activeButton = type == AIRequestType.RPG ? sendButton : sendEduButton;
+        TextMeshProUGUI activeText = type == AIRequestType.RPG ? chatHistoryText : chatEduHistoryText;
+        ChatScroll activeScroll = type == AIRequestType.RPG ? chatScroll : chatEduScroll;
+        List<string> activeMessages = type == AIRequestType.RPG ? messagesRPG : messagesEdu;
+
+        activeButton.interactable = false;
+        activeInput.interactable = false;
 
         string url = "http://localhost:5000/ask";
-        string fullPrompt = $"[Question]\n{prompt}\n\n[Player Stats]\n{GetStatsSummary()}\n\n[Quests]\n{GetQuestSummary()}";
+        string fullPrompt = type == AIRequestType.RPG
+        ? BuildRPGPrompt(prompt)
+        : BuildEducationPrompt(prompt, task);
 
-        //string json = JsonUtility.ToJson(new AIRequest(fullPrompt, ghostStats));
-        string json = JsonConvert.SerializeObject(new AIRequest(fullPrompt, ghostStats));
+        string json = JsonConvert.SerializeObject(new AIRequest(fullPrompt, ghostStats, type.ToString()));
 
         using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
         {
@@ -207,9 +317,9 @@ public class AssistantAI : MonoBehaviour, ISaveable
             www.downloadHandler = new DownloadHandlerBuffer();
             www.SetRequestHeader("Content-Type", "application/json");
 
-            messages.Add($"<i>...Дух думає...</i>");
-            chatHistoryText.text = string.Join("\n", messages);
-            chatScroll.ScrollToBottom();
+            activeMessages.Add($"<i>...Дух думає...</i>");
+            activeText.text = string.Join("\n", activeMessages);
+            activeScroll.ScrollToBottom();
 
             yield return www.SendWebRequest();
 
@@ -235,18 +345,18 @@ public class AssistantAI : MonoBehaviour, ISaveable
                 UpdateGhostUI();
             }
 
-            int msgIndex = messages.Count - 1;
-            messages[msgIndex] = $"<b><< Дух:</b> ";
-            chatHistoryText.text = string.Join("\n", messages);
-            chatScroll.ScrollToBottom();
+            int msgIndex = activeMessages.Count - 1;
+            activeMessages[msgIndex] = $"<b><< Дух:</b> ";
+            activeText.text = string.Join("\n", activeMessages);
+            activeScroll.ScrollToBottom();
 
-            yield return StartCoroutine(TypeText(aiText, msgIndex));
+            yield return StartCoroutine(TypeText(aiText, msgIndex, activeMessages, activeText, activeScroll));
 
             isWaitingResponse = false;
-            sendButton.interactable = true;
-            inputField.interactable = true;
-            inputField.Select();
-            inputField.ActivateInputField();
+            activeButton.interactable = true;
+            activeInput.interactable = true;
+            activeInput.Select();
+            activeInput.ActivateInputField();
             inactivityTimer = 0f;
             inactivityActive = true;
         }
@@ -257,6 +367,9 @@ public class AssistantAI : MonoBehaviour, ISaveable
         if (trustSlider != null) StartCoroutine(SmoothSlider(trustSlider, ghostStats.trust));
         if (mysterySlider != null) StartCoroutine(SmoothSlider(mysterySlider, ghostStats.mystery));
         if (ghostMoodText != null) ghostMoodText.text = MoodToText(ghostStats.mood);
+        if (trustEduSlider != null) StartCoroutine(SmoothSlider(trustEduSlider, ghostStats.trust));
+        if (mysteryEduSlider != null) StartCoroutine(SmoothSlider(mysteryEduSlider, ghostStats.mystery));
+        if (ghostMoodEduText != null) ghostMoodEduText.text = MoodToText(ghostStats.mood);
     }
 
     private string MoodToText(float mood)
@@ -309,24 +422,28 @@ public class AssistantAI : MonoBehaviour, ISaveable
         return sb.Length > 0 ? sb.ToString() : "No quests found.";
     }
 
-    private IEnumerator TypeText(string text, int index)
+    private IEnumerator TypeText(string text, int index, List<string> messages, TextMeshProUGUI textUI, ChatScroll scroll)
     {
+        if (index < 0 || index >= messages.Count) yield break;
         StringBuilder sb = new StringBuilder(messages[index]);
+
         foreach (char c in text)
         {
+            if (index < 0 || index >= messages.Count) yield break;
+
             sb.Append(c);
             messages[index] = sb.ToString();
-            chatHistoryText.text = string.Join("\n", messages);
-            chatScroll.ScrollToBottom();
-            yield return new WaitForSeconds(typingSpeed);
+            textUI.text = string.Join("\n", messages);
+            scroll.ScrollToBottom();
+            yield return new WaitForSecondsRealtime(typingSpeed);
         }
     }
 
-    private void AddMessage(string sender, string message)
+    private void AddMessage(List<string> list, TextMeshProUGUI textUI, ChatScroll scroll, string sender, string message)
     {
-        messages.Add($"<b>{sender}:</b> {message}");
-        chatHistoryText.text = string.Join("\n", messages);
-        chatScroll.ScrollToBottom();
+        list.Add($"<b>{sender}:</b> {message}");
+        textUI.text = string.Join("\n", list);
+        scroll.ScrollToBottom();
     }
 
     IEnumerator SmoothSlider(Slider slider, float target)
