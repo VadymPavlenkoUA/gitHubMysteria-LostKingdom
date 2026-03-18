@@ -179,6 +179,10 @@ public class MenuController : MonoBehaviour
         }
         else
         {
+            if (InputFocusController.Instance != null)
+            {
+                InputFocusController.Instance.ForceEnablePlayerController();
+            }
             InteractionBlocker.Unblock(InteractionBlockReason.Menu);
             if (cinemachineInput != null) cinemachineInput.enabled = true;
             Cursor.lockState = CursorLockMode.Locked;
@@ -188,6 +192,7 @@ public class MenuController : MonoBehaviour
             }
             inputActions.Combat.Enable();
             InventoryUIManager.Instance.CloseChest();
+
         }
         Cursor.visible = isGMOpen;
         gameMenu.SetActive(isGMOpen);

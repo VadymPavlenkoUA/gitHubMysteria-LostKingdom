@@ -6,26 +6,57 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using Newtonsoft.Json;
 
 [System.Serializable]
 public class AIResponse
 {
     public string response;
+
+    // Додати поля, які реально повертає сервер
+    public float trust_change;
+    public float mood_change;
+    public float mystery_change;
+
+    // Ці поля для сумісності з твоїм UI
+    public float trust => trust_change;
+    public float mystery => mystery_change;
+    public float mood => mood_change;
 }
 
 [System.Serializable]
 public class AIRequest
 {
     public string prompt;
-    public AIRequest(string prompt)
+    public GhostStats ghostStats;
+    public AIRequest(string prompt, GhostStats stats)
     {
         this.prompt = prompt;
+        this.ghostStats = stats;
     }
 }
 
-public class AssistantAI : MonoBehaviour
+[System.Serializable]
+public class GhostStats
+{
+    public float trust = 0.5f;
+    public float mystery = 0.8f;
+    public float mood = 0.5f;
+
+    public GhostStats() { }
+
+    public GhostStats(float trust, float mood, float mystery)
+    {
+        this.trust = trust;
+        this.mood = mood;
+        this.mystery = mystery;
+    }
+}
+
+public class AssistantAI : MonoBehaviour, ISaveable
 {
     public static AssistantAI Instance;
+    private SaveableEntity saveableEntity;
 
     [Header("Main Character NickName")]
     public string mainCharacterName;
@@ -40,29 +71,94 @@ public class AssistantAI : MonoBehaviour
     public TextMeshProUGUI chatHistoryText;
     public ChatScroll chatScroll;
 
+    [Header("Ghost Stats UI")]
+    public Slider trustSlider;
+    public Slider mysterySlider;
+    public TextMeshProUGUI ghostMoodText;
+
     [Header("Typing Settings")]
     public float typingSpeed = 0.02f;
 
+    [Header("Ghost State")]
+    public GhostStats ghostStats = new GhostStats();
+
     private List<string> messages = new List<string>();
+
+    private bool isWaitingResponse = false;
+    float inactivityTimer = 0f;
+    float inactivityLimit = 600f;
+    bool inactivityActive = false;
 
     void Start()
     {
         sendButton.onClick.AddListener(OnSendMessage);
+        ShowIntroMessage();
+        UpdateGhostUI();
     }
 
     private void Awake()
     {
         Instance = this;
+        saveableEntity = GetComponent<SaveableEntity>();
+
+        if (saveableEntity == null) Debug.LogError("AssistantAI missing SaveableEntity!");
+    }
+
+    void Update()
+    {
+        if (!inactivityActive) return;
+
+        inactivityTimer += Time.deltaTime;
+
+        if (inactivityTimer >= inactivityLimit)
+        {
+            StartCoroutine(ResetAIConversation());
+            inactivityActive = false;
+        }
+    }
+
+    public string GetSaveID() => saveableEntity.ID;
+
+    public object CaptureState()
+    {
+        return new GhostSaveData
+        {
+            trust = ghostStats.trust,
+            mystery = ghostStats.mystery,
+            mood = ghostStats.mood
+        };
+    }
+
+    public void RestoreState(object state)
+    {
+        if (state is not GhostSaveData data)
+            return;
+
+        ghostStats.trust = data.trust;
+        ghostStats.mystery = data.mystery;
+        ghostStats.mood = data.mood;
+
+        UpdateGhostUI();
+    }
+
+
+    private void ShowIntroMessage()
+    {
+        messages.Add($"<i> ...Ви чуєте відлуння... Дух готовий слухати вас...</i>");
+        chatHistoryText.text = string.Join("\n", messages);
+        chatScroll.ScrollToBottom();
     }
 
     public void SetPlayerName(string nickname)
     {
-        if (string.IsNullOrWhiteSpace(nickname)) mainCharacterName = "Гравець";
-        else mainCharacterName = nickname;
+        mainCharacterName = string.IsNullOrWhiteSpace(nickname) ? "Гравець" : nickname;
     }
 
     private void OnSendMessage()
     {
+        if (isWaitingResponse) return;
+        inactivityTimer = 0f;
+
         string userMessage = inputField.text.Trim();
         if (string.IsNullOrEmpty(userMessage)) return;
 
@@ -72,13 +168,37 @@ public class AssistantAI : MonoBehaviour
         StartCoroutine(SendAIRequest(userMessage));
     }
 
+    IEnumerator ResetAIConversation()
+    {
+        string url = "http://localhost:5000/reset";
+
+        using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
+        {
+            www.downloadHandler = new DownloadHandlerBuffer();
+            yield return www.SendWebRequest();
+        }
+
+        messages.Clear();
+
+        messages.Add($"<i> ...Тиша огортає вас... Дух не пам'ятатиме вашу розмову...</i>");
+
+        chatHistoryText.text = string.Join("\n", messages);
+        chatScroll.ScrollToBottom();
+
+        UpdateGhostUI();
+    }
+
     private IEnumerator SendAIRequest(string prompt)
     {
+        isWaitingResponse = true;
+        sendButton.interactable = false;
+        inputField.interactable = false;
+
         string url = "http://localhost:5000/ask";
-        string statsInfo = GetStatsSummary();
-        string questInfo = GetQuestSummary();
-        string fullPrompt = $"[Question]\n{prompt}\n\n[Player Stats]\n{statsInfo}\n\n[Quests] (All quest descriptions are for AI context only.)\n{questInfo}";
-        string json = JsonUtility.ToJson(new AIRequest(fullPrompt));
+        string fullPrompt = $"[Question]\n{prompt}\n\n[Player Stats]\n{GetStatsSummary()}\n\n[Quests]\n{GetQuestSummary()}";
+
+        //string json = JsonUtility.ToJson(new AIRequest(fullPrompt, ghostStats));
+        string json = JsonConvert.SerializeObject(new AIRequest(fullPrompt, ghostStats));
 
         using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
         {
@@ -87,37 +207,63 @@ public class AssistantAI : MonoBehaviour
             www.downloadHandler = new DownloadHandlerBuffer();
             www.SetRequestHeader("Content-Type", "application/json");
 
-            messages.Add($"<i>...Привид думає...</i>");
+            messages.Add($"<i>...Дух думає...</i>");
             chatHistoryText.text = string.Join("\n", messages);
             chatScroll.ScrollToBottom();
 
             yield return www.SendWebRequest();
-
-            Debug.Log(www.downloadHandler.text);
 
             string aiText = "";
 
             if (www.result != UnityWebRequest.Result.Success)
             {
                 Debug.LogError(www.error);
-                aiText = "Вибач, я зараз не можу відповісти.";
+                aiText = "Щось не так... Зв'язок між нами нестабільний... Я поки не можу тобі допомогти...";
             }
             else
             {
-                AIResponse response = JsonUtility.FromJson<AIResponse>(www.downloadHandler.text);
-                aiText = response.response;
+                string jsonText = www.downloadHandler.text;
 
+                AIResponse response = JsonConvert.DeserializeObject<AIResponse>(jsonText) ?? new AIResponse();
+
+                aiText = string.IsNullOrEmpty(response.response) ? "<i>...Дух мовчить...</i>" : response.response;
+
+                ghostStats.trust = Mathf.Clamp01(ghostStats.trust + response.trust_change);
+                ghostStats.mood = Mathf.Clamp01(ghostStats.mood + response.mood_change);
+                ghostStats.mystery = Mathf.Clamp01(ghostStats.mystery + response.mystery_change);
+
+                UpdateGhostUI();
             }
 
-            int messageIndex = messages.Count;
-            // Додаємо нове повідомлення від привида, спочатку порожнє
-            messages[messageIndex - 1] = $"<b><< Привид:</b> ";
+            int msgIndex = messages.Count - 1;
+            messages[msgIndex] = $"<b><< Дух:</b> ";
             chatHistoryText.text = string.Join("\n", messages);
             chatScroll.ScrollToBottom();
 
-            // Поступово додаємо текст по символах
-            yield return StartCoroutine(TypeText(aiText, messageIndex - 1));
+            yield return StartCoroutine(TypeText(aiText, msgIndex));
+
+            isWaitingResponse = false;
+            sendButton.interactable = true;
+            inputField.interactable = true;
+            inputField.Select();
+            inputField.ActivateInputField();
+            inactivityTimer = 0f;
+            inactivityActive = true;
         }
+    }
+
+    private void UpdateGhostUI()
+    {
+        if (trustSlider != null) StartCoroutine(SmoothSlider(trustSlider, ghostStats.trust));
+        if (mysterySlider != null) StartCoroutine(SmoothSlider(mysterySlider, ghostStats.mystery));
+        if (ghostMoodText != null) ghostMoodText.text = MoodToText(ghostStats.mood);
+    }
+
+    private string MoodToText(float mood)
+    {
+        if (mood < 0.33f) return "Настрій духа: Засмучений";
+        if (mood < 0.66f) return "Настрій духа: Спокійний";
+        return "Настрій духа: Веселий";
     }
 
     private string GetStatsSummary()
@@ -182,56 +328,19 @@ public class AssistantAI : MonoBehaviour
         chatHistoryText.text = string.Join("\n", messages);
         chatScroll.ScrollToBottom();
     }
+
+    IEnumerator SmoothSlider(Slider slider, float target)
+    {
+        float start = slider.value;
+        float time = 0f;
+
+        while (time < 0.5f)
+        {
+            time += Time.deltaTime;
+            slider.value = Mathf.Lerp(start, target, time / 0.5f);
+            yield return null;
+        }
+
+        slider.value = target;
+    }
 }
-
-
-
-//using UnityEngine;
-//using TMPro;
-//using UnityEngine.UI;
-//using System.Text;
-//using System.Collections.Generic;
-
-//public class AssistantAI : MonoBehaviour
-//{
-//    [Header("UI Elements")]
-//    public TMP_InputField inputField;
-//    public Button sendButton;
-//    public TextMeshProUGUI chatHistoryText;
-//    public ChatScroll chatScroll;
-
-//    private List<string> messages = new List<string>();
-
-//    // Start is called once before the first execution of Update after the MonoBehaviour is created
-//    void Start()
-//    {
-//        sendButton.onClick.AddListener(OnSendMessage);
-//    }
-
-//    private void OnSendMessage()
-//    {
-//        string userMessage = inputField.text.Trim();
-//        if (string.IsNullOrEmpty(userMessage)) return;
-
-//        AddMessage(">> Гравець", userMessage);
-
-//        FindFirstObjectByType<AIConnector>().AskAI(userMessage);
-
-//        inputField.text = "";
-//    }
-
-//    internal void AddMessage(string sender, string message)
-//    {
-//        string formatted = $"<b>{sender}:</b> {message}";
-//        messages.Add(formatted);
-
-//        chatHistoryText.text = string.Join("\n", messages);
-//        chatScroll.ScrollToBottom();
-//    }
-
-//    // Update is called once per frame
-//    void Update()
-//    {
-
-//    }
-//}

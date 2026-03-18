@@ -164,7 +164,7 @@ public class SettingsManager : MonoBehaviour
 
     void ApplyCamera()
     {
-        if (mainCamera != null) mainCamera.fieldOfView = CurrentSettings.fov;
+        //if (mainCamera != null) mainCamera.fieldOfView = CurrentSettings.fov;
     }
 
     #endregion

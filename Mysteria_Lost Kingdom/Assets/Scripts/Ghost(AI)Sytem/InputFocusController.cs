@@ -5,6 +5,17 @@ public class InputFocusController : MonoBehaviour
 {
     public TMP_InputField inputField;
     public PlayerController playerController;
+    public static InputFocusController Instance;
+    void Awake()
+    {
+        Instance = this;
+    }
+
+    public void ForceEnablePlayerController()
+    {
+        playerController.enabled = true;
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

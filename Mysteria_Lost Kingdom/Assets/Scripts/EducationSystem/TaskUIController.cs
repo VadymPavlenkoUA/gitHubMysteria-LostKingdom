@@ -23,12 +23,26 @@ public class TaskUIController : MonoBehaviour
     public Button hintButton;
     public Button skipButton;
     public Image hintCooldownOverlay;
-    public Slider progressBar;
+    public Slider subjectSuccessBar;
+    public TMP_Text correctCount;
+    public TMP_Text incorrectCount;
+    public TMP_Text correctStreakCount;
 
     [Header("Renderers")]
     public MathRenderer mathRenderer;
     public EnglishRenderer englishRenderer;
     public ProgrammingRenderer programmingRenderer;
+
+    [Header("Panels")]
+    [SerializeField] private RectTransform aiPanel;
+
+    [Header("Animation")]
+    [SerializeField] private float slideDuration = 0.25f;
+    [SerializeField] private float showXOffset = -220f;
+    [SerializeField] private float hiddenXOffset = -220f;
+
+    private Coroutine aiAnim;
+    private bool aiIsOpen = false;
 
     public Sprite mathImage;
     public Sprite programmingImage;
@@ -138,6 +152,8 @@ public class TaskUIController : MonoBehaviour
         {
             timerText.text = "--:--:--";
         }
+
+        UpdateSubjectStatsUI(task.subject);
     }
 
     private void SetupRendererForTask(TaskRequirement task)
@@ -234,6 +250,15 @@ public class TaskUIController : MonoBehaviour
             feedBackImage.sprite = feedBackIcon;
         }
         yield return new WaitForSecondsRealtime(delay);
+        if (result.givenAnswer == "")
+        {
+            PlayerLearningManager.Instance.RegisterSkip(currentTask.subject);
+        }
+        else
+        {
+            PlayerLearningManager.Instance.RegisterResult(currentTask, result);
+        }
+        UpdateSubjectStatsUI(currentTask.subject);
         OnTaskComplete?.Invoke(result);
         MenuController.Instance.HideEducationMenu();
     }
@@ -249,7 +274,8 @@ public class TaskUIController : MonoBehaviour
 
         hintButton.interactable = false;
         hintCooldownOverlay.fillAmount = 0f;
-
+        PlayerLearningManager.Instance.RegisterHint(currentTask.subject);
+        UpdateSubjectStatsUI(currentTask.subject);
         StartCoroutine(HintCooldownCoroutine(10f));
     }
 
@@ -282,5 +308,87 @@ public class TaskUIController : MonoBehaviour
     public void Hide()
     {
         MenuController.Instance.HideEducationMenu();
+    }
+
+    private void ShowAIPanel()
+    {
+        if (aiAnim != null) StopCoroutine(aiAnim);
+        aiAnim = StartCoroutine(SlideAIPanel(showXOffset));
+        aiIsOpen = true;
+    }
+
+    private void HideAIPanel()
+    {
+        if (aiAnim != null) StopCoroutine(aiAnim);
+        aiAnim = StartCoroutine(SlideAIPanel(hiddenXOffset));
+        aiIsOpen = false;
+    }
+
+    public void AiShowHide()
+    {
+        if (!aiIsOpen)
+        {
+            ShowAIPanel();
+        }
+        else
+        {
+            HideAIPanel();
+        }
+    }
+
+    private IEnumerator SlideAIPanel(float targetX)
+    {
+        float startX = aiPanel.anchoredPosition.x;
+        float t = 0f;
+
+        while (t < 1f)
+        {
+            t += Time.unscaledDeltaTime / slideDuration;
+            float x = Mathf.Lerp(startX, targetX, Mathf.SmoothStep(0f, 1f, t));
+            aiPanel.anchoredPosition = new Vector2(x, aiPanel.anchoredPosition.y);
+            yield return null;
+        }
+
+        aiPanel.anchoredPosition = new Vector2(targetX, aiPanel.anchoredPosition.y);
+    }
+
+    private void UpdateSubjectStatsUI(SubjectType subject)
+    {
+        var manager = PlayerLearningManager.Instance;
+
+        if (manager == null)
+            return;
+
+        var state = manager.State;
+
+        // якщо нема даних по предмету
+        if (!state.subjectStats.ContainsKey(subject))
+        {
+            correctCount.text = "0";
+            incorrectCount.text = "0";
+            correctStreakCount.text = "0";
+            subjectSuccessBar.value = 0f;
+            return;
+        }
+
+        var stats = state.subjectStats[subject];
+
+        // текстові значення
+        correctCount.text = stats.correct.ToString();
+        incorrectCount.text = stats.wrong.ToString();
+        correctStreakCount.text = stats.streakSubjectCorrect.ToString();
+
+        // слайдер (від 0 до 1)
+        int total = stats.correct + stats.wrong;
+
+        if (total > 0)
+        {
+            float ratio = (float)stats.correct / total;
+            subjectSuccessBar.value = ratio;
+        }
+        else
+        {
+            subjectSuccessBar.value = 0f;
+        }
     }
 }
