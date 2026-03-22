@@ -444,7 +444,7 @@ public class AssistantAI : MonoBehaviour, ISaveable
         float accuracy = total > 0 ? (float)state.correctAnswers / total : 0f;
 
         return
-            $"[Learning State]\n" +
+            $"[Global Learning State]\n" +
             $"Accuracy: {accuracy}\n" +
             $"Total Correct: {state.correctAnswers}\n" +
             $"Total Wrong: {state.wrongAnswers}\n" +
@@ -477,15 +477,54 @@ public class AssistantAI : MonoBehaviour, ISaveable
 
             float retention = GetRetention(stats, stability: 24f);
 
-            float knowledge = baseKnowledge * retention;
+            float knowledge = stats.knowledge.pKnow * retention;
 
-            sb.AppendLine($"\n[{subject}]");
-            sb.AppendLine($"Knowledge: {knowledge:F2}");
+            sb.AppendLine($"\n[Subject Knowledge: {subject}]");
+            sb.AppendLine($"BKT Knowledge: {stats.knowledge.pKnow:F2}");
             sb.AppendLine($"Correct: {stats.correct}");
             sb.AppendLine($"Wrong: {stats.wrong}");
             sb.AppendLine($"Streak Correct: {stats.streakSubjectCorrect}");
             sb.AppendLine($"Streak Wrong: {stats.streakSubjectWrong}");
         }
+
+        return sb.ToString();
+    }
+
+    private string GetSubjectLearningSummary(TaskRequirement task)
+    {
+        var learning = PlayerLearningManager.Instance;
+
+        if (learning == null || task == null)
+            return "No subject learning data.";
+
+        var state = learning.State;
+
+        if (!state.subjectStats.TryGetValue(task.subject, out var stats))
+        {
+            stats = new SubjectStats();
+        }
+
+        int total = stats.correct + stats.wrong;
+        float baseKnowledge = total > 0
+            ? (stats.correct + 0.5f * stats.streakSubjectCorrect) / (total + 1f)
+            : 0f;
+
+        float retention = GetRetention(stats, stability: 24f);
+        float knowledge = stats.knowledge.pKnow * retention;
+
+        string level = knowledge < 0.3f ? "weak" :
+               knowledge < 0.7f ? "medium" : "strong";
+
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine($"[Subject Knowledge: {task.subject}]");
+        sb.AppendLine($"BKT Knowledge: {stats.knowledge.pKnow:F2}");
+        sb.AppendLine($"[Knowledge Level] {level}");
+        sb.AppendLine($"Correct: {stats.correct}");
+        sb.AppendLine($"Wrong: {stats.wrong}");
+        sb.AppendLine($"Streak Correct: {stats.streakSubjectCorrect}");
+        sb.AppendLine($"Streak Wrong: {stats.streakSubjectWrong}");
+        sb.AppendLine($"Knowledge * Retention: {knowledge:F2}");
+        sb.AppendLine($"Hints Used: {stats.hintsSubjectUsed}");
 
         return sb.ToString();
     }
@@ -537,6 +576,9 @@ public class AssistantAI : MonoBehaviour, ISaveable
             subjectStats = new SubjectStats();
         }
 
+        string globalSummary = GetLearningSummary();
+        string subjectSummary = GetSubjectLearningSummary(task);
+
         int total = state.correctAnswers + state.wrongAnswers;
         float accuracy = total > 0 ? (float)state.correctAnswers / total : 0f;
 
@@ -549,18 +591,14 @@ public class AssistantAI : MonoBehaviour, ISaveable
             $"Question: {task.questionText}\n\n" +
 
             $"[Player Learning Stats]\n" +
-            $"Correct: {subjectStats.correct}\n" +
-            $"Wrong: {subjectStats.wrong}\n" +
-            $"Streak Correct: {subjectStats.streakSubjectCorrect}\n" +
-            $"Streak Wrong: {subjectStats.streakSubjectWrong}\n" +
-            $"Hints Used: {subjectStats.hintsSubjectUsed}\n\n" +
+            $"{subjectSummary}\n\n" +
 
             $"[Global Learning]\n" +
-            $"Accuracy: {accuracy}\n" +
-            $"Total Correct: {state.correctAnswers}\n" +
-            $"Total Wrong: {state.wrongAnswers}\n" +
-            $"Global Streak Correct: {state.streakCorrect}\n" +
-            $"Global Streak Wrong: {state.streakWrong}";
+            $"{globalSummary}\n\n" +
+
+            $"[Knowledge Interpretation]\n" +
+            $"Use BKT_Knowledge as the main indicator of player understanding.\n" +
+            $"Adjust explanation depth accordingly.";
     }
 
     private IEnumerator SendAIRequest(string prompt, AIRequestType type, TaskRequirement task)

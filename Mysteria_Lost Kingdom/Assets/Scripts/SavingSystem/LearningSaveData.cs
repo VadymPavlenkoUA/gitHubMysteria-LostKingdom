@@ -19,6 +19,7 @@ public class LearningSaveData
     public int skips;
 
     public float averageResponseTime;
+    public int totalAttempts;
 
     public List<SubjectSaveEntry> subjects = new();
 }

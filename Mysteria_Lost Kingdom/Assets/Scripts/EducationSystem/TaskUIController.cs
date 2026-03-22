@@ -84,6 +84,7 @@ public class TaskUIController : MonoBehaviour
 
     public event Action<TaskResult> OnTaskComplete;
     private Coroutine timerRoutine;
+    private Coroutine currentSliderCoroutine;
 
     private void Awake()
     {
@@ -272,7 +273,6 @@ public class TaskUIController : MonoBehaviour
             feedBackImage.gameObject.SetActive(true);
             feedBackImage.sprite = feedBackIcon;
         }
-        yield return new WaitForSecondsRealtime(delay);
         if (result.givenAnswer == "")
         {
             PlayerLearningManager.Instance.RegisterSkip(currentTask.subject);
@@ -282,6 +282,7 @@ public class TaskUIController : MonoBehaviour
             PlayerLearningManager.Instance.RegisterResult(currentTask, result);
         }
         UpdateSubjectStatsUI(currentTask.subject);
+        yield return new WaitForSecondsRealtime(delay);
         OnTaskComplete?.Invoke(result);
         MenuController.Instance.HideEducationMenu();
     }
@@ -433,6 +434,23 @@ public class TaskUIController : MonoBehaviour
         correctText.text = stats.correct.ToString();
         wrongText.text = stats.wrong.ToString();
         streakText.text = stats.streakSubjectCorrect.ToString();
-        bar.value = total > 0 ? (float)stats.correct / total : 0f;
+
+        if (currentSliderCoroutine != null) StopCoroutine(currentSliderCoroutine);
+        currentSliderCoroutine = StartCoroutine(SmoothSlider(bar, total > 0 ? (float)stats.correct / total : 0f));
+    }
+
+    IEnumerator SmoothSlider(Slider slider, float target)
+    {
+        float start = slider.value;
+        float time = 0f;
+
+        while (time < 0.5f)
+        {
+            time += Time.unscaledDeltaTime;
+            slider.value = Mathf.Lerp(start, target, time / 0.5f);
+            yield return null;
+        }
+
+        slider.value = target;
     }
 }

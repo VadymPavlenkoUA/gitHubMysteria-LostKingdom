@@ -36,7 +36,8 @@ public class PlayerLearningManager : MonoBehaviour, ISaveable
             hintsUsed = State.hintsUsed,
             skips = State.skips,
 
-            averageResponseTime = State.averageResponseTime
+            averageResponseTime = State.averageResponseTime,
+            totalAttempts = State.totalAttempts
         };
 
         // Dictionary -> List
@@ -71,6 +72,7 @@ public class PlayerLearningManager : MonoBehaviour, ISaveable
         State.skips = data.skips;
 
         State.averageResponseTime = data.averageResponseTime;
+        State.totalAttempts = data.totalAttempts;
 
         State.subjectStats.Clear();
 
@@ -89,6 +91,8 @@ public class PlayerLearningManager : MonoBehaviour, ISaveable
             State.subjectStats[subject] = new SubjectStats();
 
         var subjectData = State.subjectStats[subject];
+
+        subjectData.knowledge.pKnow = UpdateKnowledge(subjectData.knowledge, result.correct);
 
         subjectData.totalAttempts++;
 
@@ -174,5 +178,29 @@ public class PlayerLearningManager : MonoBehaviour, ISaveable
         // глобально теж
         State.streakWrong++;
         State.streakCorrect = 0;
+    }
+
+    private float UpdateKnowledge(KnowledgeState ks, bool correct)
+    {
+        float p = ks.pKnow;
+        float S = ks.slip;
+        float G = ks.guess;
+        float T = ks.learn;
+
+        float pGivenObs;
+
+        if (correct)
+        {
+            pGivenObs = (p * (1 - S)) / (p * (1 - S) + (1 - p) * G);
+        }
+        else
+        {
+            pGivenObs = (p * S) / (p * S + (1 - p) * (1 - G));
+        }
+
+        // крок вивчення
+        float pNext = pGivenObs + (1 - pGivenObs) * T;
+
+        return Mathf.Clamp01(pNext);
     }
 }
