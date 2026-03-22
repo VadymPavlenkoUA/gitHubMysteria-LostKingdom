@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -6,7 +8,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-using Newtonsoft.Json;
 
 [System.Serializable]
 public class AIResponse
@@ -239,7 +240,286 @@ public class AssistantAI : MonoBehaviour, ISaveable
 
     private string BuildRPGPrompt(string prompt)
     {
-        return $"[Question]\n{prompt}\n\n[Player Stats]\n{GetStatsSummary()}\n\n[Quests]\n{GetQuestSummary()}";
+        string lower = prompt.ToLower();
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.AppendLine("[Question]");
+        sb.AppendLine(prompt);
+
+        bool needsBoth = NeedsBoth(lower);
+        bool needsStats = NeedsStats(lower);
+        bool needsQuests = NeedsQuests(lower);
+        bool needsLearning = NeedsLearning(lower);
+        bool weakPlayer = NeedsLearningFromStats();
+        bool needsSubjectLearning = NeedsSubjectLearning(lower);
+
+        if (needsBoth)
+        {
+            sb.AppendLine("\n[Player Stats]");
+            sb.AppendLine(GetStatsSummary());
+
+            sb.AppendLine("\n[Quests]");
+            sb.AppendLine(GetQuestSummary());
+        }
+        else
+        {
+            if (needsStats)
+            {
+                sb.AppendLine("\n[Player Stats]");
+                sb.AppendLine(GetStatsSummary());
+            }
+
+            if (needsQuests)
+            {
+                sb.AppendLine("\n[Quests]");
+                sb.AppendLine(GetQuestSummary());
+            }
+        }
+
+        if (needsLearning || weakPlayer)
+        {
+            sb.AppendLine("\n[Player Learning]");
+            sb.AppendLine(GetLearningSummary());
+
+            sb.AppendLine("\n[Instruction]");
+            sb.AppendLine("Adapt your explanation to the player's knowledge level, if needed.");
+        }
+
+        if (needsSubjectLearning)
+        {
+            sb.AppendLine("\n[Subject Learning]");
+            sb.AppendLine(GetSubjectLearningSummary());
+
+            sb.AppendLine("\n[Instruction]");
+            sb.AppendLine("Adapt advice based on subject strengths and weaknesses, if needed.");
+        }
+
+        if (!needsStats && !needsQuests && !needsLearning)
+        {
+            sb.AppendLine("\n[Info]");
+            sb.AppendLine("If you need player stats or quests to answer Ч say it.");
+        }
+
+        return sb.ToString();
+    }
+
+    private bool ContainsAny(string text, params string[] keywords)
+    {
+        foreach (var word in keywords)
+        {
+            if (text.Contains(word))
+                return true;
+        }
+        return false;
+    }
+
+    private bool NeedsStats(string text)
+    {
+        return ContainsAny(text,
+            "stat", "stats", "character stats", "my stats", "my build", "build",
+
+            "level", "lvl", "exp", "experience",
+
+            "health", "hp", "hit points",
+
+            "stamina", "energy",
+
+            "strength", "power", "damage",
+
+            "agility", "dexterity", "speed",
+
+            "endurance", "vitality",
+
+            "intellect", "intelligence", "magic", "mana",
+
+            "faith", "spirit",
+
+            "attributes", "character sheet", "my character",
+
+            "how strong am i", "how good is my",
+            "am i strong", "am i weak"
+        );
+    }
+
+    private bool NeedsQuests(string text)
+    {
+        return ContainsAny(text,
+            "quest", "quests", "mission", "missions", "task", "tasks",
+
+            "objective", "objectives", "goal", "goals", "target",
+
+            "what should i do", "what do i do", "what to do",
+            "what now", "what next", "what should i do next",
+
+            "next step", "next steps",
+
+            "where should i go", "where to go",
+
+            "progress", "quest progress",
+
+            "current quest", "active quest",
+
+            "help me with quest", "stuck", "i'm stuck",
+
+            "how to complete", "how to finish",
+
+            "guide me", "what is my objective"
+        );
+    }
+
+    private bool NeedsLearning(string text)
+    {
+        return ContainsAny(text,
+            "learn", "learning",
+            "explain", "explanation",
+            "teach me",
+            "i don't understand",
+            "i dont understand",
+            "why",
+            "how does it work",
+            "how it works",
+
+            "help me understand",
+            "can you explain",
+            "explain this",
+
+            "math", "science", "physics",
+            "formula", "equation",
+
+            "hard", "difficult",
+            "easy", "too hard",
+
+            "am i good at",
+            "how am i doing",
+            "my progress",
+            "my knowledge",
+
+            "test me",
+            "quiz me"
+        );
+    }
+
+    private bool NeedsBoth(string text)
+    {
+        return ContainsAny(text,
+            "am i ready",
+            "can i handle",
+            "can i beat",
+            "can i win",
+            "should i go",
+            "should i start",
+            "am i strong enough",
+            "is it too hard",
+            "is this hard",
+            "will i survive"
+        );
+    }
+
+    private bool NeedsLearningFromStats()
+    {
+        var learning = PlayerLearningManager.Instance;
+        if (learning == null) return false;
+
+        var state = learning.State;
+
+        int total = state.correctAnswers + state.wrongAnswers;
+        if (total < 3) return false;
+
+        float accuracy = (float)state.correctAnswers / total;
+
+        return accuracy < 0.5f || state.streakWrong >= 3;
+    }
+
+    private string GetLearningSummary()
+    {
+        var learning = PlayerLearningManager.Instance;
+
+        if (learning == null)
+            return "No learning data.";
+
+        var state = learning.State;
+
+        int total = state.correctAnswers + state.wrongAnswers;
+        float accuracy = total > 0 ? (float)state.correctAnswers / total : 0f;
+
+        return
+            $"[Learning State]\n" +
+            $"Accuracy: {accuracy}\n" +
+            $"Total Correct: {state.correctAnswers}\n" +
+            $"Total Wrong: {state.wrongAnswers}\n" +
+            $"Streak Correct: {state.streakCorrect}\n" +
+            $"Streak Wrong: {state.streakWrong}\n";
+    }
+
+    private string GetSubjectLearningSummary()
+    {
+        var learning = PlayerLearningManager.Instance;
+
+        if (learning == null)
+            return "No subject learning data.";
+
+        var state = learning.State;
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.AppendLine("[Subjects Knowledge]");
+
+        foreach (var pair in state.subjectStats)
+        {
+            string subject = pair.Key.ToString();
+            var stats = pair.Value;
+
+            int total = stats.correct + stats.wrong;
+            float baseKnowledge = total > 0
+                ? (stats.correct + 0.5f * stats.streakSubjectCorrect) / (total + 1f)
+                : 0f;
+
+            float retention = GetRetention(stats, stability: 24f);
+
+            float knowledge = baseKnowledge * retention;
+
+            sb.AppendLine($"\n[{subject}]");
+            sb.AppendLine($"Knowledge: {knowledge:F2}");
+            sb.AppendLine($"Correct: {stats.correct}");
+            sb.AppendLine($"Wrong: {stats.wrong}");
+            sb.AppendLine($"Streak Correct: {stats.streakSubjectCorrect}");
+            sb.AppendLine($"Streak Wrong: {stats.streakSubjectWrong}");
+        }
+
+        return sb.ToString();
+    }
+
+    private bool NeedsSubjectLearning(string text)
+    {
+        return ContainsAny(text,
+            "math", "language", "programming", "english",
+
+            "am i good at",
+            "how am i doing in",
+            "my progress in",
+
+            "which subject",
+            "what should i learn",
+
+            "where am i weak",
+            "what am i bad at"
+        );
+    }
+
+    // ћодель ≈бб≥нгауза
+    private float GetRetention(SubjectStats stats, float stability = 24f)
+    {
+        // якщо гравець ще не проходив предмет Ч 0 знанн€
+        if (stats.lastReviewed == DateTime.MinValue) return 0f;
+
+        // „ас в годинах в≥д останнього повторенн€
+        float hoursPassed = (float)(DateTime.Now - stats.lastReviewed).TotalHours;
+
+        // ≈кспоненц≥йна крива забуванн€
+        float retention = Mathf.Exp(-hoursPassed / stability);
+
+        return Mathf.Clamp01(retention);
     }
 
     private string BuildEducationPrompt(string prompt, TaskRequirement task)

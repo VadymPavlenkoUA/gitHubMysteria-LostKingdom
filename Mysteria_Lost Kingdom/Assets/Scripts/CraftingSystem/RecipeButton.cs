@@ -17,33 +17,12 @@ public class RecipeButton : MonoBehaviour
     void Awake()
     {
         button = GetComponent<Button>();
-        if (button != null)
-            button.onClick.AddListener(OnClick);
+        if (button != null) button.onClick.AddListener(OnClick);
     }
-
-    //public void Setup(CraftingRecipe r, CraftingUIManager mgr)
-    //{
-    //    recipe = r;
-    //    manager = mgr;
-
-    //    titleText.text = r.resultItem != null
-    //        ? r.resultItem.itemName
-    //        : "Без назви";
-
-    //    if (icon != null)
-    //        icon.sprite = r.craftIcon != null ? r.craftIcon : null;
-
-    //    if (icon != null)
-    //        icon.enabled = (r.craftIcon != null && r.craftIcon != null);
-
-    //    if (levelText != null)
-    //        levelText.text = r.requiredLevel > 0
-    //            ? $"Рів. {r.requiredLevel}"
-    //            : "";
-    //}
 
     public void Setup(CraftingRecipe recipe, CraftingUIManager manager)
     {
+        if (button == null) button = GetComponentInChildren<Button>();
         this.recipe = recipe;
         this.manager = manager;
 
@@ -63,6 +42,10 @@ public class RecipeButton : MonoBehaviour
 
         bool levelOk = playerLevel >= recipe.requiredLevel;
 
+        if (button == null)
+        {
+            Debug.LogError("Button is NULL on " + gameObject.name, this);
+        }
         button.interactable = levelOk;
 
         if (levelText != null)

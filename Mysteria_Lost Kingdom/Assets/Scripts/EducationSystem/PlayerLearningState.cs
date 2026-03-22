@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 [System.Serializable]
@@ -37,4 +38,18 @@ public class SubjectStats
 
     public float averageResponseSubjectTime;
     public int totalAttempts;
+
+    public DateTime lastReviewed = DateTime.MinValue;
+
+    public KnowledgeState knowledge = new KnowledgeState();
+}
+
+[System.Serializable]
+public class KnowledgeState
+{
+    public float pKnow = 0.2f; // P(K)
+
+    public float slip = 0.1f;   // S
+    public float guess = 0.2f;  // G
+    public float learn = 0.15f; // T
 }

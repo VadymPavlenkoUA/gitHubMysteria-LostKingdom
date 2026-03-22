@@ -23,10 +23,30 @@ public class TaskUIController : MonoBehaviour
     public Button hintButton;
     public Button skipButton;
     public Image hintCooldownOverlay;
-    public Slider subjectSuccessBar;
-    public TMP_Text correctCount;
-    public TMP_Text incorrectCount;
-    public TMP_Text correctStreakCount;
+
+    [Header("GlobalBar")]
+    public Slider globalSuccessBar;
+    public TMP_Text globalCorrectCount;
+    public TMP_Text globalIncorrectCount;
+    public TMP_Text globalCorrectStreakCount;
+
+    [Header("MathBar")]
+    public Slider mathSuccessBar;
+    public TMP_Text mathCorrectCount;
+    public TMP_Text mathIncorrectCount;
+    public TMP_Text mathCorrectStreakCount;
+
+    [Header("ProgrammingBar")]
+    public Slider progSuccessBar;
+    public TMP_Text progCorrectCount;
+    public TMP_Text progIncorrectCount;
+    public TMP_Text progCorrectStreakCount;
+
+    [Header("EnglishBar")]
+    public Slider engSuccessBar;
+    public TMP_Text engCorrectCount;
+    public TMP_Text engIncorrectCount;
+    public TMP_Text engCorrectStreakCount;
 
     [Header("Renderers")]
     public MathRenderer mathRenderer;
@@ -358,40 +378,61 @@ public class TaskUIController : MonoBehaviour
     private void UpdateSubjectStatsUI(SubjectType subject)
     {
         var manager = PlayerLearningManager.Instance;
-
-        if (manager == null)
-            return;
+        if (manager == null) return;
 
         var state = manager.State;
 
-        // якщо нема даних по предмету
-        if (!state.subjectStats.ContainsKey(subject))
+        // --- Global Stats ---
+        int globalTotal = state.correctAnswers + state.wrongAnswers;
+        globalCorrectCount.text = state.correctAnswers.ToString();
+        globalIncorrectCount.text = state.wrongAnswers.ToString();
+        globalCorrectStreakCount.text = state.streakCorrect.ToString();
+        globalSuccessBar.value = globalTotal > 0 ? (float)state.correctAnswers / globalTotal : 0f;
+
+        // --- Math Stats ---
+        UpdateSubjectBarUI(
+            state.subjectStats.TryGetValue(SubjectType.Math, out var mathStats) ? mathStats : null,
+            mathSuccessBar,
+            mathCorrectCount,
+            mathIncorrectCount,
+            mathCorrectStreakCount
+        );
+
+        // --- English Stats ---
+        UpdateSubjectBarUI(
+            state.subjectStats.TryGetValue(SubjectType.English, out var engStats) ? engStats : null,
+            engSuccessBar,
+            engCorrectCount,
+            engIncorrectCount,
+            engCorrectStreakCount
+        );
+
+        // --- Programming Stats ---
+        UpdateSubjectBarUI(
+            state.subjectStats.TryGetValue(SubjectType.Programming, out var progStats) ? progStats : null,
+            progSuccessBar,
+            progCorrectCount,
+            progIncorrectCount,
+            progCorrectStreakCount
+        );
+    }
+
+    private void UpdateSubjectBarUI(SubjectStats stats, Slider bar, TMP_Text correctText, TMP_Text wrongText, TMP_Text streakText)
+    {
+        if (stats == null)
         {
-            correctCount.text = "0";
-            incorrectCount.text = "0";
-            correctStreakCount.text = "0";
-            subjectSuccessBar.value = 0f;
+            correctText.text = "0";
+            wrongText.text = "0";
+            streakText.text = "0";
+            bar.value = 0f;
             return;
         }
 
-        var stats = state.subjectStats[subject];
-
-        // текстові значення
-        correctCount.text = stats.correct.ToString();
-        incorrectCount.text = stats.wrong.ToString();
-        correctStreakCount.text = stats.streakSubjectCorrect.ToString();
-
-        // слайдер (від 0 до 1)
         int total = stats.correct + stats.wrong;
 
-        if (total > 0)
-        {
-            float ratio = (float)stats.correct / total;
-            subjectSuccessBar.value = ratio;
-        }
-        else
-        {
-            subjectSuccessBar.value = 0f;
-        }
+        correctText.text = stats.correct.ToString();
+        wrongText.text = stats.wrong.ToString();
+        streakText.text = stats.streakSubjectCorrect.ToString();
+        bar.value = total > 0 ? (float)stats.correct / total : 0f;
     }
 }
