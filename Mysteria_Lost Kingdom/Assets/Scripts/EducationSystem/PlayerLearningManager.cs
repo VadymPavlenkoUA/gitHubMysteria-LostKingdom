@@ -113,6 +113,7 @@ public class PlayerLearningManager : MonoBehaviour, ISaveable
         subjectData.averageResponseSubjectTime =
             ((subjectData.averageResponseSubjectTime * (subjectData.totalAttempts - 1)) + result.timeTaken)
             / subjectData.totalAttempts;
+        subjectData.lastReviewed = DateTime.Now;
 
         State.totalAttempts++;
 
@@ -202,5 +203,55 @@ public class PlayerLearningManager : MonoBehaviour, ISaveable
         float pNext = pGivenObs + (1 - pGivenObs) * T;
 
         return Mathf.Clamp01(pNext);
+    }
+
+    public int GetAdaptiveDifficulty(SubjectType subject, int baseDifficulty)
+    {
+        if (!State.subjectStats.TryGetValue(subject, out var stats))
+            return baseDifficulty;
+
+        // --- BKT знання ---
+        float retention = GetRetention(stats);
+        float effectiveKnowledge = stats.knowledge.pKnow * retention;
+
+        // --- Accuracy ---
+        int total = stats.correct + stats.wrong;
+        float accuracy = total > 0 ? (float)stats.correct / total : 0.5f;
+
+        // --- Streak ---
+        int streak = stats.streakSubjectCorrect - stats.streakSubjectWrong;
+
+        // --- Формула ---
+        float alpha = 2.0f;  // вплив accuracy
+        float beta = 0.5f;   // вплив streak
+        float gamma = 3.0f;  // вплив BKT (найважливіше)
+
+        float difficultyFloat =
+            baseDifficulty
+            + alpha * (accuracy - 0.5f)
+            + beta * streak
+            + gamma * (effectiveKnowledge - 0.5f);
+
+        int difficulty = Mathf.RoundToInt(difficultyFloat);
+
+        // --- FLOW ЗОНА ---
+        int minDifficulty = Mathf.Max(1, baseDifficulty - 2);
+        int maxDifficulty = baseDifficulty + 2;
+
+        return Mathf.Clamp(difficulty, minDifficulty, maxDifficulty);
+    }
+
+    internal float GetRetention(SubjectStats stats, float stability = 24f)
+    {
+        // Якщо гравець ще не проходив предмет — 0 знання
+        if (stats.lastReviewed == DateTime.MinValue) return 0f;
+
+        // Час в годинах від останнього повторення
+        float hoursPassed = (float)(DateTime.Now - stats.lastReviewed).TotalHours;
+
+        // Експоненційна крива забування
+        float retention = Mathf.Exp(-hoursPassed / stability);
+
+        return Mathf.Clamp01(retention);
     }
 }
