@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using Unity.Burst.CompilerServices;
 using Unity.VisualScripting;
@@ -84,7 +85,7 @@ public class TaskUIController : MonoBehaviour
 
     public event Action<TaskResult> OnTaskComplete;
     private Coroutine timerRoutine;
-    private Coroutine currentSliderCoroutine;
+    private Dictionary<Slider, Coroutine> sliderCoroutines = new();
 
     private void Awake()
     {
@@ -435,8 +436,14 @@ public class TaskUIController : MonoBehaviour
         wrongText.text = stats.wrong.ToString();
         streakText.text = stats.streakSubjectCorrect.ToString();
 
-        if (currentSliderCoroutine != null) StopCoroutine(currentSliderCoroutine);
-        currentSliderCoroutine = StartCoroutine(SmoothSlider(bar, total > 0 ? (float)stats.correct / total : 0f));
+        float target = total > 0 ? (float)stats.correct / total : 0f;
+
+        if (sliderCoroutines.TryGetValue(bar, out var coroutine))
+        {
+            StopCoroutine(coroutine);
+        }
+
+        sliderCoroutines[bar] = StartCoroutine(SmoothSlider(bar, target));
     }
 
     IEnumerator SmoothSlider(Slider slider, float target)
