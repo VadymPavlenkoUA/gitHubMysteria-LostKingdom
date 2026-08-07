@@ -56,10 +56,23 @@
 <img width="700" height="180" alt="5" src="https://github.com/user-attachments/assets/405c3fb2-0560-48e1-a3d1-d4394be7e75c" />
 
 
+<table>
+<tr>
+<td width="65%" valign="top">
+
 ## Збереження даних
-Збереження реалізовано через інтерфейс ISaveable, 
-який дозволяє централізовано зберігати стан усіх ігрових компонентів 
-у JSON-файли через SaveManager. <img width="356" height="700" alt="6-removebg-preview" src="https://github.com/user-attachments/assets/9e3c90d6-b401-4aca-bc0f-85ccffe108cd" />
+
+Збереження реалізовано через інтерфейс **ISaveable**, який дозволяє централізовано зберігати стан усіх ігрових компонентів у JSON-файли через **SaveManager**.
+
+</td>
+
+<td width="35%" valign="top">
+
+<img src="https://github.com/user-attachments/assets/9e3c90d6-b401-4aca-bc0f-85ccffe108cd" width="100%" />
+
+</td>
+</tr>
+</table>
 
 
 
