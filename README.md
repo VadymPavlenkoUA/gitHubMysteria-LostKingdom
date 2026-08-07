@@ -57,6 +57,10 @@
 
 
 ## Збереження даних
+Збереження реалізовано через інтерфейс ISaveable, 
+який дозволяє централізовано зберігати стан усіх ігрових компонентів 
+у JSON-файли через SaveManager. <img width="356" height="700" alt="6-removebg-preview" src="https://github.com/user-attachments/assets/9e3c90d6-b401-4aca-bc0f-85ccffe108cd" />
+
 
 
 ## Ігрові механіки
