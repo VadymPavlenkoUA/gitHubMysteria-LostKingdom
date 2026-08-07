@@ -37,7 +37,7 @@
 
 Проєкт містить інтегрованого AI-помічника, який працює через локальний сервер Flask та LLM.
 
-<img width="500" height="300" alt="5" src="https://github.com/user-attachments/assets/44d23a5a-b679-4c3b-bb87-e01de24b047b" />
+<img width="500" height="250" alt="5" src="https://github.com/user-attachments/assets/44d23a5a-b679-4c3b-bb87-e01de24b047b" />
 
 Основні можливості:
 • Пояснення навчального матеріалу в ігровому контексті
