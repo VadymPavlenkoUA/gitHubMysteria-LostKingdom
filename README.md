@@ -56,3 +56,8 @@
 <img width="700" height="180" alt="5" src="https://github.com/user-attachments/assets/405c3fb2-0560-48e1-a3d1-d4394be7e75c" />
 
 
+## Ігрові механіки та збереження даних
+
+### Інвентар
+Система зберігання предметів з їх властивостями, що впливають на характеристики персонажа та геймплей.
+<img width="500" height="300" alt="image" src="https://github.com/user-attachments/assets/1dd66105-fdc5-4bf0-ac34-d7344ca94a41" />
