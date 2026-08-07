@@ -63,6 +63,8 @@
 
 <img width="525" height="300" alt="5" src="https://github.com/user-attachments/assets/1dd66105-fdc5-4bf0-ac34-d7344ca94a41" />
 
-### Інвентар
+### Майстрування
+Створення предметів шляхом поєднання ресурсів за заданими рецептами.
 
-<img width="700" height="500" alt="image" src="https://github.com/user-attachments/assets/52861d67-5f70-415c-8a0f-10a4a6f743d9" />
+<img width="525" height="300" alt="image" src="https://github.com/user-attachments/assets/9341089f-70a9-4624-acdf-429e905b20ec" />
+
