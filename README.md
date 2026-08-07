@@ -47,6 +47,6 @@
 • Використання емоційної моделі (trust, mood, mystery) 
 • Підтримка коротко- та довготривалої пам’яті діалогу
 
-<img width="500" height="300" alt="image" src="https://github.com/user-attachments/assets/3889e84b-76e3-4328-856e-f3b1a7f46fc3" />
+<img width="500" height="300" alt="5" src="https://github.com/user-attachments/assets/3889e84b-76e3-4328-856e-f3b1a7f46fc3" />
 
 
