@@ -1,4 +1,5 @@
 # Mysteria: Lost Kingdom
+### Unity, C#, Python, Flask, Ollama, JSON, REST API
 
 Інтелектуальна навчальна RPG-гра з адаптивною системою навчання, AI-помічником та елементами гейміфікації.
 
