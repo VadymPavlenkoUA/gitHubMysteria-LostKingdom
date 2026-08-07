@@ -37,6 +37,8 @@
 
 Проєкт містить інтегрованого AI-помічника, який працює через локальний сервер Flask та LLM.
 
+<img width="556" height="353" alt="image" src="https://github.com/user-attachments/assets/8e02be60-4e9d-4472-adf9-e8c66192ecbe" />
+
 Основні можливості:
 • відповіді на питання
 • контекстний діалог
