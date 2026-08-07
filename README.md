@@ -60,4 +60,4 @@
 
 ### Інвентар
 Система зберігання предметів з їх властивостями, що впливають на характеристики персонажа та геймплей.
-<img width="500" height="300" alt="image" src="https://github.com/user-attachments/assets/1dd66105-fdc5-4bf0-ac34-d7344ca94a41" />
+<img width="600" height="300" alt="5" src="https://github.com/user-attachments/assets/1dd66105-fdc5-4bf0-ac34-d7344ca94a41" />
