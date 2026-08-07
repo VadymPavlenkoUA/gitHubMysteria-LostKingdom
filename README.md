@@ -66,5 +66,6 @@
 ### Майстрування
 Створення предметів шляхом поєднання ресурсів за заданими рецептами.
 
-<img width="525" height="300" alt="image" src="https://github.com/user-attachments/assets/9341089f-70a9-4624-acdf-429e905b20ec" />
+<img width="525" height="300" alt="5" src="https://github.com/user-attachments/assets/5181aca3-8aaa-480e-a279-fa1de56624be" />
+
 
