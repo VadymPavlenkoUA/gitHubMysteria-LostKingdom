@@ -39,7 +39,7 @@
 ### Байєсівське простежування знань
 
 Ймовірність того, що навичка засвоєна після правильної відповіді:
-<img width="480" height="68" alt="image" src="https://github.com/user-attachments/assets/e9fa52df-f7c0-4d6b-bf52-57aec12ca99f" />
+<img width="480" height="68" alt="5" src="https://github.com/user-attachments/assets/e9fa52df-f7c0-4d6b-bf52-57aec12ca99f" />
 
 
 
