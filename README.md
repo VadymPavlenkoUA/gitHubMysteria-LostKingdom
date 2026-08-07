@@ -65,4 +65,4 @@
 
 ### Інвентар
 
-<img width="848" height="621" alt="image" src="https://github.com/user-attachments/assets/52861d67-5f70-415c-8a0f-10a4a6f743d9" />
+<img width="700" height="500" alt="image" src="https://github.com/user-attachments/assets/52861d67-5f70-415c-8a0f-10a4a6f743d9" />
