@@ -27,10 +27,7 @@ The project follows a client-server architecture: the client side is built with 
 * day/night cycle
 * progress saving
 * AI hint generation
-* learning subjects:
-    * Math
-    * English
-    * Programming
+* learning subjects(Math, English, Programming)
 
 
 ## Adaptive Learning System
