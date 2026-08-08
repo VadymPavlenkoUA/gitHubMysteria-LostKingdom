@@ -1,41 +1,41 @@
 # Mysteria: Lost Kingdom
 ### Unity, C#, Python, Flask, Ollama, JSON, REST API
 
-Інтелектуальна навчальна RPG-гра з адаптивною системою навчання, AI-помічником та елементами гейміфікації.
+An intelligent educational RPG game with an adaptive learning system, AI assistant, and gamification elements.
 
 
-## Про проєкт
+## About the project
 
-Основною метою проєкта було продемонструвати концепцію інтерактивної навчальної системи, яка поєднує механіки рольової гри, адаптивне навчання та технології штучного інтелекту. На відміну від традиційних навчальних платформ, користувач взаємодіє з відкритим ігровим світом, виконує квести, розв'язує навчальні завдання (Математика, Англійська мова та Програмування) та поступово покращує характеристики персонажа. Складність завдань автоматично адаптується відповідно до успішності гравця.
+The main goal of the project was to demonstrate the concept of an interactive learning system that combines role-playing game mechanics, adaptive learning, and artificial intelligence technologies. Unlike traditional educational platforms, the user interacts with an open game world, completes quests, solves educational tasks (Math, English, and Programming), and gradually improves their character's stats. Task difficulty automatically adapts based on the player's performance.
 
-Проєкт реалізований за клієнт-серверною архітектурою: клієнтська частина розроблена на Unity (C#), серверна - на Python Flask. Взаємодія між компонентами здійснюється через REST API з використанням JSON, а AI-функціональність реалізована шляхом інтеграції локальної LLM через Ollama.
-
-
-## Основні можливості
-
-✔ відкритий RPG світ
-✔ адаптивна система навчання
-✔ AI-помічник
-✔ система квестів
-✔ NPC
-✔ діалоги
-✔ інвентар
-✔ крафт
-✔ торгівля
-✔ прокачування персонажа
-✔ система бою
-✔ день/ніч
-✔ збереження прогресу
-✔ генерація підказок AI
-✔ навчальні предмети:
-    • математика
-    • англійська
-    • програмування
+The project follows a client-server architecture: the client side is built with Unity (C#), and the server side with Python Flask. Interaction between components is handled via a REST API using JSON, and AI functionality is implemented through integration of a local LLM via Ollama.
 
 
-## Адаптивна навчальна система
+## Key Features
 
-Адаптація складності завдань базується на оцінці рівня знань користувача, ефекті забування та поведінкових показниках.
+✔ open RPG world
+✔ adaptive learning system
+✔ AI assistant
+✔ quest system
+✔ NPCs
+✔ dialogues
+✔ inventory
+✔ crafting
+✔ trading
+✔ character progression
+✔ combat system
+✔ day/night cycle
+✔ progress saving
+✔ AI hint generation
+✔ learning subjects:
+    • Math
+    • English
+    • Programming
+
+
+## Adaptive Learning System
+
+Task difficulty adaptation is based on an assessment of the user's knowledge level, the forgetting effect, and behavioral indicators.
 
 <img width="525" height="300" alt="5" src="https://github.com/user-attachments/assets/2daab5bd-197f-4220-b5cb-48967dbf463f" />
 
