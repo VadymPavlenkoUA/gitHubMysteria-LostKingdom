@@ -13,20 +13,20 @@ The project follows a client-server architecture: the client side is built with 
 
 ## Key Features
 
-✔ open RPG world
-✔ adaptive learning system
-✔ AI assistant
-✔ quest system
-✔ NPCs
-✔ dialogues
-✔ inventory
-✔ crafting
-✔ trading
-✔ character progression
-✔ combat system
-✔ day/night cycle
-✔ progress saving
-✔ AI hint generation
+* open RPG world
+* adaptive learning system
+* AI assistant
+* quest system
+* NPCs
+* dialogues
+* inventory
+* crafting
+* trading
+* character progression
+* combat system
+* day/night cycle
+* progress saving
+* AI hint generation
 * learning subjects:
     * Math
     * English
